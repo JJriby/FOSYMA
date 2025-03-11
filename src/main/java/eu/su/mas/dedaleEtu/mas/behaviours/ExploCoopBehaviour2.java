@@ -33,6 +33,7 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
     private boolean stop = false;
     private Location rdv = null;
     private Map<String, Boolean> liste_rdv;
+    private boolean premier_tour = true;
 
     public ExploCoopBehaviour2(final AbstractDedaleAgent myagent, MapRepresentation myMap, List<String> agentNames) {
         super(myagent);
@@ -40,10 +41,7 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
         this.list_agentNames = agentNames;
         this.nodesToTransmit = new HashMap<>();
         this.liste_rdv = new HashMap<>();
-        if (this.myAgent.getLocalName().equals("Elsa")) {
-        	this.rdv = ((AbstractDedaleAgent) this.myAgent).getCurrentPosition();
-        	System.out.println(this.myAgent.getLocalName() + " a défini le lieu de rencontre à " + this.rdv);
-        }
+        this.rdv = null;
     }
 
     @Override
@@ -55,6 +53,12 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
         // 0) Récupérer la position actuelle de l'agent
         Location myPosition = ((AbstractDedaleAgent) this.myAgent).getCurrentPosition();
         if (myPosition == null) return;
+        
+        if (premier_tour && this.myAgent.getLocalName().equals("Elsa")) {
+        	this.rdv = myPosition;
+        	System.out.println("Lieu de rdv défini par " + this.myAgent.getLocalName() + " : " + rdv);
+        	this.premier_tour = false;
+        }
 
         // 1) Observer l'environnement
         List<Couple<Location, List<Couple<Observation, String>>>> lobs = ((AbstractDedaleAgent) this.myAgent).observe();
@@ -96,33 +100,39 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
                     	this.myAgent.addBehaviour(new ShareMapBehaviour2(this.myAgent, myMap, agentName, partialGraph));
                         nodesToTransmit.put(agentName, new SerializableSimpleGraph<>()); // Reset après envoi
                         
-                        // METTRE UN TEMPS D'ATTENTE LE TEMPS QUE L'AUTRE RECEPTIONNE SA CARTE
+                        // METTRE UN TEMPS D'ATTENTE LE TEMPS QUE L'AUTRE RECEPTIONNE SA CARTE        
+                        
                         
                         // répétition avec le 8), pb -> essayer d'utiliser un boolean
                         // pour bloquer l'agent pour attendre la carte de l'autre agent
-                        /*MessageTemplate msgTemplate = MessageTemplate.and(
-                                MessageTemplate.MatchProtocol("SHARE-NEW-NODES"),
-                                MessageTemplate.MatchPerformative(ACLMessage.INFORM)
-                            );
                         
-                        ACLMessage msgReceived = this.myAgent.receive(msgTemplate);
-                        if (msgReceived == null) {
-                            msgReceived = this.myAgent.blockingReceive(msgTemplate, 3000);
-                        }
                         
-                        if (msgReceived != null) {
-                            System.out.println(this.myAgent.getLocalName() + " a reçu une carte de " + agentName + " en retour !");
-                            try {
-                                SerializableSimpleGraph<String, MapAttribute> receivedMap = 
-                                    (SerializableSimpleGraph<String, MapAttribute>) msgReceived.getContentObject();
-                                this.myMap.mergeMap(receivedMap);
-                                nodesToTransmit.put(agentName, new SerializableSimpleGraph<>()); // Nettoyer après fusion
-                            } catch (UnreadableException e) {
-                                e.printStackTrace();
-                            }
-                        } else {
-                            System.out.println(this.myAgent.getLocalName() + " n'a pas reçu de réponse de " + agentName);
-                        }*/
+	                        MessageTemplate msgTemplate = MessageTemplate.and(
+	                                MessageTemplate.MatchProtocol("SHARE-NEW-NODES"),
+	                                MessageTemplate.MatchPerformative(ACLMessage.INFORM)
+	                            );
+	                        
+	                        ACLMessage msgReceived = this.myAgent.receive(msgTemplate);
+	                       
+	                        
+	                        if (msgReceived == null) {
+	                            msgReceived = this.myAgent.blockingReceive(msgTemplate, 3000);
+	                        }
+	                        
+	                        if (msgReceived != null) {
+	                            System.out.println(this.myAgent.getLocalName() + " a reçu une carte de " + agentName + " en retour !");
+	                            try {
+	                                SerializableSimpleGraph<String, MapAttribute> receivedMap = 
+	                                    (SerializableSimpleGraph<String, MapAttribute>) msgReceived.getContentObject();
+	                                this.myMap.mergeMap(receivedMap);
+	                                nodesToTransmit.put(agentName, new SerializableSimpleGraph<>()); // Nettoyer après fusion
+	                                stop = false;
+	                            } catch (UnreadableException e) {
+	                                e.printStackTrace();
+	                            }
+	                        } else {
+	                            System.out.println(this.myAgent.getLocalName() + " n'a pas reçu de réponse de " + agentName);
+	                        }
                         
                         /*if (!liste_rdv.get(agentName)) {
                             System.out.println(this.myAgent.getLocalName() + " envoie le RDV à " + agentName);
@@ -151,7 +161,7 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
         }
 
         // 8) Vérifier si un autre agent a partagé une carte
-        MessageTemplate msgTemplate = MessageTemplate.and(
+        /*MessageTemplate msgTemplate = MessageTemplate.and(
             MessageTemplate.MatchProtocol("SHARE-NEW-NODES"),
             MessageTemplate.MatchPerformative(ACLMessage.INFORM)
         );
@@ -168,19 +178,19 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
 	            	System.out.println(this.myAgent.getLocalName() + " a reçu une carte de " + id_sender.getLocalName());
 	            	this.myMap.mergeMap(sgreceived);
 	            	
-	                /*SerializableSimpleGraph<String, MapAttribute> partialGraph2 = nodesToTransmit.get(id_sender.getLocalName());
+	                SerializableSimpleGraph<String, MapAttribute> partialGraph2 = nodesToTransmit.get(id_sender.getLocalName());
 	                if (partialGraph2 != null && !partialGraph2.getAllNodes().isEmpty()) {
 	                	//System.out.println(this.myAgent.getLocalName() + " renvoie sa carte à " + id_sender.getLocalName());
 	                    this.myAgent.addBehaviour(new ShareMapBehaviour2(this.myAgent, myMap, id_sender.getLocalName(), partialGraph2));
 	                    nodesToTransmit.put(id_sender.getLocalName(), new SerializableSimpleGraph<>()); // Reset après envoi
-	                }*/
+	                }
 	                stop = false;
 	
 	            }
             } catch (UnreadableException e) {
                 e.printStackTrace();
             }
-        }
+        }*/
 
         // 9) Se déplacer vers le prochain nœud
         if (!stop) {
