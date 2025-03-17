@@ -31,9 +31,12 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
     private Map<String, SerializableSimpleGraph<String, MapAttribute>> nodesToTransmit;
     
     private boolean stop = false;
-    private Location rdv = null;
+    private String rdv = "";
     private Map<String, Boolean> liste_rdv;
     private boolean premier_tour = true;
+    private List<String> shortestPath;
+    private Map<String, Integer> list_gold;
+    private Map<String, Integer> list_diamond;
 
     public ExploCoopBehaviour2(final AbstractDedaleAgent myagent, MapRepresentation myMap, List<String> agentNames) {
         super(myagent);
@@ -42,6 +45,8 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
         this.nodesToTransmit = new HashMap<>();
         this.liste_rdv = new HashMap<>();
         this.rdv = null;
+        this.list_gold = new HashMap<>();
+        this.list_diamond = new HashMap<>();
     }
 
     @Override
@@ -50,12 +55,13 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
             this.myMap = new MapRepresentation();
         }
 
+
         // 0) Récupérer la position actuelle de l'agent
         Location myPosition = ((AbstractDedaleAgent) this.myAgent).getCurrentPosition();
         if (myPosition == null) return;
         
         if (premier_tour && this.myAgent.getLocalName().equals("Elsa")) {
-        	this.rdv = myPosition;
+        	this.rdv = myPosition.getLocationId();
         	System.out.println("Lieu de rdv défini par " + this.myAgent.getLocalName() + " : " + rdv);
         	this.premier_tour = false;
         }
@@ -70,8 +76,13 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
 
         // 3) Ajouter le nœud actuel aux sous-graphes des agents voisins
         for (String agentName : list_agentNames) {
-            nodesToTransmit.putIfAbsent(agentName, new SerializableSimpleGraph<>());
-            nodesToTransmit.get(agentName).addNode(myPosition.getLocationId(), MapAttribute.closed);
+            this.nodesToTransmit.putIfAbsent(agentName, new SerializableSimpleGraph<>());
+            this.nodesToTransmit.get(agentName).addNode(myPosition.getLocationId(), MapAttribute.closed);
+        }
+        
+        // pour initialiser la liste des agents qui ont bien reçu le rdv
+        for (String agentName : list_agentNames) {
+        	this.liste_rdv.putIfAbsent(agentName, false);
         }
 
         // 4) Explorer les nœuds accessibles et ajouter les nouvelles connexions
@@ -79,6 +90,7 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
         for (Couple<Location, List<Couple<Observation, String>>> obs : lobs) {
             Location accessibleNode = obs.getLeft();
             List<Couple<Observation, String>> details = obs.getRight();
+          
 
             boolean isNewNode = this.myMap.addNewNode(accessibleNode.getLocationId());
             // Vérifie que le nœud observé (accessibleNode) n'est pas la position actuelle (myPosition).
@@ -93,57 +105,111 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
                 if (detail.getLeft() == Observation.AGENTNAME) {
                     String agentName = detail.getRight();
                     stop = true;
+                    
+                    
                     // Récupérer le sous-graphe à envoyer à cet agent
-                    SerializableSimpleGraph<String, MapAttribute> partialGraph = nodesToTransmit.get(agentName);
+                    SerializableSimpleGraph<String, MapAttribute> partialGraph = this.nodesToTransmit.get(agentName);
                     if (partialGraph != null && !partialGraph.getAllNodes().isEmpty()) {
                     	System.out.println(this.myAgent.getLocalName() + " envoie une partie de sa carte à " + agentName);   
                     	this.myAgent.addBehaviour(new ShareMapBehaviour2(this.myAgent, myMap, agentName, partialGraph));
-                        nodesToTransmit.put(agentName, new SerializableSimpleGraph<>()); // Reset après envoi
+                        this.nodesToTransmit.put(agentName, new SerializableSimpleGraph<>()); // Reset après envoi
                         
-                        // METTRE UN TEMPS D'ATTENTE LE TEMPS QUE L'AUTRE RECEPTIONNE SA CARTE        
+                        // METTRE UN TEMPS D'ATTENTE LE TEMPS QUE L'AUTRE RECEPTIONNE SA CARTE  
+                        // FAIRE UN CAS Où LORSQU'ON COMMUNIQUE AVEC QLQ QUI A FINI DE NE PAS ATTENDRE CAR SINON PB
+                        // FAIRE UN TICKER POUR PAS TACHATTER NON STOP AVEC LE MEME (JSP SI VRAIMENT UTILE VU QU'ON FAIT DES LISTES PAR AGENTS)
                         
                         
                         // répétition avec le 8), pb -> essayer d'utiliser un boolean
                         // pour bloquer l'agent pour attendre la carte de l'autre agent
                         
-                        
-	                        MessageTemplate msgTemplate = MessageTemplate.and(
-	                                MessageTemplate.MatchProtocol("SHARE-NEW-NODES"),
-	                                MessageTemplate.MatchPerformative(ACLMessage.INFORM)
-	                            );
-	                        
-	                        ACLMessage msgReceived = this.myAgent.receive(msgTemplate);
-	                       
-	                        
-	                        if (msgReceived == null) {
-	                            msgReceived = this.myAgent.blockingReceive(msgTemplate, 3000);
-	                        }
-	                        
-	                        if (msgReceived != null) {
-	                            System.out.println(this.myAgent.getLocalName() + " a reçu une carte de " + agentName + " en retour !");
-	                            try {
-	                                SerializableSimpleGraph<String, MapAttribute> receivedMap = 
-	                                    (SerializableSimpleGraph<String, MapAttribute>) msgReceived.getContentObject();
-	                                this.myMap.mergeMap(receivedMap);
-	                                nodesToTransmit.put(agentName, new SerializableSimpleGraph<>()); // Nettoyer après fusion
-	                                stop = false;
-	                            } catch (UnreadableException e) {
-	                                e.printStackTrace();
-	                            }
-	                        } else {
-	                            System.out.println(this.myAgent.getLocalName() + " n'a pas reçu de réponse de " + agentName);
-	                        }
-                        
-                        /*if (!liste_rdv.get(agentName)) {
-                            System.out.println(this.myAgent.getLocalName() + " envoie le RDV à " + agentName);
-                            ACLMessage rdvMsg = new ACLMessage(ACLMessage.INFORM);
-                            rdvMsg.setProtocol("SHARE-RDV");
-                            rdvMsg.setContent(rdv.getLocationId()); // Envoi du lieu de RDV sous forme de String
-                            rdvMsg.addReceiver(new AID(agentName, AID.ISLOCALNAME));
-                            this.myAgent.send(rdvMsg);
-                        }*/
-                        
                     }
+                    
+                    
+                    // Réceptionner le sous-graphe
+                    MessageTemplate msgTemplate = MessageTemplate.and(
+                    		MessageTemplate.MatchProtocol("SHARE-NEW-NODES"),
+                    		MessageTemplate.MatchPerformative(ACLMessage.INFORM)
+                    );
+                        
+                    ACLMessage msgReceived = this.myAgent.receive(msgTemplate);
+                       
+                        
+                    if (msgReceived == null) {
+                    	msgReceived = this.myAgent.blockingReceive(msgTemplate, 3000);
+                    }
+                        
+                    if (msgReceived != null) {
+                    	System.out.println(this.myAgent.getLocalName() + " a reçu une carte de " + agentName + " en retour !");
+                        try {
+                        	SerializableSimpleGraph<String, MapAttribute> receivedMap = 
+                        			(SerializableSimpleGraph<String, MapAttribute>) msgReceived.getContentObject();
+                            this.myMap.mergeMap(receivedMap);
+                            this.nodesToTransmit.put(agentName, new SerializableSimpleGraph<>()); // Nettoyer après fusion
+                            stop = false;
+                        } catch (UnreadableException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                    	System.out.println(this.myAgent.getLocalName() + " n'a pas reçu de réponse de " + agentName);
+                    }
+               
+                    
+	                // Envoi du lieu de rdv à l'agent rencontré si celui-ci ne le connait pas
+	                if (!this.liste_rdv.get(agentName) && this.rdv != null) {
+                        System.out.println(this.myAgent.getLocalName() + " envoie le rdv " + this.rdv + " à " + agentName);
+                        
+                        ACLMessage rdvMsg = new ACLMessage(ACLMessage.INFORM);
+                        rdvMsg.setProtocol("SHARE-RDV");
+                        rdvMsg.setSender(this.myAgent.getAID());
+                        rdvMsg.addReceiver(new AID(agentName, AID.ISLOCALNAME));
+                        rdvMsg.setContent(this.rdv); // Envoi du lieu de RDV sous forme de String
+                        ((AbstractDedaleAgent)this.myAgent).sendMessage(rdvMsg);
+	                }
+	                
+	                
+	                // Réception du lieu de rdv
+	                if (this.rdv != "" && !this.liste_rdv.get(agentName)) {
+		                MessageTemplate msgTemplate2 = MessageTemplate.and(
+	                    		MessageTemplate.MatchProtocol("SHARE-RDV"),
+	                    		MessageTemplate.MatchPerformative(ACLMessage.INFORM)
+	                    );
+	                        
+		                ACLMessage msgReceived2 = null;
+		                int maxAttempts = 3;
+		                while (msgReceived2 == null && maxAttempts > 0) {
+		                    msgReceived2 = this.myAgent.blockingReceive(msgTemplate2, 3000); // 🔵 Attente max de 3 sec
+		                    maxAttempts--;
+		                }
+		                
+		                
+	                    //ACLMessage msgReceived2 = this.myAgent.receive(msgTemplate2);
+	                        
+	                    if (msgReceived2 != null) {
+                        	//System.out.println(msgReceived2.getContentObject());
+                        	this.rdv = msgReceived2.getContent();
+                        	this.liste_rdv.put(agentName, true);
+                        	System.out.println(this.myAgent.getLocalName() + " a reçu le rdv en " + this.rdv + " de  " + agentName);
+	                    } else {
+	                    	System.out.println(this.myAgent.getLocalName() + " n'a pas reçu de rdv de " + agentName + " car il l'a déjà : " + this.rdv);
+	                    }
+	                } 
+                }
+                
+                // VOIR POUR AUSSI TRANSMETTTRE CETTE LISTE DE FACON OPTI
+                // POTENTIELLEMENT FAIRE UN TICKER POUR LES MAJ AU CAS OU MODIFICATION TRESOR PAR GOLEM ETC, POUR ENVOI MESS DU CHGT LE PLUS RECENT
+                
+                // Quand on atterit sur un trésor contenant de l'or
+                if (detail.getLeft() == Observation.GOLD) {
+                	int quantite = Integer.parseInt(detail.getRight());
+                	System.out.println("gold : " + myPosition.getLocationId());
+                	this.list_gold.putIfAbsent(myPosition.getLocationId(), quantite);
+                }
+                
+                // Quand on atterit sur un trésor contenant des diamands
+                if (detail.getLeft() == Observation.DIAMOND) {
+                	int quantite = Integer.parseInt(detail.getRight());
+                	System.out.println("diamant : " + myPosition.getLocationId());
+                	this.list_diamond.putIfAbsent(myPosition.getLocationId(), quantite);
                 }
             }
         }
@@ -152,7 +218,14 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
         if (!this.myMap.hasOpenNode()) {
             finished = true;
             System.out.println(this.myAgent.getLocalName() + " - Exploration terminée !");
-            return;
+            this.shortestPath = this.myMap.getShortestPath(myPosition.getLocationId(), this.rdv);
+            System.out.println("Début : " + myPosition.getLocationId());
+            System.out.println("Carte " + this.myAgent.getLocalName() + " : " + this.shortestPath);
+            System.out.println("golds : " + list_gold);
+            System.out.println("diamants : " + list_diamond);
+        	this.myAgent.addBehaviour(new GoToRdvBehaviour((AbstractDedaleAgent) this.myAgent, this.shortestPath));
+        	
+        	return;
         }
 
         // 7) Déterminer le prochain déplacement
