@@ -5,7 +5,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 
+import dataStructures.serializableGraph.SerializableNode;
 import dataStructures.serializableGraph.SerializableSimpleGraph;
 import dataStructures.tuple.Couple;
 import eu.su.mas.dedale.env.Location;
@@ -28,6 +31,7 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
     private List<String> list_agentNames;
     
     // Stocke les sous-graphes des nœuds à transmettre pour chaque agent
+    // private Map<String, SerializableSimpleGraph<String, MapAttribute>> nodesToTransmit;
     private Map<String, SerializableSimpleGraph<String, MapAttribute>> nodesToTransmit;
     
     private boolean stop = false;
@@ -37,6 +41,7 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
     private List<String> shortestPath;
     private Map<String, Integer> list_gold;
     private Map<String, Integer> list_diamond;
+    private Map<String, Boolean> agents_fin;
 
     public ExploCoopBehaviour2(final AbstractDedaleAgent myagent, MapRepresentation myMap, List<String> agentNames) {
         super(myagent);
@@ -47,6 +52,17 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
         this.rdv = null;
         this.list_gold = new HashMap<>();
         this.list_diamond = new HashMap<>();
+        this.agents_fin = new HashMap<>();
+        
+        // faire partie où on attend que tout le monde ait fini pour vraiment finir la communication
+        for (String agentName : list_agentNames) {
+            this.agents_fin.put(agentName, false);
+        }
+        
+        // pour initialiser la liste des agents qui ont bien reçu le rdv
+        for (String agentName : list_agentNames) {
+        	this.liste_rdv.put(agentName, false);
+        }
     }
 
     @Override
@@ -75,27 +91,33 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
         this.myMap.addNode(myPosition.getLocationId(), MapAttribute.closed);
 
         // 3) Ajouter le nœud actuel aux sous-graphes des agents voisins
-        for (String agentName : list_agentNames) {
+        /*for (String agentName : list_agentNames) {
             this.nodesToTransmit.putIfAbsent(agentName, new SerializableSimpleGraph<>());
             this.nodesToTransmit.get(agentName).addNode(myPosition.getLocationId(), MapAttribute.closed);
-        }
+        }*/
         
-        // pour initialiser la liste des agents qui ont bien reçu le rdv
-        for (String agentName : list_agentNames) {
-        	this.liste_rdv.putIfAbsent(agentName, false);
-        }
 
         // 4) Explorer les nœuds accessibles et ajouter les nouvelles connexions
         String nextNodeId = null;
         for (Couple<Location, List<Couple<Observation, String>>> obs : lobs) {
             Location accessibleNode = obs.getLeft();
             List<Couple<Observation, String>> details = obs.getRight();
-          
-
+            
             boolean isNewNode = this.myMap.addNewNode(accessibleNode.getLocationId());
+            
+          
             // Vérifie que le nœud observé (accessibleNode) n'est pas la position actuelle (myPosition).
             if (!myPosition.getLocationId().equals(accessibleNode.getLocationId())) {
-                this.myMap.addEdge(myPosition.getLocationId(), accessibleNode.getLocationId());
+                this.myMap.addEdge(myPosition.getLocationId(), accessibleNode.getLocationId());                
+                
+                for (String agentName : list_agentNames) {
+                    this.nodesToTransmit.putIfAbsent(agentName, new SerializableSimpleGraph<>());
+                    SerializableSimpleGraph<String, MapAttribute> g = this.nodesToTransmit.get(agentName);
+                    g.addNode(myPosition.getLocationId(), MapAttribute.closed);
+                    g.addNode(accessibleNode.getLocationId(), MapAttribute.open);
+                    g.addEdge("", myPosition.getLocationId(), accessibleNode.getLocationId());
+                }
+                
                 // Si nextNodeId n’a pas encore été défini ET que le nœud observé est un nouveau nœud, alors nextNodeId prend l'identifiant du premier nœud nouvellement découvert. (sélection du prochain noeud à explorer)
                 if (nextNodeId == null && isNewNode) nextNodeId = accessibleNode.getLocationId();
             }
@@ -109,9 +131,11 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
                     
                     // Récupérer le sous-graphe à envoyer à cet agent
                     SerializableSimpleGraph<String, MapAttribute> partialGraph = this.nodesToTransmit.get(agentName);
+                    System.out.println(partialGraph);
                     if (partialGraph != null && !partialGraph.getAllNodes().isEmpty()) {
-                    	System.out.println(this.myAgent.getLocalName() + " envoie une partie de sa carte à " + agentName);   
-                    	this.myAgent.addBehaviour(new ShareMapBehaviour2(this.myAgent, myMap, agentName, partialGraph));
+                    	System.out.println(this.myAgent.getLocalName() + " envoie une partie de sa carte à " + agentName);  
+                    	// AJOUTER LA TRANSMISSION DES LISTES DE TRESORS
+                    	this.myAgent.addBehaviour(new ShareMapBehaviour2(this.myAgent, partialGraph, agentName));
                         this.nodesToTransmit.put(agentName, new SerializableSimpleGraph<>()); // Reset après envoi
                         
                         // METTRE UN TEMPS D'ATTENTE LE TEMPS QUE L'AUTRE RECEPTIONNE SA CARTE  
@@ -124,6 +148,28 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
                         
                     }
                     
+                    /*MapRepresentation map_to_share = new MapRepresentation();
+
+                    SerializableSimpleGraph<String, MapAttribute> subgraph = this.nodesToTransmit.get(agentName);
+                    if (subgraph != null && !subgraph.getAllNodes().isEmpty()) {
+                        // Ajouter les nœuds et leurs attributs
+                        for (SerializableNode<String, MapAttribute> node : subgraph.getAllNodes()) {
+                            map_to_share.addNode(node.getNodeId(), node.getNodeContent());
+                        }
+
+                        // Ajouter les arêtes
+                        for (SerializableNode<String, MapAttribute> node : subgraph.getAllNodes()) {
+                        	System.out.println("tartiflette : " + subgraph.getEdges(node.getNodeId()));
+                            for (String neighborId : subgraph.getEdges(node.getNodeId())) {
+                                map_to_share.addEdge(node.getNodeId(), neighborId);
+                            }
+                        }
+                        
+                        System.out.println(this.myAgent.getLocalName() + " envoie une partie de sa carte à " + agentName);   
+                    	this.myAgent.addBehaviour(new ShareMapBehaviour2(this.myAgent, map_to_share, agentName));
+                        this.nodesToTransmit.put(agentName, new SerializableSimpleGraph<>());
+                    
+                    }*/
                     
                     // Réceptionner le sous-graphe
                     MessageTemplate msgTemplate = MessageTemplate.and(
@@ -144,6 +190,7 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
                         	SerializableSimpleGraph<String, MapAttribute> receivedMap = 
                         			(SerializableSimpleGraph<String, MapAttribute>) msgReceived.getContentObject();
                             this.myMap.mergeMap(receivedMap);
+                            // a revoir
                             this.nodesToTransmit.put(agentName, new SerializableSimpleGraph<>()); // Nettoyer après fusion
                             stop = false;
                         } catch (UnreadableException e) {
@@ -201,14 +248,12 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
                 // Quand on atterit sur un trésor contenant de l'or
                 if (detail.getLeft() == Observation.GOLD) {
                 	int quantite = Integer.parseInt(detail.getRight());
-                	System.out.println("gold : " + myPosition.getLocationId());
                 	this.list_gold.putIfAbsent(myPosition.getLocationId(), quantite);
                 }
                 
                 // Quand on atterit sur un trésor contenant des diamands
                 if (detail.getLeft() == Observation.DIAMOND) {
                 	int quantite = Integer.parseInt(detail.getRight());
-                	System.out.println("diamant : " + myPosition.getLocationId());
                 	this.list_diamond.putIfAbsent(myPosition.getLocationId(), quantite);
                 }
             }
@@ -218,11 +263,19 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
         if (!this.myMap.hasOpenNode()) {
             finished = true;
             System.out.println(this.myAgent.getLocalName() + " - Exploration terminée !");
-            this.shortestPath = this.myMap.getShortestPath(myPosition.getLocationId(), this.rdv);
-            System.out.println("Début : " + myPosition.getLocationId());
-            System.out.println("Carte " + this.myAgent.getLocalName() + " : " + this.shortestPath);
-            System.out.println("golds : " + list_gold);
-            System.out.println("diamants : " + list_diamond);
+            /*this.shortestPath = this.myMap.getShortestPath(myPosition.getLocationId(), this.rdv);
+            System.out.println("Carte " + this.myAgent.getLocalName() + " : " + this.shortestPath);*/
+            
+            Set<String> treasureNodes = new HashSet<>();
+            treasureNodes.addAll(list_gold.keySet());
+            treasureNodes.addAll(list_diamond.keySet());
+            
+            
+            
+            String obj = this.calculerBarycentreTopologique(treasureNodes);
+            System.out.println("obj :"+ obj);
+            
+            this.shortestPath = this.myMap.getShortestPath(myPosition.getLocationId(), obj);
         	this.myAgent.addBehaviour(new GoToRdvBehaviour((AbstractDedaleAgent) this.myAgent, this.shortestPath));
         	
         	return;
@@ -269,6 +322,34 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
         if (!stop) {
         	((AbstractDedaleAgent) this.myAgent).moveTo(new GsLocation(nextNodeId));
         }
+    }
+    
+    private String calculerBarycentreTopologique(Set<String> treasureNodes) {
+        String bestNode = null;
+        int minTotalDistance = Integer.MAX_VALUE;
+
+        for (SerializableNode<String, MapAttribute> node : myMap.getSerializableGraph().getAllNodes()) {
+        	String candidate = node.getNodeId();
+        	System.out.println("ICI : "+candidate);
+        	int totalDistance = 0;
+            boolean reachable = true;
+
+            for (String treasure : treasureNodes) {
+                List<String> path = myMap.getShortestPath(candidate, treasure);
+                if (path == null || path.isEmpty()) {
+                    reachable = false;
+                    break;
+                }
+                totalDistance += path.size(); // nombre de transitions
+            }
+
+            if (reachable && totalDistance < minTotalDistance) {
+                minTotalDistance = totalDistance;
+                bestNode = candidate;
+            }
+        }
+
+        return bestNode;
     }
 
     @Override

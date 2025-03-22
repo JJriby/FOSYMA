@@ -28,9 +28,9 @@ import jade.core.behaviours.OneShotBehaviour;
  */
 public class ShareMapBehaviour2 extends OneShotBehaviour{
 	
-	private MapRepresentation myMap;
+	private SerializableSimpleGraph<String, MapAttribute> map;
 	private String receiver;
-	private SerializableSimpleGraph<String, MapAttribute> nodesToTransmit;
+	//private SerializableSimpleGraph<String, MapAttribute> nodesToTransmit;
 
 	/**
 	 * The agent periodically share its map.
@@ -44,11 +44,11 @@ public class ShareMapBehaviour2 extends OneShotBehaviour{
 	 */
 	
 	// MODIFIER LE MYMAP CAR A LA BASE CA DEVRAIT ETRE NODESTOTRANSMIT
-	public ShareMapBehaviour2(Agent a, MapRepresentation mymap, String receiver, SerializableSimpleGraph<String, MapAttribute> nodesToTransmit) {
+	public ShareMapBehaviour2(Agent a, SerializableSimpleGraph<String, MapAttribute> map, String receiver) {
 		super(a);
-		this.myMap=mymap;
+		this.map=map;
 		this.receiver=receiver;
-		this.nodesToTransmit = nodesToTransmit;
+		//this.nodesToTransmit = nodesToTransmit;
 	}
 
 	/**
@@ -60,9 +60,9 @@ public class ShareMapBehaviour2 extends OneShotBehaviour{
 	public void action() {
 		//4) At each time step, the agent blindly send all its graph to its surrounding to illustrate how to share its knowledge (the topology currently) with the the others agents. 	
 		// If it was written properly, this sharing action should be in a dedicated behaviour set, the receivers be automatically computed, and only a subgraph would be shared.
-		if (nodesToTransmit == null || nodesToTransmit.getAllNodes().isEmpty()) {
+		/*if (nodesToTransmit == null || nodesToTransmit.getAllNodes().isEmpty()) {
             return; // Rien à envoyer
-        }
+        }*/
 		
 		//((ExploCoopBehaviour2)this.myAgent).setSharing(true);
 		
@@ -72,8 +72,9 @@ public class ShareMapBehaviour2 extends OneShotBehaviour{
 		msg.addReceiver(new AID(receiver, AID.ISLOCALNAME));
 		
 				
-		try {					
-			msg.setContentObject(nodesToTransmit);
+		try {			
+			//SerializableSimpleGraph<String, MapAttribute> sg=this.myMap.getSerializableGraph();
+			msg.setContentObject(this.map);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
