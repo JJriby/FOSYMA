@@ -14,7 +14,7 @@
   "agentType":"agentCollect",
   "agentName": "Elsa",
   "communicationRange": 3,
-  "initialLocation": "free",
+  "initialLocation": "19",
   "backPackCapacityGold": 100,
   "backPackCapacityDiamond":-1, 
   "detectionRadius": 0,

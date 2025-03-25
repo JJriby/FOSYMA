@@ -16,17 +16,13 @@ public class CollectBehaviour extends Behaviour {
     
     private MapRepresentation myMap;
     private List<String> list_agentNames;
-    private Map<String, List<Integer>> list_gold;
-    private Map<String, List<Integer>> list_diamond;
     
-    private Map<String, String> list_obj;
+    private Map<String, List<String>> list_obj;
     
-    public CollectBehaviour(final AbstractDedaleAgent myagent, MapRepresentation myMap, List<String> agentNames, Map<String, List<Integer>> list_gold, Map<String, List<Integer>> list_diamond) {
+    public CollectBehaviour(final AbstractDedaleAgent myagent, MapRepresentation myMap, List<String> agentNames, Map<String, List<String>> list_obj) {
         super(myagent);
         this.myMap = myMap;
         this.list_agentNames = agentNames;
-        this.list_gold = list_gold;
-        this.list_diamond = list_diamond;
         this.list_obj = list_obj;
     }
 

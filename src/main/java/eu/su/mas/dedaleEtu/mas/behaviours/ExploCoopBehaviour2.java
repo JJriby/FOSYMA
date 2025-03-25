@@ -3,6 +3,7 @@ package eu.su.mas.dedaleEtu.mas.behaviours;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -57,6 +58,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
         this.list_gold = list_gold;
         this.list_diamond = list_diamond;
         this.agents_fin = new HashMap<>();
+        
         
         // faire partie où on attend que tout le monde ait fini pour vraiment finir la communication
         for (String agentName : list_agentNames) {
@@ -125,9 +127,14 @@ public class ExploCoopBehaviour2 extends Behaviour {
                 // Si nextNodeId n’a pas encore été défini ET que le nœud observé est un nouveau nœud, alors nextNodeId prend l'identifiant du premier nœud nouvellement découvert. (sélection du prochain noeud à explorer)
                 if (nextNodeId == null && isNewNode) nextNodeId = accessibleNode.getLocationId();
             }
+            
+            List<Integer> data = new ArrayList<Integer>(); 
+        	boolean gold = false;
+        	boolean diamond = false;
 
             // 5) Détecter les agents voisins et leur envoyer les nouveaux nœuds
             for (Couple<Observation, String> detail : details) {
+            	
                 if (detail.getLeft() == Observation.AGENTNAME) {
                     String agentName = detail.getRight();
                     stop = true;
@@ -250,31 +257,49 @@ public class ExploCoopBehaviour2 extends Behaviour {
                 // POTENTIELLEMENT FAIRE UN TICKER POUR LES MAJ AU CAS OU MODIFICATION TRESOR PAR GOLEM ETC, POUR ENVOI MESS DU CHGT LE PLUS RECENT
                 
                 // Quand on atterit sur un trésor contenant de l'or
+                if (detail.getLeft() == Observation.LOCKPICKING) {
+                	data.add(Integer.parseInt(detail.getRight()));
+            	}
+                
+                if (detail.getLeft() == Observation.STRENGH) {
+                	data.add(Integer.parseInt(detail.getRight()));
+            	}
+                
+                if (detail.getLeft() == Observation.LOCKSTATUS) {
+                	data.add(Integer.parseInt(detail.getRight()));
+            	}
+                
                 if (detail.getLeft() == Observation.GOLD) {
-                	int quantite = Integer.parseInt(detail.getRight());
-                	System.out.println("qtte : " + quantite);
-                	//this.list_gold.putIfAbsent(myPosition.getLocationId(), quantite);
+                	//System.out.println("liste : " + detail.getLeft());
+                	gold = true;
+                	data.add(Integer.parseInt(detail.getRight()));
                 }
                 
                 // Quand on atterit sur un trésor contenant des diamands
                 if (detail.getLeft() == Observation.DIAMOND) {
-                	int quantite = Integer.parseInt(detail.getRight());
-                	System.out.println("qtte : " + quantite);
-                	//this.list_diamond.putIfAbsent(myPosition.getLocationId(), quantite);
+                	diamond = true;
+                	data.add(Integer.parseInt(detail.getRight()));
                 }
+            }
+            if(gold) {
+            	this.list_gold.putIfAbsent(myPosition.getLocationId(), data);
+            }
+            if(diamond) {
+            	this.list_diamond.putIfAbsent(myPosition.getLocationId(), data);
             }
         }
 
         // 6) Vérifier si l'exploration est terminée
         if (!this.myMap.hasOpenNode()) {
             System.out.println(this.myAgent.getLocalName() + " - Exploration terminée !");
+            System.out.println("liste des trésors or : " + list_gold);
+            System.out.println("liste des trésors diamant : " + list_diamond);
             /*this.shortestPath = this.myMap.getShortestPath(myPosition.getLocationId(), this.rdv);
             System.out.println("Carte " + this.myAgent.getLocalName() + " : " + this.shortestPath);*/
             
             Set<String> treasureNodes = new HashSet<>();
             treasureNodes.addAll(list_gold.keySet());
             treasureNodes.addAll(list_diamond.keySet());
-            
             
             
             String obj = this.calculerBarycentreTopologique(treasureNodes);
