@@ -344,7 +344,7 @@ public class Principal {
 		agentName="Elsa";
 
 		//3) If you want to give specific parameters to your agent, add them here
-		Object [] entityParametersExplo1={"Tim"};
+		Object [] entityParametersExplo1={"Tim","Silo"};
 
 		//4) Give the class name of your agent to let the system instantiate it
 		//ag=createNewDedaleAgent(c, agentName,DummyMovingAgent.class.getName(), entityParametersExplo1);
@@ -362,13 +362,35 @@ public class Principal {
 				agentName="Tim";
 		
 				//3) If you want to give specific parameters to your agent, add them here
-				Object [] entityParametersExplo2={"Elsa"};
+				Object [] entityParametersExplo2={"Elsa","Silo"};
 		
 				//4) Give the class name of your agent to let the system instantiate it
 				ag=createNewDedaleAgent(c, agentName, ExploreCoopAgent2.class.getName(), entityParametersExplo2);//ExploreSoloAgent
 				agentList.add(ag);
 
-		//		
+		//	
+				
+		// DEBUT MODIFICATION
+				/*********
+				 * AGENT Silo
+				 *********/
+								//1) Get the container where the agent will appear
+						c = containerList.get(ConfigurationFile.LOCAL_CONTAINER2_NAME);
+						Assert.assertNotNull("This container does not exist",c);
+				
+						//2) Give the name of your agent, MUST be the same as the one given in the entities file.
+						agentName="Silo";
+				
+						//3) If you want to give specific parameters to your agent, add them here
+						Object [] entityParametersSilo={"Elsa","Tim"}; // le nom des agents
+				
+						//4) Give the class name of your agent to let the system instantiate it
+						ag=createNewDedaleAgent(c, agentName, ExploreCoopAgent2.class.getName(), entityParametersSilo);//ExploreSoloAgent
+						agentList.add(ag);
+
+				//
+		// FIN MODIFICATION
+				
 		//		
 		/*********
 		 * AGENT Explo3

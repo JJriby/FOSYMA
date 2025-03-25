@@ -18,12 +18,14 @@ import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
 import jade.core.AID;
+import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.SimpleBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 
-public class ExploCoopBehaviour2 extends SimpleBehaviour {
+public class ExploCoopBehaviour2 extends Behaviour {
 
     private static final long serialVersionUID = 8567689731496787661L;
     private boolean finished = false;
@@ -39,19 +41,21 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
     private Map<String, Boolean> liste_rdv;
     private boolean premier_tour = true;
     private List<String> shortestPath;
-    private Map<String, Integer> list_gold;
-    private Map<String, Integer> list_diamond;
+    private Map<String, List<Integer>> list_gold; // on stocke dans liste gold, pour chaque localisation, on récupère quantité, lock, strength
+    private Map<String, List<Integer>> list_diamond;
     private Map<String, Boolean> agents_fin;
+    
+    private int exitValue = 0;
 
-    public ExploCoopBehaviour2(final AbstractDedaleAgent myagent, MapRepresentation myMap, List<String> agentNames) {
+    public ExploCoopBehaviour2(final AbstractDedaleAgent myagent, MapRepresentation myMap, List<String> agentNames, Map<String, List<Integer>> list_gold, Map<String, List<Integer>> list_diamond) {
         super(myagent);
         this.myMap = myMap;
         this.list_agentNames = agentNames;
         this.nodesToTransmit = new HashMap<>();
         this.liste_rdv = new HashMap<>();
         this.rdv = null;
-        this.list_gold = new HashMap<>();
-        this.list_diamond = new HashMap<>();
+        this.list_gold = list_gold;
+        this.list_diamond = list_diamond;
         this.agents_fin = new HashMap<>();
         
         // faire partie où on attend que tout le monde ait fini pour vraiment finir la communication
@@ -248,20 +252,21 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
                 // Quand on atterit sur un trésor contenant de l'or
                 if (detail.getLeft() == Observation.GOLD) {
                 	int quantite = Integer.parseInt(detail.getRight());
-                	this.list_gold.putIfAbsent(myPosition.getLocationId(), quantite);
+                	System.out.println("qtte : " + quantite);
+                	//this.list_gold.putIfAbsent(myPosition.getLocationId(), quantite);
                 }
                 
                 // Quand on atterit sur un trésor contenant des diamands
                 if (detail.getLeft() == Observation.DIAMOND) {
                 	int quantite = Integer.parseInt(detail.getRight());
-                	this.list_diamond.putIfAbsent(myPosition.getLocationId(), quantite);
+                	System.out.println("qtte : " + quantite);
+                	//this.list_diamond.putIfAbsent(myPosition.getLocationId(), quantite);
                 }
             }
         }
 
         // 6) Vérifier si l'exploration est terminée
         if (!this.myMap.hasOpenNode()) {
-            finished = true;
             System.out.println(this.myAgent.getLocalName() + " - Exploration terminée !");
             /*this.shortestPath = this.myMap.getShortestPath(myPosition.getLocationId(), this.rdv);
             System.out.println("Carte " + this.myAgent.getLocalName() + " : " + this.shortestPath);*/
@@ -276,8 +281,12 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
             System.out.println("obj :"+ obj);
             
             this.shortestPath = this.myMap.getShortestPath(myPosition.getLocationId(), obj);
-        	this.myAgent.addBehaviour(new GoToRdvBehaviour((AbstractDedaleAgent) this.myAgent, this.shortestPath));
+        	//this.myAgent.addBehaviour(new GoToRdvBehaviour((AbstractDedaleAgent) this.myAgent, this.shortestPath));
         	
+        	//((GlobalBehaviour)this.getParent()).transitionTo("GoToRDV");
+            ((GlobalBehaviour)this.getParent()).setShortestPath(this.shortestPath);
+        	this.exitValue = 1;
+        	finished = true;
         	return;
         }
 
@@ -325,17 +334,17 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
     }
     
     private String calculerBarycentreTopologique(Set<String> treasureNodes) {
+    	System.out.println("Trésors : " + treasureNodes);
         String bestNode = null;
         int minTotalDistance = Integer.MAX_VALUE;
 
-        for (SerializableNode<String, MapAttribute> node : myMap.getSerializableGraph().getAllNodes()) {
+        for (SerializableNode<String, MapAttribute> node : this.myMap.getSerializableGraph().getAllNodes()) {
         	String candidate = node.getNodeId();
-        	System.out.println("ICI : "+candidate);
         	int totalDistance = 0;
             boolean reachable = true;
 
             for (String treasure : treasureNodes) {
-                List<String> path = myMap.getShortestPath(candidate, treasure);
+                List<String> path = this.myMap.getShortestPath(candidate, treasure);
                 if (path == null || path.isEmpty()) {
                     reachable = false;
                     break;
@@ -351,10 +360,15 @@ public class ExploCoopBehaviour2 extends SimpleBehaviour {
 
         return bestNode;
     }
-
+    
     @Override
     public boolean done() {
         return finished;
+    }
+
+    @Override
+    public int onEnd() {
+        return this.exitValue;
     }
     
 }

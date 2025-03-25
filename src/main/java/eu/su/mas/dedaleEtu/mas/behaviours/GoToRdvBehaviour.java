@@ -4,12 +4,14 @@ import java.util.List;
 
 import eu.su.mas.dedale.env.gs.GsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
+import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.SimpleBehaviour;
 
-public class GoToRdvBehaviour extends SimpleBehaviour {
+public class GoToRdvBehaviour extends Behaviour {
 	
 	private static final long serialVersionUID = 7567689731496787661L;
 	private boolean finished = false;
+	private int exitValue = 0;
 	
 	private List<String> shortestPath; 
 	private int cpt = 0;
@@ -26,14 +28,27 @@ public class GoToRdvBehaviour extends SimpleBehaviour {
 			cpt++;
 		}
 		else {
-			finished = true;
+			((GlobalBehaviour)this.getParent()).setShortestPath(this.shortestPath);
+			this.exitValue = 1;
+			this.finished = true;
+			return;
 		}
 
+	}
+	
+	public void setPath(List<String> path) {
+	    this.shortestPath = path;
+	    this.cpt = 0; // reset au cas où
 	}
 
 	@Override
 	public boolean done() {
-		return finished;
+		return this.finished;
+	}
+	
+	@Override
+	public int onEnd() {
+		return this.exitValue;
 	}
 
 }
