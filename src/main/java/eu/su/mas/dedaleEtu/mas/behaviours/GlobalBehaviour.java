@@ -12,10 +12,12 @@ public class GlobalBehaviour extends FSMBehaviour {
 	
 	private static final String Explore = "Explore";
 	private static final String GoToRDV = "GoToRDV";
+	private static final String PlanDAttaque = "PlanDAttaque";
 	private static final String Collect = "Collect";
 	
 	private List<String> shortestPath;
 	private GoToRdvBehaviour goToRdvBehaviour;
+	private PlanDAttaqueBehaviour planDAttaqueBehaviour;
 	private CollectBehaviour collectBehaviour;
 	
 	private MapRepresentation myMap;
@@ -39,8 +41,8 @@ public class GlobalBehaviour extends FSMBehaviour {
         this.registerState(goToRdvBehaviour, GoToRDV);
         
         // tester la technique où on les retire des constructeurs et on fait juste des fonctions
-        this.collectBehaviour = new CollectBehaviour(myagent, myMap, agentNames, list_gold, list_diamond);
-        this.registerLastState(collectBehaviour, Collect);
+        this.planDAttaqueBehaviour = new PlanDAttaqueBehaviour(myagent, myMap, agentNames, list_gold, list_diamond);
+        this.registerLastState(planDAttaqueBehaviour, PlanDAttaque);
 
         // transitions
         this.registerTransition(Explore, GoToRDV, 1); // quand exploration finie

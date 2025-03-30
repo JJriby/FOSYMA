@@ -98,7 +98,7 @@ public final class ConfigurationFile {
 	// otherwise
 	//public static String INSTANCE_CONFIGURATION_ELEMENTS="resources/treasureHunt/map2019-elementsExam1";
 	//public static String INSTANCE_CONFIGURATION_ELEMENTS="resources/treasureHunt/Houat-elements";
-	public static String INSTANCE_CONFIGURATION_ELEMENTS="resources/treasureHunt/map2018-elements2.json";
+	public static String INSTANCE_CONFIGURATION_ELEMENTS="resources/treasureHunt/map2018-elements.json";
 	//public static String INSTANCE_CONFIGURATION_ELEMENTS="resources/interlocking/mapInterlocking2-elements";
 	//public static String INSTANCE_CONFIGURATION_ELEMENTS="resources/map2018-elements";
 	//public static String INSTANCE_CONFIGURATION_ELEMENTS="resources/mapInterlocking2-elements";
