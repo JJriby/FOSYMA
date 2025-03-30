@@ -48,7 +48,8 @@ public class ExploCoopBehaviour2 extends Behaviour {
     // voir si c'est vraiment utile et potentiellement voir pour un reset pour communiquer à nouveau avec un certain agent
     private Set<String> alreadyExchanged = new HashSet<>();
     private Set<String> currentlyExchanging = new HashSet<>(); 
-
+    private String lastPos = "";
+    private int cpt_block = 0;
     
     private int exitValue = 0;
 
@@ -60,7 +61,6 @@ public class ExploCoopBehaviour2 extends Behaviour {
         this.list_gold = list_gold;
         this.list_diamond = list_diamond;
         this.agents_fin = new HashMap<>();
-        
         
         // faire partie où on attend que tout le monde ait fini pour vraiment finir la communication
         for (String agentName : list_agentNames) {
@@ -90,7 +90,21 @@ public class ExploCoopBehaviour2 extends Behaviour {
         // 2) Marquer le nœud actuel comme visité
         this.myMap.addNode(myPosition.getLocationId(), MapAttribute.closed);
         
-
+        // Détection si inter-blocage et si c'est le cas on part chercher une solution
+        if(this.lastPos == myPosition.getLocationId() && this.currentlyExchanging.isEmpty()) {
+        	this.cpt_block++;
+        } else {
+        	this.cpt_block = 0;
+        }
+        
+        if(this.cpt_block == 5) {
+        	((GlobalBehaviour)this.getParent()).setLastObservation(lobs);
+        	this.finished = true;
+        	this.exitValue = 2;
+        	return;
+        }
+        
+        
         // 3) Explorer les nœuds accessibles et ajouter les nouvelles connexions
         String nextNodeId = null;
         for (Couple<Location, List<Couple<Observation, String>>> obs : lobs) {
@@ -225,6 +239,9 @@ public class ExploCoopBehaviour2 extends Behaviour {
         if (this.currentlyExchanging.isEmpty()) {
         	((AbstractDedaleAgent) this.myAgent).moveTo(new GsLocation(nextNodeId));
         }
+        
+        // on garde en mémoire la position actuelle 
+        this.lastPos = myPosition.getLocationId();
     }
     
     
@@ -254,10 +271,6 @@ public class ExploCoopBehaviour2 extends Behaviour {
         }
 
         return bestNode;
-    }
-    
-    public void setStop(boolean stop) {
-    	this.stop = stop;
     }
     
     @Override
