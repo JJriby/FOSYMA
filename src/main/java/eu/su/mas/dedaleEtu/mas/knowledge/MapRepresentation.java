@@ -314,7 +314,59 @@ public class MapRepresentation implements Serializable {
 				.findAny()).isPresent();
 	}
 
+	
+	// Fonctions que j'ai rajoutées
+	
+	public synchronized List<String> getShortestPath2(String idFrom,String idTo,List<String> noeudsInterdits){
+		List<String> shortestPath=new ArrayList<String>();
 
+		Dijkstra dijkstra = new Dijkstra();//number of edge
+		dijkstra.init(g);
+
+		List<Node> noeudsSupprimes = new ArrayList<>();
+	    for (String n_id : noeudsInterdits) {
+	        Node node = g.getNode(n_id);
+	        noeudsSupprimes.add(node);
+	        g.removeNode(n_id);
+	    }
+			
+		dijkstra.setSource(g.getNode(idFrom));
+		dijkstra.compute();//compute the distance to all nodes from idFrom
+		List<Node> path=dijkstra.getPath(g.getNode(idTo)).getNodePath(); //the shortest path from idFrom to idTo
+		Iterator<Node> iter=path.iterator();
+		while (iter.hasNext()){
+			shortestPath.add(iter.next().getId());
+		}
+		dijkstra.clear();
+		
+		for (Node node : noeudsSupprimes) {
+            g.addNode(node.getId()); 
+        }
+		
+		if (shortestPath.isEmpty()) {//The openNode is not currently reachable
+			return null;
+		}else {
+			shortestPath.remove(0);//remove the current position
+		}
+		return shortestPath;
+	}
+
+	
+	public List<String> getShortestPathToClosestOpenNode2(String myPosition, List<String> noeudsInterdits) {
+		//1) Get all openNodes
+		List<String> opennodes=getOpenNodes();
+
+		//2) select the closest one
+		List<Couple<String,Integer>> lc=
+				opennodes.stream()
+				.map(on -> (getShortestPath2(myPosition,on,noeudsInterdits)!=null)? new Couple<String, Integer>(on,getShortestPath(myPosition,on).size()): new Couple<String, Integer>(on,Integer.MAX_VALUE))//some nodes my be unreachable if the agents do not share at least one common node.
+				.collect(Collectors.toList());
+
+		Optional<Couple<String,Integer>> closest=lc.stream().min(Comparator.comparing(Couple::getRight));
+		//3) Compute shorterPath
+
+		return getShortestPath2(myPosition,closest.get().getLeft(), noeudsInterdits);
+	}
 
 
 }

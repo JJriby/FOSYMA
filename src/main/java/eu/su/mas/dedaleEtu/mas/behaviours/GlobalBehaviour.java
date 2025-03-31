@@ -3,12 +3,16 @@ package eu.su.mas.dedaleEtu.mas.behaviours;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import dataStructures.serializableGraph.SerializableSimpleGraph;
 import dataStructures.tuple.Couple;
 import eu.su.mas.dedale.env.Location;
 import eu.su.mas.dedale.env.Observation;
 
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
 import jade.core.behaviours.FSMBehaviour;
 
 public class GlobalBehaviour extends FSMBehaviour {
@@ -18,12 +22,18 @@ public class GlobalBehaviour extends FSMBehaviour {
 	private static final String PlanDAttaque = "PlanDAttaque";
 	private static final String Collect = "Collect";
 	private static final String InterBlocage = "InterBlocage";
+	private static final String Ping = "Ping";
+	private static final String Pong = "Pong";
+	private static final String ShareMap = "ShareMap";
 	
 	private List<String> shortestPath;
 	private GoToRdvBehaviour goToRdvBehaviour;
 	private PlanDAttaqueBehaviour planDAttaqueBehaviour;
 	private CollectBehaviour collectBehaviour;
 	private InterBlocageBehaviour interBlocageBehaviour;
+	private PingBehaviour pingBehaviour;
+	private PongBehaviour pongBehaviour;
+	private ShareMapBehaviour3 shareMapBehaviour;
 	
 	private MapRepresentation myMap;
 	private List<String> agentNames;
@@ -46,7 +56,7 @@ public class GlobalBehaviour extends FSMBehaviour {
         this.registerFirstState(new ExploCoopBehaviour2(myagent, myMap, agentNames, list_gold, list_diamond), Explore);
         this.goToRdvBehaviour = new GoToRdvBehaviour(myagent, null);
         this.registerState(goToRdvBehaviour, GoToRDV);
-        this.interBlocageBehaviour = new InterBlocageBehaviour(myagent);
+        this.interBlocageBehaviour = new InterBlocageBehaviour(myagent, this.myMap);
         this.registerState(interBlocageBehaviour, InterBlocage);
         
         // tester la technique où on les retire des constructeurs et on fait juste des fonctions
@@ -58,6 +68,15 @@ public class GlobalBehaviour extends FSMBehaviour {
         this.registerTransition(GoToRDV, Collect, 1);
         this.registerTransition(Explore, InterBlocage, 2);
         this.registerTransition(InterBlocage, Explore, 2);
+        
+        this.registerTransition(Explore, Ping, 3);
+        this.registerTransition(Explore, Pong, 4);
+        this.registerTransition(Ping, Explore, -1);
+        this.registerTransition(Pong, Explore, -1);
+        
+        this.registerTransition(Ping, ShareMap, 1);
+        this.registerTransition(ShareMap, Explore, -1);
+        
 	}
 	
 	public void setShortestPath(List<String> path) {
@@ -72,5 +91,16 @@ public class GlobalBehaviour extends FSMBehaviour {
 	public List<Couple<Location, List<Couple<Observation, String>>>> getLastObservation() {
 	    return this.lastObservation;
 	}
-
+	
+	public void setShareMapParams(String receiverName, SerializableSimpleGraph<String, MapAttribute> mapToSend, MapRepresentation myMap, Map<String, SerializableSimpleGraph<String, MapAttribute>> nodesToTransmit, Set<String> alreadyExchanged, Set<String> currentlyExchanging, Map<String, List<Integer>> list_gold, Map<String, List<Integer>> list_diamond) {
+		this.shareMapBehaviour = new ShareMapBehaviour3((AbstractDedaleAgent) this.myAgent, receiverName, mapToSend, myMap, nodesToTransmit, alreadyExchanged, currentlyExchanging, list_gold, list_diamond);
+	}
+	
+	public void setPingParams(int type_msg, String receiverName){
+		this.pingBehaviour = new PingBehaviour((AbstractDedaleAgent) this.myAgent, type_msg, receiverName);
+	}
+	
+	public void setPongParams(String receiverName, SerializableSimpleGraph<String, MapAttribute> mapToSend, MapRepresentation myMap, Map<String, SerializableSimpleGraph<String, MapAttribute>> nodesToTransmit, Set<String> alreadyExchanged, Set<String> currentlyExchanging, Map<String, List<Integer>> list_gold, Map<String, List<Integer>> list_diamond) {
+		this.pongBehaviour = new PongBehaviour((AbstractDedaleAgent) this.myAgent, receiverName, mapToSend, myMap, nodesToTransmit, alreadyExchanged, currentlyExchanging, list_gold, list_diamond);
+	}
 }

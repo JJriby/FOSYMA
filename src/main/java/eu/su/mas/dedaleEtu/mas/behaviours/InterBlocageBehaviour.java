@@ -1,14 +1,22 @@
 package eu.su.mas.dedaleEtu.mas.behaviours;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import org.graphstream.algorithm.Dijkstra;
+import org.graphstream.graph.Graph;
+import org.graphstream.graph.Node;
+
 import dataStructures.tuple.Couple;
 import eu.su.mas.dedale.env.Location;
 import eu.su.mas.dedale.env.Observation;
 
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import jade.core.behaviours.Behaviour;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 
 public class InterBlocageBehaviour extends Behaviour {
 	
@@ -16,27 +24,30 @@ public class InterBlocageBehaviour extends Behaviour {
 	private boolean finished = false;
 	private int exitValue = 0;
 	
-	public InterBlocageBehaviour(final AbstractDedaleAgent myagent) {
+	private Graph g;
+	
+	public InterBlocageBehaviour(final AbstractDedaleAgent myagent, MapRepresentation myMap) {
         super(myagent);
 	}
 
 	@Override
-	public void action() {
+	public void action() { 
+		// on récupère les observations de l'agent bloqué
 		List<Couple<Location, List<Couple<Observation, String>>>> lobs = ((GlobalBehaviour)this.getParent()).getLastObservation();
 		
-		/*System.out.println("=== Inter-Blocage : Observations (lobs) ===" + this.myAgent.getLocalName());
+		
+		// faire directement une condition avec getShortestpath si c'est null alors coincé donc l'autre bouge
+		/*
+		boolean coince = true;
 		for (Couple<Location, List<Couple<Observation, String>>> observation : lobs) {
-		    Location loc = observation.getLeft();
-		    List<Couple<Observation, String>> obsList = observation.getRight();
-
-		    System.out.println("🧭 Position observée : " + loc.getLocationId());
-
-		    for (Couple<Observation, String> obs : obsList) {
-		        System.out.println("   🔍 Observation : " + obs.getLeft() + " | Valeur : " + obs.getRight());
-		    }
+			for (Couple<Observation, String> o : observation.getRight()) {
+				if (o.getLeft() == null) {
+					System.out.println("ici : " + this.myAgent.getLocalName());
+				}
+			}
 		}
-		System.out.println("============================");
 		*/
+		
 		
 		
 		// 1) si qtte trésor ramassée pareil ou égal à 0 --> communication chemin vers objectif
@@ -65,6 +76,8 @@ public class InterBlocageBehaviour extends Behaviour {
 		
 		
 	}
+	
+	
 
 	@Override
 	public boolean done() {

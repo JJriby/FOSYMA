@@ -33,28 +33,20 @@ public class PingBehaviour extends Behaviour {
 
 	private static final long serialVersionUID = 12L;
 	private String receiverName;
-    private SerializableSimpleGraph<String, MapAttribute> mapToSend;
-    private MapRepresentation myMap;
     private boolean finished = false;
-    private Map<String, SerializableSimpleGraph<String, MapAttribute>> nodesToTransmit;
-    private Set<String> alreadyExchanged;
     private Set<String> currentlyExchanging;
+    private int exitValue;
+    private int type_msg;
 
-    public PingBehaviour(AbstractDedaleAgent a, String receiverName, SerializableSimpleGraph<String, MapAttribute> mapToSend, MapRepresentation myMap, Map<String, SerializableSimpleGraph<String, MapAttribute>> nodesToTransmit, Set<String> alreadyExchanged, Set<String> currentlyExchanging) {
+    public PingBehaviour(AbstractDedaleAgent a, int type_msg, String receiverName) {
         super(a);
         this.receiverName = receiverName;
-        this.mapToSend = mapToSend;
-        this.myMap = myMap;
-        this.nodesToTransmit = nodesToTransmit;
-        this.alreadyExchanged = alreadyExchanged;
-        this.currentlyExchanging = currentlyExchanging;
+        this.type_msg = type_msg;
     }
 
     @Override
     public void action() {
-    	
-    	System.out.println("ici : " + this.alreadyExchanged);
-    	
+    	    	
         // 1. Envoi du PING
         ACLMessage ping = new ACLMessage(ACLMessage.QUERY_IF);
         ping.setProtocol("PING");
@@ -73,69 +65,25 @@ public class PingBehaviour extends Behaviour {
 
         ACLMessage pong = this.myAgent.blockingReceive(pongTemplate, 3000);
         if (pong == null) {
-            System.out.println(myAgent.getLocalName() + " ❌ Pas de PONG de " + receiverName);
-            this.finished = true;
-            return;
-        }
-        System.out.println(myAgent.getLocalName() + " ✅ PONG reçu de " + receiverName);
-
-        // 3. Envoi de la carte        
-        try {
-            ACLMessage mapMsg = new ACLMessage(ACLMessage.INFORM);
-            mapMsg.setProtocol("SHARE-NEW-NODES");
-            mapMsg.setSender(this.myAgent.getAID());
-            mapMsg.addReceiver(new AID(receiverName, AID.ISLOCALNAME));
-            mapMsg.setContentObject(mapToSend);
-            ((AbstractDedaleAgent)myAgent).sendMessage(mapMsg);
-            System.out.println(myAgent.getLocalName() + " → carte envoyée à " + receiverName);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        // 4. Attente de l’ACK - carte en retour
-        MessageTemplate returnMapTemp = MessageTemplate.and(
-            MessageTemplate.MatchProtocol("SHARE-NEW-NODES-RETURN"),
-            MessageTemplate.MatchPerformative(ACLMessage.INFORM)
-        );
-        
-        ACLMessage returnMap = this.myAgent.blockingReceive(returnMapTemp, 3000);
-        
-        if (returnMap != null) {
-            try {
-                SerializableSimpleGraph<String, MapAttribute> receivedMap =
-                    (SerializableSimpleGraph<String, MapAttribute>) returnMap.getContentObject();
-
-                this.myMap.mergeMap(receivedMap);
-                System.out.println(this.myAgent.getLocalName() + " 🔁 a reçu et fusionné la carte en retour de " + this.receiverName);
-                
-                this.nodesToTransmit.put(receiverName, new SerializableSimpleGraph<>());
-
-                /*// Envoi de l’ACK final
-                ACLMessage ackMsg = new ACLMessage(ACLMessage.CONFIRM);
-                ackMsg.setProtocol("ACK-SHARE");
-                ackMsg.setContent("Merci pour ta carte !");
-                ackMsg.addReceiver(returnMap.getSender());
-                this.myAgent.send(ackMsg);
-                System.out.println(this.myAgent.getLocalName() + " ✅ a envoyé un ACK final à " + returnMap.getSender().getLocalName());
-				*/
-                
-            } catch (UnreadableException e) {
-                e.printStackTrace();
-            }
-            
-            this.alreadyExchanged.add(receiverName);
-            System.out.println("PING : " + this.myAgent.getLocalName() + " ✅ échange terminé avec " + receiverName);
-            
+            System.out.println(myAgent.getLocalName() + " Pas de PONG de " + receiverName);
+            this.exitValue = -1;
         } else {
-            System.out.println(this.myAgent.getLocalName() + " ❌ n’a pas reçu de carte en retour de " + receiverName);
+	        System.out.println(myAgent.getLocalName() + " PONG reçu de " + receiverName);
+	        this.exitValue = this.type_msg;
         }
         
-        finished = true;
+        this.finished = true;
     }
 
     @Override
     public boolean done() {
     	this.currentlyExchanging.remove(receiverName);
         return finished;
+    }
+    
+    
+    @Override
+    public int onEnd() {
+        return this.exitValue;
     }
 }

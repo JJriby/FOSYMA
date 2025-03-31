@@ -39,8 +39,11 @@ public class PongBehaviour extends Behaviour {
     private Map<String, SerializableSimpleGraph<String, MapAttribute>> nodesToTransmit;
     private Set<String> alreadyExchanged;
     private Set<String> currentlyExchanging;
+    private int exitValue;
+    private Map<String, List<Integer>> list_gold;
+    private Map<String, List<Integer>> list_diamond;
     
-    public PongBehaviour(AbstractDedaleAgent a, String receiverName, SerializableSimpleGraph<String, MapAttribute> mapToSend, MapRepresentation myMap, Map<String, SerializableSimpleGraph<String, MapAttribute>> nodesToTransmit, Set<String> alreadyExchanged, Set<String> currentlyExchanging) {
+    public PongBehaviour(AbstractDedaleAgent a, String receiverName, SerializableSimpleGraph<String, MapAttribute> mapToSend, MapRepresentation myMap, Map<String, SerializableSimpleGraph<String, MapAttribute>> nodesToTransmit, Set<String> alreadyExchanged, Set<String> currentlyExchanging, Map<String, List<Integer>> list_gold, Map<String, List<Integer>> list_diamond) {
         super(a);
         this.receiverName = receiverName;
         this.mapToSend = mapToSend;
@@ -48,12 +51,13 @@ public class PongBehaviour extends Behaviour {
         this.nodesToTransmit = nodesToTransmit;
         this.alreadyExchanged = alreadyExchanged;
         this.currentlyExchanging = currentlyExchanging;
+        this.list_gold = list_gold;
+        this.list_diamond = list_diamond;
     }
 
     @Override
     public void action() {
     	
-    	System.out.println("là : " + this.alreadyExchanged);
         ACLMessage msg = myAgent.receive();
 
         if (msg != null) {
@@ -75,10 +79,12 @@ public class PongBehaviour extends Behaviour {
 
                 case "SHARE-NEW-NODES":
                     try {
-                        SerializableSimpleGraph<String, MapAttribute> received = 
-                            (SerializableSimpleGraph<String, MapAttribute>) msg.getContentObject();
-                        this.myMap.mergeMap(received);
-                        System.out.println(myAgent.getLocalName() + " 🧠 carte reçue et fusionnée de " + msg.getSender().getLocalName());
+                    	Couple<SerializableSimpleGraph<String, MapAttribute>,Couple<Map<String, List<Integer>>,Map<String, List<Integer>>>> received = 
+                            (Couple<SerializableSimpleGraph<String, MapAttribute>,Couple<Map<String, List<Integer>>,Map<String, List<Integer>>>>) msg.getContentObject();
+                    	
+                    	SerializableSimpleGraph<String, MapAttribute> receivedMap = received.getLeft();
+                        this.myMap.mergeMap(receivedMap);
+                        System.out.println(myAgent.getLocalName() + " carte reçue et fusionnée de " + msg.getSender().getLocalName());
 
                                                
                         if (this.mapToSend != null && !this.mapToSend.getAllNodes().isEmpty()) {
@@ -87,8 +93,10 @@ public class PongBehaviour extends Behaviour {
                             returnMap.setSender(this.myAgent.getAID());
                             returnMap.addReceiver(new AID(this.receiverName, AID.ISLOCALNAME));
                             
-                            try {			
-                            	returnMap.setContentObject(this.mapToSend);
+                            try {		
+                            	Couple<Map<String, List<Integer>>,Map<String, List<Integer>>> tresors = new Couple<>(this.list_gold, this.list_diamond); 
+                            	Couple<SerializableSimpleGraph<String, MapAttribute>,Couple<Map<String, List<Integer>>,Map<String, List<Integer>>>> a_envoyer = new Couple<>(mapToSend, tresors);
+                            	returnMap.setContentObject(a_envoyer);
                     		} catch (IOException e) {
                     			e.printStackTrace();
                     		}
@@ -98,10 +106,35 @@ public class PongBehaviour extends Behaviour {
                             this.nodesToTransmit.put(receiverName, new SerializableSimpleGraph<>());
                         }
                         
+                        // fusion des cartes de trésors 
+                        Couple<Map<String, List<Integer>>,Map<String, List<Integer>>> tresors = received.getRight();
+                        Map<String, List<Integer>> golds = tresors.getLeft();
+                        Map<String, List<Integer>> diamonds = tresors.getRight();
+                        
+                        for(Map.Entry<String, List<Integer>> g : golds.entrySet()) {
+                        	String g_key = g.getKey();
+                        	List<Integer> g_value = g.getValue();
+                        	if(!this.list_gold.containsKey(g_key)) {
+                        		this.list_gold.put(g_key, g_value);
+                        	}
+                        }
+                        
+                        for(Map.Entry<String, List<Integer>> d : diamonds.entrySet()) {
+                        	String d_key = d.getKey();
+                        	List<Integer> d_value = d.getValue();
+                        	if(!this.list_diamond.containsKey(d_key)) {
+                        		this.list_diamond.put(d_key, d_value);
+                        	}
+                        }
+                        
+                        
+                        
+                        
                         this.alreadyExchanged.add(receiverName);
                         System.out.println("PONG : " + myAgent.getLocalName() + " ✅ a marqué " + receiverName + " comme déjà échangé");
                         
                         finished = true;
+                        this.exitValue = -1;
 
                         
                         /*// Envoyer un ACK
@@ -114,6 +147,10 @@ public class PongBehaviour extends Behaviour {
                         ((AbstractDedaleAgent)this.myAgent).sendMessage(ack);
                         System.out.println(myAgent.getLocalName() + " ✅ ACK envoyé à " + msg.getSender().getLocalName());
 						*/
+                        
+                        
+                        // partage qtte sac à dos + objectif
+                        
                     } catch (UnreadableException e) {
                         e.printStackTrace();
                     }
@@ -124,6 +161,7 @@ public class PongBehaviour extends Behaviour {
             }
         } else {
             finished = true;
+            this.exitValue = -1;
         }
     }
     
@@ -131,5 +169,10 @@ public class PongBehaviour extends Behaviour {
     public boolean done() {
     	this.currentlyExchanging.remove(receiverName);
         return finished;
+    }
+    
+    @Override
+    public int onEnd() {
+        return this.exitValue;
     }
 }

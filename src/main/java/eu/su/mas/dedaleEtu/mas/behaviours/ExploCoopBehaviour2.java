@@ -148,26 +148,24 @@ public class ExploCoopBehaviour2 extends Behaviour {
                        
                     SerializableSimpleGraph<String, MapAttribute> partialGraph = this.nodesToTransmit.get(agentName);
                     if (partialGraph != null && !partialGraph.getAllNodes().isEmpty() && !alreadyExchanged.contains(agentName) && !currentlyExchanging.contains(agentName)) {
-                    	//System.out.println(this.myAgent.getLocalName() + " envoie une partie de sa carte à " + agentName);  
                     	// AJOUTER LA TRANSMISSION DES LISTES DE TRESORS
-                    	//this.myAgent.addBehaviour(new ShareMapBehaviour2(this.myAgent, partialGraph, agentName));
-                        //this.nodesToTransmit.put(agentName, new SerializableSimpleGraph<>()); // Reset après envoi
                         
-                        // METTRE UN TEMPS D'ATTENTE LE TEMPS QUE L'AUTRE RECEPTIONNE SA CARTE  
                         // FAIRE UN CAS Où LORSQU'ON COMMUNIQUE AVEC QLQ QUI A FINI DE NE PAS ATTENDRE CAR SINON PB
-                        // FAIRE UN TICKER POUR PAS TACHATTER NON STOP AVEC LE MEME (JSP SI VRAIMENT UTILE VU QU'ON FAIT DES LISTES PAR AGENTS)
-                        
-                        
-                        // répétition avec le 8), pb -> essayer d'utiliser un boolean
-                        // pour bloquer l'agent pour attendre la carte de l'autre agent
+                        // FAIRE UN TICKER POUR PAS TCHATTER NON STOP AVEC LE MEME (JSP SI VRAIMENT UTILE VU QU'ON FAIT DES LISTES PAR AGENTS)
+
                     	
                     	currentlyExchanging.add(agentName);
                     	
                     	if (this.myAgent.getLocalName().compareTo(agentName) < 0) {
-                    		this.myAgent.addBehaviour(new PingBehaviour((AbstractDedaleAgent)this.myAgent, agentName, partialGraph, this.myMap, this.nodesToTransmit, this.alreadyExchanged, this.currentlyExchanging));
+                    		//this.myAgent.addBehaviour(new PingBehaviour((AbstractDedaleAgent)this.myAgent, agentName, partialGraph, this.myMap, this.nodesToTransmit, this.alreadyExchanged, this.currentlyExchanging, this.list_gold, this.list_diamond));
+                    		((GlobalBehaviour)this.getParent()).setShareMapParams(agentName, partialGraph, this.myMap, this.nodesToTransmit, this.alreadyExchanged, this.currentlyExchanging, this.list_gold, this.list_diamond);
+                    		((GlobalBehaviour)this.getParent()).setPingParams(1, agentName);
+                    		this.exitValue = 3;
                     	} else {
-                    		this.myAgent.addBehaviour(new PongBehaviour((AbstractDedaleAgent)this.myAgent, agentName, partialGraph, this.myMap, this.nodesToTransmit, this.alreadyExchanged, this.currentlyExchanging));
+                    		((GlobalBehaviour)this.getParent()).setPongParams(agentName, partialGraph, this.myMap, this.nodesToTransmit, this.alreadyExchanged, this.currentlyExchanging, this.list_gold, this.list_diamond);
+                    		this.exitValue = 4;
                     	}
+                    	return;
                     } 
                     
                 }
