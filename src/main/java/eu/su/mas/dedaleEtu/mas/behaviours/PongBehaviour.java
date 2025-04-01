@@ -29,7 +29,7 @@ import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 
 
-public class PongBehaviour extends Behaviour {
+public class PongBehaviour extends OneShotBehaviour {
 
     private static final long serialVersionUID = 1L;
     private String receiverName;
@@ -57,7 +57,7 @@ public class PongBehaviour extends Behaviour {
 
     @Override
     public void action() {
-    	
+    	    	
         ACLMessage msg = myAgent.receive();
 
         if (msg != null) {
@@ -128,14 +128,14 @@ public class PongBehaviour extends Behaviour {
                         }
                         
                         
-                        
-                        
                         this.alreadyExchanged.add(receiverName);
                         System.out.println("PONG : " + myAgent.getLocalName() + " ✅ a marqué " + receiverName + " comme déjà échangé");
+
+                        System.out.println("ex pong : " + this.alreadyExchanged);
                         
                         finished = true;
-                        this.exitValue = -1;
-
+                        this.exitValue = 0;
+                        return;
                         
                         /*// Envoyer un ACK
                         ACLMessage ack = msg.createReply();
@@ -154,25 +154,24 @@ public class PongBehaviour extends Behaviour {
                     } catch (UnreadableException e) {
                         e.printStackTrace();
                     }
-                    break;
-
-                default:
-                    break;
             }
         } else {
             finished = true;
-            this.exitValue = -1;
+            this.exitValue = 0;
+            return;
         }
     }
     
-    @Override
+    /*@Override
     public boolean done() {
     	this.currentlyExchanging.remove(receiverName);
         return finished;
-    }
+    }*/
     
     @Override
     public int onEnd() {
+    	System.out.println("pong");
+    	this.currentlyExchanging.remove(receiverName);
         return this.exitValue;
     }
 }

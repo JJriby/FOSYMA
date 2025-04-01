@@ -16,6 +16,7 @@ import eu.su.mas.dedale.env.Location;
 import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.env.gs.GsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent2;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
 import jade.core.AID;
@@ -53,7 +54,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
     
     private int exitValue = 0;
 
-    public ExploCoopBehaviour2(final AbstractDedaleAgent myagent, MapRepresentation myMap, List<String> agentNames, Map<String, List<Integer>> list_gold, Map<String, List<Integer>> list_diamond) {
+    public ExploCoopBehaviour2(final ExploreCoopAgent2 myagent, MapRepresentation myMap, List<String> agentNames, Map<String, List<Integer>> list_gold, Map<String, List<Integer>> list_diamond) {
         super(myagent);
         this.myMap = myMap;
         this.list_agentNames = agentNames;
@@ -66,11 +67,12 @@ public class ExploCoopBehaviour2 extends Behaviour {
         for (String agentName : list_agentNames) {
             this.agents_fin.put(agentName, false);
         }
-        
+                
     }
 
     @Override
     public void action() {
+    	    	
         if (this.myMap == null) {
             this.myMap = new MapRepresentation();
         }
@@ -88,7 +90,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
         try { this.myAgent.doWait(1000); } catch (Exception e) { e.printStackTrace(); }
 
         // 2) Marquer le nœud actuel comme visité
-        this.myMap.addNode(myPosition.getLocationId(), MapAttribute.closed);
+        ((ExploreCoopAgent2)this.myAgent).getMyMap().addNode(myPosition.getLocationId(), MapAttribute.closed);
         
         // Détection si inter-blocage et si c'est le cas on part chercher une solution
         if(this.lastPos == myPosition.getLocationId() && this.currentlyExchanging.isEmpty()) {
@@ -146,14 +148,15 @@ public class ExploCoopBehaviour2 extends Behaviour {
                     String agentName = detail.getRight();
                     stop = true;
                        
+                    System.out.println("ex : " + this.alreadyExchanged+ " et voulu : "+agentName + "\t"+ this.alreadyExchanged.contains(agentName));
                     SerializableSimpleGraph<String, MapAttribute> partialGraph = this.nodesToTransmit.get(agentName);
-                    if (partialGraph != null && !partialGraph.getAllNodes().isEmpty() && !alreadyExchanged.contains(agentName) && !currentlyExchanging.contains(agentName)) {
+                    if (partialGraph != null && !partialGraph.getAllNodes().isEmpty() && !this.alreadyExchanged.contains(agentName) && !currentlyExchanging.contains(agentName)) {
                     	// AJOUTER LA TRANSMISSION DES LISTES DE TRESORS
                         
                         // FAIRE UN CAS Où LORSQU'ON COMMUNIQUE AVEC QLQ QUI A FINI DE NE PAS ATTENDRE CAR SINON PB
                         // FAIRE UN TICKER POUR PAS TCHATTER NON STOP AVEC LE MEME (JSP SI VRAIMENT UTILE VU QU'ON FAIT DES LISTES PAR AGENTS)
 
-                    	
+                    	System.out.println("dedans");
                     	currentlyExchanging.add(agentName);
                     	
                     	if (this.myAgent.getLocalName().compareTo(agentName) < 0) {
@@ -165,6 +168,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
                     		((GlobalBehaviour)this.getParent()).setPongParams(agentName, partialGraph, this.myMap, this.nodesToTransmit, this.alreadyExchanged, this.currentlyExchanging, this.list_gold, this.list_diamond);
                     		this.exitValue = 4;
                     	}
+                    	this.finished = true;
                     	return;
                     } 
                     
@@ -273,7 +277,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
     
     @Override
     public boolean done() {
-        return finished;
+        return this.finished;
     }
 
     @Override

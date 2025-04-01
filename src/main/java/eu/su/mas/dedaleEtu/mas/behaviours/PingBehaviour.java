@@ -29,7 +29,7 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 
-public class PingBehaviour extends Behaviour {
+public class PingBehaviour extends OneShotBehaviour {
 
 	private static final long serialVersionUID = 12L;
 	private String receiverName;
@@ -46,7 +46,7 @@ public class PingBehaviour extends Behaviour {
 
     @Override
     public void action() {
-    	    	
+    	    	    	
         // 1. Envoi du PING
         ACLMessage ping = new ACLMessage(ACLMessage.QUERY_IF);
         ping.setProtocol("PING");
@@ -66,20 +66,23 @@ public class PingBehaviour extends Behaviour {
         ACLMessage pong = this.myAgent.blockingReceive(pongTemplate, 3000);
         if (pong == null) {
             System.out.println(myAgent.getLocalName() + " Pas de PONG de " + receiverName);
-            this.exitValue = -1;
+            this.exitValue = 0;
         } else {
 	        System.out.println(myAgent.getLocalName() + " PONG reçu de " + receiverName);
 	        this.exitValue = this.type_msg;
         }
         
         this.finished = true;
+        return;
     }
 
-    @Override
+    /*@Override
     public boolean done() {
-    	this.currentlyExchanging.remove(receiverName);
+    	if(this.currentlyExchanging != null) {
+    		this.currentlyExchanging.remove(receiverName);
+    	}
         return finished;
-    }
+    }*/
     
     
     @Override

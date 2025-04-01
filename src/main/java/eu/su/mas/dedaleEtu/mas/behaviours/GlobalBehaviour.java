@@ -34,6 +34,7 @@ public class GlobalBehaviour extends FSMBehaviour {
 	private PingBehaviour pingBehaviour;
 	private PongBehaviour pongBehaviour;
 	private ShareMapBehaviour3 shareMapBehaviour;
+	private ExploCoopBehaviour2 exploBehaviour;
 	
 	private MapRepresentation myMap;
 	private List<String> agentNames;
@@ -43,7 +44,7 @@ public class GlobalBehaviour extends FSMBehaviour {
 	private List<Couple<Location, List<Couple<Observation, String>>>> lastObservation;
 
 	
-	public GlobalBehaviour(final AbstractDedaleAgent myagent, MapRepresentation myMap, List<String> agentNames) {
+	public GlobalBehaviour(final AbstractDedaleAgent myagent) {
 		super(myagent);
 		
 		this.myMap = myMap;
@@ -53,30 +54,24 @@ public class GlobalBehaviour extends FSMBehaviour {
 		this.list_diamond = new HashMap<>();
 		
 		// comportements
-        this.registerFirstState(new ExploCoopBehaviour2(myagent, myMap, agentNames, list_gold, list_diamond), Explore);
+		this.exploBehaviour = new ExploCoopBehaviour2(myagent, myMap, agentNames, list_gold, list_diamond);
+        this.registerFirstState(this.exploBehaviour, Explore);
         this.goToRdvBehaviour = new GoToRdvBehaviour(myagent, null);
         this.registerState(goToRdvBehaviour, GoToRDV);
         this.interBlocageBehaviour = new InterBlocageBehaviour(myagent, this.myMap);
         this.registerState(interBlocageBehaviour, InterBlocage);
+                
         
         // tester la technique où on les retire des constructeurs et on fait juste des fonctions
         this.planDAttaqueBehaviour = new PlanDAttaqueBehaviour(myagent, myMap, agentNames, list_gold, list_diamond);
         this.registerLastState(planDAttaqueBehaviour, PlanDAttaque);
 
         // transitions
-        this.registerTransition(Explore, GoToRDV, 1); // quand exploration finie
+        this.registerTransition(Explore, GoToRDV, 1);
         this.registerTransition(GoToRDV, Collect, 1);
         this.registerTransition(Explore, InterBlocage, 2);
         this.registerTransition(InterBlocage, Explore, 2);
-        
-        this.registerTransition(Explore, Ping, 3);
-        this.registerTransition(Explore, Pong, 4);
-        this.registerTransition(Ping, Explore, -1);
-        this.registerTransition(Pong, Explore, -1);
-        
-        this.registerTransition(Ping, ShareMap, 1);
-        this.registerTransition(ShareMap, Explore, -1);
-        
+             
 	}
 	
 	public void setShortestPath(List<String> path) {
@@ -93,14 +88,32 @@ public class GlobalBehaviour extends FSMBehaviour {
 	}
 	
 	public void setShareMapParams(String receiverName, SerializableSimpleGraph<String, MapAttribute> mapToSend, MapRepresentation myMap, Map<String, SerializableSimpleGraph<String, MapAttribute>> nodesToTransmit, Set<String> alreadyExchanged, Set<String> currentlyExchanging, Map<String, List<Integer>> list_gold, Map<String, List<Integer>> list_diamond) {
+		this.deregisterState(ShareMap);
 		this.shareMapBehaviour = new ShareMapBehaviour3((AbstractDedaleAgent) this.myAgent, receiverName, mapToSend, myMap, nodesToTransmit, alreadyExchanged, currentlyExchanging, list_gold, list_diamond);
+        this.registerState(shareMapBehaviour, ShareMap);
+        
+        this.registerTransition(Ping, ShareMap, 1);
+        this.registerTransition(ShareMap, Explore, 0);
+        
 	}
 	
 	public void setPingParams(int type_msg, String receiverName){
+		System.out.println("execution");
+		this.deregisterState(Ping);
 		this.pingBehaviour = new PingBehaviour((AbstractDedaleAgent) this.myAgent, type_msg, receiverName);
+		this.registerState(pingBehaviour, Ping);
+		
+		this.registerTransition(Explore, Ping, 3);
+		this.registerTransition(Ping, Explore, 0);
+		this.registerTransition(Ping, ShareMap, 1);
 	}
 	
 	public void setPongParams(String receiverName, SerializableSimpleGraph<String, MapAttribute> mapToSend, MapRepresentation myMap, Map<String, SerializableSimpleGraph<String, MapAttribute>> nodesToTransmit, Set<String> alreadyExchanged, Set<String> currentlyExchanging, Map<String, List<Integer>> list_gold, Map<String, List<Integer>> list_diamond) {
+		this.deregisterState(Pong);
 		this.pongBehaviour = new PongBehaviour((AbstractDedaleAgent) this.myAgent, receiverName, mapToSend, myMap, nodesToTransmit, alreadyExchanged, currentlyExchanging, list_gold, list_diamond);
+        this.registerState(pongBehaviour, Pong);
+        
+        this.registerTransition(Explore, Pong, 4);
+        this.registerTransition(Pong, Explore, 0);
 	}
 }

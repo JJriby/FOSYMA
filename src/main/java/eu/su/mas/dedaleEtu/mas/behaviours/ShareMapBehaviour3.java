@@ -12,11 +12,12 @@ import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
 import jade.core.AID;
 import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 
-public class ShareMapBehaviour3 extends Behaviour {
+public class ShareMapBehaviour3 extends OneShotBehaviour {
 
 	private static final long serialVersionUID = 12L;
 	private String receiverName;
@@ -48,7 +49,7 @@ public class ShareMapBehaviour3 extends Behaviour {
     @Override
     public void action() {
     	    	
-    	// 3. Envoi de la carte        
+    	// Envoi de la carte        
         try {
         	
         	Couple<Map<String, List<Integer>>,Map<String, List<Integer>>> tresors = new Couple<>(this.list_gold, this.list_diamond); 
@@ -65,7 +66,7 @@ public class ShareMapBehaviour3 extends Behaviour {
             e.printStackTrace();
         }
 
-        // 4. Attente de l’ACK - carte en retour
+        // Attente de l’ACK - carte en retour
         MessageTemplate returnMapTemp = MessageTemplate.and(
             MessageTemplate.MatchProtocol("SHARE-NEW-NODES-RETURN"),
             MessageTemplate.MatchPerformative(ACLMessage.INFORM)
@@ -75,6 +76,10 @@ public class ShareMapBehaviour3 extends Behaviour {
         
         if (returnMap != null) {
             try {
+            	
+            	System.out.println("trésors or avant : " + this.list_gold);
+            	System.out.println("trésors diamand avant : " + this.list_diamond);
+            	
             	Couple<SerializableSimpleGraph<String, MapAttribute>,Couple<Map<String, List<Integer>>,Map<String, List<Integer>>>> received = 
                         (Couple<SerializableSimpleGraph<String, MapAttribute>,Couple<Map<String, List<Integer>>,Map<String, List<Integer>>>>) returnMap.getContentObject();
                 	
@@ -89,6 +94,8 @@ public class ShareMapBehaviour3 extends Behaviour {
                 Map<String, List<Integer>> golds = tresors.getLeft();
                 Map<String, List<Integer>> diamonds = tresors.getRight();
                 
+                
+                // voir pour potentiellement faire le putIfAbsent
                 for(Map.Entry<String, List<Integer>> g : golds.entrySet()) {
                 	String g_key = g.getKey();
                 	List<Integer> g_value = g.getValue();
@@ -104,6 +111,9 @@ public class ShareMapBehaviour3 extends Behaviour {
                 		this.list_diamond.put(d_key, d_value);
                 	}
                 }
+                
+                System.out.println("trésors or après : " + this.list_gold);
+            	System.out.println("trésors diamand après : " + this.list_diamond);
 
                 /*// Envoi de l’ACK final
                 ACLMessage ackMsg = new ACLMessage(ACLMessage.CONFIRM);
@@ -119,24 +129,27 @@ public class ShareMapBehaviour3 extends Behaviour {
             }
             
             this.alreadyExchanged.add(receiverName);
+            System.out.println("ex share : " + this.alreadyExchanged);
             System.out.println("PING : " + this.myAgent.getLocalName() + " échange terminé avec " + receiverName);
             
         } else {
             System.out.println(this.myAgent.getLocalName() + " n’a pas reçu de carte en retour de " + receiverName);
         }
         
-        this.exitValue = -1;
+        this.exitValue = 0;
         this.finished = true;
     }
 
-    @Override
+    /*@Override
     public boolean done() {
     	this.currentlyExchanging.remove(receiverName);
         return finished;
-    }
+    }*/
     
     @Override
     public int onEnd() {
+    	System.out.println("map");
+    	this.currentlyExchanging.remove(receiverName);
         return this.exitValue;
     }
 

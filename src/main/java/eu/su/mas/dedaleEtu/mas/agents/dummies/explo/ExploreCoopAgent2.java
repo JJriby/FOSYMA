@@ -1,15 +1,19 @@
 package eu.su.mas.dedaleEtu.mas.agents.dummies.explo;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import dataStructures.serializableGraph.SerializableSimpleGraph;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.*;
 
 import eu.su.mas.dedaleEtu.mas.behaviours.ExploCoopBehaviour2;
 import eu.su.mas.dedaleEtu.mas.behaviours.GlobalBehaviour;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
-
+import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
 import jade.core.behaviours.Behaviour;
 
 /**
@@ -38,6 +42,18 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 
 	private static final long serialVersionUID = -7969469610241668140L;
 	private MapRepresentation myMap;
+	
+	// params à transmettre pour fsmBehaviour
+	List<String> agentNames;
+	Map<String, List<Integer>> list_gold;
+	Map<String, List<Integer>> list_diamond;
+	List<String> shortestPath;
+	int type_msg;
+	String receiverName;
+	SerializableSimpleGraph<String, MapAttribute> mapToSend;
+	Map<String,SerializableSimpleGraph<String, MapAttribute>> nodesToTransmit;
+	Set<String> alreadyExchanged; 
+	Set<String> currentlyExchanging;
 	
 
 	/**
@@ -77,7 +93,7 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 		
 		//lb.add(new ExploCoopBehaviour2(this,this.myMap,list_agentNames));
 
-		lb.add(new GlobalBehaviour(this, this.myMap, list_agentNames));
+		lb.add(new GlobalBehaviour(this));
 		
 		/***
 		 * MANDATORY TO ALLOW YOUR AGENT TO BE DEPLOYED CORRECTLY
@@ -88,6 +104,95 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 		
 		System.out.println("the  agent "+this.getLocalName()+ " is started");
 
+	}
+	
+	public MapRepresentation getMyMap() {
+		return this.myMap;
+	}
+	
+	public List<String> getAgentNames(){
+		return this.agentNames;
+	}
+	
+	public Map<String, List<Integer>> getListGold(){
+		return this.list_gold;
+	}
+	
+	public Map<String, List<Integer>> getListDiamond(){
+		return this.list_diamond;
+	}
+	
+	public Set<String> getAlreadyExchanged(){
+		return this.alreadyExchanged;
+	}
+	
+	public Set<String> getCurrentlyExchanging(){
+		return this.currentlyExchanging;
+	}
+		
+	public List<String> getShortestPath(){
+		return this.shortestPath;
+	}
+	
+	public int getTypeMsg() {
+		return this.type_msg;
+	}
+	
+	public String receiverName() {
+		return this.receiverName;
+	}
+	
+	public SerializableSimpleGraph<String, MapAttribute> getMapToSend(){
+		return this.mapToSend;
+	}
+	
+	public Map<String,SerializableSimpleGraph<String, MapAttribute>> getNodesToTransmit(){
+		return this.nodesToTransmit;
+	}
+	
+	
+	public void setMyMap(MapRepresentation myMap) {
+		this.myMap = myMap;
+	}
+	
+	public void setAgentNames(List<String> agentNames) {
+		this.agentNames = agentNames;
+	}
+	
+	public void setGold(Map<String, List<Integer>> list_gold) {
+		this.list_gold = list_gold;
+	}
+	
+	public void setDiamond(Map<String, List<Integer>> list_diamond) {
+		this.list_diamond = list_diamond;
+	}
+	
+	public void setShortestPath(List<String> shortestPath) {
+		this.shortestPath = shortestPath;
+	}
+	
+	public void setTypeMsg(int type_msg) {
+		this.type_msg = type_msg;
+	}
+	
+	public void setReceiverName(String receiverName) {
+		this.receiverName = receiverName;
+	}
+	
+	public void setMapToSend(SerializableSimpleGraph<String, MapAttribute> mapToSend) {
+		this.mapToSend = mapToSend;
+	}
+	
+	public void setNodesToTransmit(Map<String,SerializableSimpleGraph<String, MapAttribute>> nodesToTransmit) {
+		this.nodesToTransmit = nodesToTransmit;
+	}
+	
+	public void setAlreadyExchanged(Set<String> alreadyExchanged) {
+		this.alreadyExchanged = alreadyExchanged;
+	}
+
+	public void setCurrentlyExchanging(Set<String> currentlyExchanging) {
+		this.currentlyExchanging = currentlyExchanging;
 	}
 	
 	
