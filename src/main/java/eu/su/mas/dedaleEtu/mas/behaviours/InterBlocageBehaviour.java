@@ -16,6 +16,7 @@ import eu.su.mas.dedale.env.Observation;
 
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import jade.core.behaviours.Behaviour;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent2;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 
 public class InterBlocageBehaviour extends Behaviour {
@@ -24,16 +25,17 @@ public class InterBlocageBehaviour extends Behaviour {
 	private boolean finished = false;
 	private int exitValue = 0;
 	
-	private Graph g;
-	
-	public InterBlocageBehaviour(final AbstractDedaleAgent myagent, MapRepresentation myMap) {
+	private MapRepresentation myMap;
+		
+	public InterBlocageBehaviour(final ExploreCoopAgent2 myagent, MapRepresentation myMap) {
         super(myagent);
+        this.myMap = myMap;
 	}
 
 	@Override
 	public void action() { 
 		// on récupère les observations de l'agent bloqué
-		List<Couple<Location, List<Couple<Observation, String>>>> lobs = ((GlobalBehaviour)this.getParent()).getLastObservation();
+		// List<Couple<Location, List<Couple<Observation, String>>>> lobs = ((GlobalBehaviour)this.getParent()).getLastObservation();
 		
 		
 		// faire directement une condition avec getShortestpath si c'est null alors coincé donc l'autre bouge

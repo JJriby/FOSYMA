@@ -18,6 +18,7 @@ import eu.su.mas.dedale.env.Location;
 import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.env.gs.GsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent2;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
 import jade.core.AID;
@@ -32,28 +33,30 @@ import jade.lang.acl.UnreadableException;
 public class PingBehaviour extends OneShotBehaviour {
 
 	private static final long serialVersionUID = 12L;
-	private String receiverName;
     private boolean finished = false;
-    private Set<String> currentlyExchanging;
     private int exitValue;
-    private int type_msg;
+    
+    private MapRepresentation myMap;
 
-    public PingBehaviour(AbstractDedaleAgent a, int type_msg, String receiverName) {
-        super(a);
-        this.receiverName = receiverName;
-        this.type_msg = type_msg;
+    public PingBehaviour(final ExploreCoopAgent2 myagent, MapRepresentation myMap) {
+        super(myagent);
+        this.myMap = myMap;
     }
 
     @Override
     public void action() {
+    	
+    	ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
+    	int type_msg = myAgent.getTypeMsg();
+    	String receiverName = myAgent.getReceiverName();
     	    	    	
         // 1. Envoi du PING
         ACLMessage ping = new ACLMessage(ACLMessage.QUERY_IF);
         ping.setProtocol("PING");
         ping.addReceiver(new AID(receiverName, AID.ISLOCALNAME));
         ping.setContent("Tu es dispo ?");
-        ping.setSender(this.myAgent.getAID());
-        ((AbstractDedaleAgent)myAgent).sendMessage(ping);
+        ping.setSender(myAgent.getAID());
+        myAgent.sendMessage(ping);
         System.out.println(myAgent.getLocalName() + " → PING envoyé à " + receiverName);
         
        
@@ -69,7 +72,7 @@ public class PingBehaviour extends OneShotBehaviour {
             this.exitValue = 0;
         } else {
 	        System.out.println(myAgent.getLocalName() + " PONG reçu de " + receiverName);
-	        this.exitValue = this.type_msg;
+	        this.exitValue = type_msg;
         }
         
         this.finished = true;

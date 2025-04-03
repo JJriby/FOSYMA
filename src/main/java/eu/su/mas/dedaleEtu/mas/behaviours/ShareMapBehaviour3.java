@@ -8,6 +8,7 @@ import java.util.Set;
 import dataStructures.serializableGraph.SerializableSimpleGraph;
 import dataStructures.tuple.Couple;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent2;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
 import jade.core.AID;
@@ -20,47 +21,48 @@ import jade.lang.acl.UnreadableException;
 public class ShareMapBehaviour3 extends OneShotBehaviour {
 
 	private static final long serialVersionUID = 12L;
-	private String receiverName;
-    private SerializableSimpleGraph<String, MapAttribute> mapToSend;
-    private MapRepresentation myMap;
     private boolean finished = false;
-    private Map<String, SerializableSimpleGraph<String, MapAttribute>> nodesToTransmit;
-    private Set<String> alreadyExchanged;
-    private Set<String> currentlyExchanging;
     private int exitValue;
-    private Map<String, List<Integer>> list_gold;
-    private Map<String, List<Integer>> list_diamond;
-
-    public ShareMapBehaviour3(AbstractDedaleAgent a, String receiverName, SerializableSimpleGraph<String, MapAttribute> mapToSend, MapRepresentation myMap, Map<String, SerializableSimpleGraph<String, MapAttribute>> nodesToTransmit, Set<String> alreadyExchanged, Set<String> currentlyExchanging,     Map<String, List<Integer>> list_gold, Map<String, List<Integer>> list_diamond) {
-
-        super(a);
-        this.receiverName = receiverName;
-        this.mapToSend = mapToSend;
+	
+    Set<String> currentlyExchanging;
+    String receiverName;
+    
+    private MapRepresentation myMap;
+    
+    public ShareMapBehaviour3(final ExploreCoopAgent2 myagent, MapRepresentation myMap) {
+        super(myagent);
         this.myMap = myMap;
-        this.nodesToTransmit = nodesToTransmit;
-        this.alreadyExchanged = alreadyExchanged;
-        this.currentlyExchanging = currentlyExchanging;
-        this.list_gold = list_gold;
-        this.list_diamond = list_diamond;
     }
     
 
 
     @Override
     public void action() {
+    	
+    	ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
+    	
+    	this.receiverName = myAgent.getReceiverName();
+        SerializableSimpleGraph<String, MapAttribute> mapToSend = myAgent.getMapToSend();
+        //MapRepresentation myMap = myAgent.getMyMap();
+        Map<String, SerializableSimpleGraph<String, MapAttribute>> nodesToTransmit = myAgent.getNodesToTransmit();
+        Set<String> alreadyExchanged = myAgent.getAlreadyExchanged();
+        this.currentlyExchanging = myAgent.getCurrentlyExchanging();
+        Map<String, List<Integer>> list_gold = myAgent.getListGold();
+        Map<String, List<Integer>> list_diamond = myAgent.getListDiamond();
     	    	
+        
     	// Envoi de la carte        
         try {
         	
-        	Couple<Map<String, List<Integer>>,Map<String, List<Integer>>> tresors = new Couple<>(this.list_gold, this.list_diamond); 
+        	Couple<Map<String, List<Integer>>,Map<String, List<Integer>>> tresors = new Couple<>(list_gold, list_diamond); 
         	Couple<SerializableSimpleGraph<String, MapAttribute>,Couple<Map<String, List<Integer>>,Map<String, List<Integer>>>> a_envoyer = new Couple<>(mapToSend, tresors);
         	
             ACLMessage mapMsg = new ACLMessage(ACLMessage.INFORM);
             mapMsg.setProtocol("SHARE-NEW-NODES");
-            mapMsg.setSender(this.myAgent.getAID());
+            mapMsg.setSender(myAgent.getAID());
             mapMsg.addReceiver(new AID(receiverName, AID.ISLOCALNAME));
             mapMsg.setContentObject(a_envoyer);
-            ((AbstractDedaleAgent)myAgent).sendMessage(mapMsg);
+            myAgent.sendMessage(mapMsg);
             System.out.println(myAgent.getLocalName() + " carte et trésors envoyés à " + receiverName);
         } catch (IOException e) {
             e.printStackTrace();
@@ -72,22 +74,22 @@ public class ShareMapBehaviour3 extends OneShotBehaviour {
             MessageTemplate.MatchPerformative(ACLMessage.INFORM)
         );
         
-        ACLMessage returnMap = this.myAgent.blockingReceive(returnMapTemp, 3000);
+        ACLMessage returnMap = myAgent.blockingReceive(returnMapTemp, 3000);
         
         if (returnMap != null) {
             try {
             	
-            	System.out.println("trésors or avant : " + this.list_gold);
-            	System.out.println("trésors diamand avant : " + this.list_diamond);
+            	System.out.println("trésors or avant : " + list_gold);
+            	System.out.println("trésors diamand avant : " + list_diamond);
             	
             	Couple<SerializableSimpleGraph<String, MapAttribute>,Couple<Map<String, List<Integer>>,Map<String, List<Integer>>>> received = 
                         (Couple<SerializableSimpleGraph<String, MapAttribute>,Couple<Map<String, List<Integer>>,Map<String, List<Integer>>>>) returnMap.getContentObject();
                 	
                 SerializableSimpleGraph<String, MapAttribute> receivedMap = received.getLeft();
-                this.myMap.mergeMap(receivedMap);
-                System.out.println(this.myAgent.getLocalName() + " a reçu et fusionné la carte en retour de " + this.receiverName);
+                myMap.mergeMap(receivedMap);
+                System.out.println(myAgent.getLocalName() + " a reçu et fusionné la carte en retour de " + receiverName);
                 
-                this.nodesToTransmit.put(receiverName, new SerializableSimpleGraph<>());
+                nodesToTransmit.put(receiverName, new SerializableSimpleGraph<>());
                 
                 // fusion des cartes de trésors 
                 Couple<Map<String, List<Integer>>,Map<String, List<Integer>>> tresors = received.getRight();
@@ -99,21 +101,21 @@ public class ShareMapBehaviour3 extends OneShotBehaviour {
                 for(Map.Entry<String, List<Integer>> g : golds.entrySet()) {
                 	String g_key = g.getKey();
                 	List<Integer> g_value = g.getValue();
-                	if(!this.list_gold.containsKey(g_key)) {
-                		this.list_gold.put(g_key, g_value);
+                	if(!list_gold.containsKey(g_key)) {
+                		list_gold.put(g_key, g_value);
                 	}
                 }
                 
                 for(Map.Entry<String, List<Integer>> d : diamonds.entrySet()) {
                 	String d_key = d.getKey();
                 	List<Integer> d_value = d.getValue();
-                	if(!this.list_diamond.containsKey(d_key)) {
-                		this.list_diamond.put(d_key, d_value);
+                	if(!list_diamond.containsKey(d_key)) {
+                		list_diamond.put(d_key, d_value);
                 	}
                 }
                 
-                System.out.println("trésors or après : " + this.list_gold);
-            	System.out.println("trésors diamand après : " + this.list_diamond);
+                System.out.println("trésors or après : " + list_gold);
+            	System.out.println("trésors diamand après : " + list_diamond);
 
                 /*// Envoi de l’ACK final
                 ACLMessage ackMsg = new ACLMessage(ACLMessage.CONFIRM);
@@ -128,12 +130,12 @@ public class ShareMapBehaviour3 extends OneShotBehaviour {
                 e.printStackTrace();
             }
             
-            this.alreadyExchanged.add(receiverName);
-            System.out.println("ex share : " + this.alreadyExchanged);
+            alreadyExchanged.add(receiverName);
+            System.out.println("ex share : " + alreadyExchanged);
             System.out.println("PING : " + this.myAgent.getLocalName() + " échange terminé avec " + receiverName);
             
         } else {
-            System.out.println(this.myAgent.getLocalName() + " n’a pas reçu de carte en retour de " + receiverName);
+            System.out.println(myAgent.getLocalName() + " n’a pas reçu de carte en retour de " + receiverName);
         }
         
         this.exitValue = 0;
@@ -149,7 +151,7 @@ public class ShareMapBehaviour3 extends OneShotBehaviour {
     @Override
     public int onEnd() {
     	System.out.println("map");
-    	this.currentlyExchanging.remove(receiverName);
+    	this.currentlyExchanging.remove(this.receiverName);
         return this.exitValue;
     }
 

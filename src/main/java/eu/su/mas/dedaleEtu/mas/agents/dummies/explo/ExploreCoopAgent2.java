@@ -1,9 +1,10 @@
 package eu.su.mas.dedaleEtu.mas.agents.dummies.explo;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.HashSet;
 import java.util.Set;
 
 import dataStructures.serializableGraph.SerializableSimpleGraph;
@@ -42,18 +43,20 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 
 	private static final long serialVersionUID = -7969469610241668140L;
 	private MapRepresentation myMap;
+	private List<String> list_agentNames;
 	
-	// params à transmettre pour fsmBehaviour
-	List<String> agentNames;
-	Map<String, List<Integer>> list_gold;
-	Map<String, List<Integer>> list_diamond;
-	List<String> shortestPath;
-	int type_msg;
-	String receiverName;
-	SerializableSimpleGraph<String, MapAttribute> mapToSend;
-	Map<String,SerializableSimpleGraph<String, MapAttribute>> nodesToTransmit;
-	Set<String> alreadyExchanged; 
-	Set<String> currentlyExchanging;
+	// params à transmettre aux comportements
+	
+	private Map<String, List<Integer>> list_gold = new HashMap<>();
+	private Map<String, List<Integer>> list_diamond = new HashMap<>();
+	private List<String> shortestPath = new ArrayList<>();
+	private int type_msg = -1;
+	private String receiverName = "";
+	private SerializableSimpleGraph<String, MapAttribute> mapToSend = new SerializableSimpleGraph<>();
+	private Map<String,SerializableSimpleGraph<String, MapAttribute>> nodesToTransmit = new HashMap<>();
+	// voir si c'est vraiment utile ces deux trucs mtn qu'on est en fsm
+	private Set<String> alreadyExchanged = new HashSet<>(); 
+	private Set<String> currentlyExchanging = new HashSet<>();
 	
 
 	/**
@@ -70,7 +73,7 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 		//get the parameters added to the agent at creation (if any)
 		final Object[] args = getArguments();
 		
-		List<String> list_agentNames=new ArrayList<String>();
+		list_agentNames=new ArrayList<String>();
 		
 		if(args.length==0){
 			System.err.println("Error while creating the agent, names of agent to contact expected");
@@ -93,7 +96,7 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 		
 		//lb.add(new ExploCoopBehaviour2(this,this.myMap,list_agentNames));
 
-		lb.add(new GlobalBehaviour(this));
+		lb.add(new GlobalBehaviour(this, this.myMap, list_agentNames));
 		
 		/***
 		 * MANDATORY TO ALLOW YOUR AGENT TO BE DEPLOYED CORRECTLY
@@ -106,12 +109,14 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 
 	}
 	
-	public MapRepresentation getMyMap() {
+	// pas utile vu qu'on les passe en paramètre finalement (à changer)
+	/*public MapRepresentation getMyMap() {
 		return this.myMap;
-	}
+	}*/
 	
+	// pas utile vu qu'on les passe en paramètre finalement (à changer)
 	public List<String> getAgentNames(){
-		return this.agentNames;
+		return this.list_agentNames;
 	}
 	
 	public Map<String, List<Integer>> getListGold(){
@@ -138,7 +143,7 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 		return this.type_msg;
 	}
 	
-	public String receiverName() {
+	public String getReceiverName() {
 		return this.receiverName;
 	}
 	
@@ -151,12 +156,13 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 	}
 	
 	
-	public void setMyMap(MapRepresentation myMap) {
+	/*public void setMyMap(MapRepresentation myMap) {
 		this.myMap = myMap;
-	}
+	}*/
+	
 	
 	public void setAgentNames(List<String> agentNames) {
-		this.agentNames = agentNames;
+		this.list_agentNames = agentNames;
 	}
 	
 	public void setGold(Map<String, List<Integer>> list_gold) {
