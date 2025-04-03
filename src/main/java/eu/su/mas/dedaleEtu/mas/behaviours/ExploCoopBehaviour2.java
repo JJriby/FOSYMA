@@ -40,9 +40,9 @@ public class ExploCoopBehaviour2 extends Behaviour {
     
     private MapRepresentation myMap;
 
-    public ExploCoopBehaviour2(final ExploreCoopAgent2 myagent, MapRepresentation myMap) {
+    public ExploCoopBehaviour2(final ExploreCoopAgent2 myagent, MapRepresentation myMap2) {
         super(myagent);
-        this.myMap = myMap;
+        //this.myMap = ((GlobalBehaviour) this.getParent()).getMyMap();
         /*this.list_agentNames = agentNames;
         this.nodesToTransmit = new HashMap<>();
         this.list_gold = list_gold;
@@ -60,6 +60,9 @@ public class ExploCoopBehaviour2 extends Behaviour {
     @Override
     public void action() {
     	
+    	this.finished = false;
+    	this.exitValue = 0;    	
+    	
     	// variables récupérées de l'agent
     	ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
 
@@ -70,10 +73,12 @@ public class ExploCoopBehaviour2 extends Behaviour {
     	Set<String> alreadyExchanged = myAgent.getAlreadyExchanged();
     	Set<String> currentlyExchanging = myAgent.getCurrentlyExchanging();
     	Map<String, SerializableSimpleGraph<String, MapAttribute>> nodesToTransmit = myAgent.getNodesToTransmit();
-    	    	
-        if (myMap == null) {
+    	
+    	this.myMap = ((GlobalBehaviour) this.getParent()).getMyMap();
+    	
+        if (this.myMap == null) {
         	myMap = new MapRepresentation();
-        	//myAgent.setMyMap(myMap);
+        	((GlobalBehaviour) this.getParent()).setMyMap(myMap);
         }
 
         // 0) Récupérer la position actuelle de l'agent
@@ -146,32 +151,34 @@ public class ExploCoopBehaviour2 extends Behaviour {
                 if (detail.getLeft() == Observation.AGENTNAME) {
                     String agentName = detail.getRight();
                     stop = true;
+                    
                        
-                    System.out.println("ex : " + alreadyExchanged + " et voulu : "+agentName + "\t"+ alreadyExchanged.contains(agentName));
                     SerializableSimpleGraph<String, MapAttribute> partialGraph = nodesToTransmit.get(agentName);
-                    if (partialGraph != null && !partialGraph.getAllNodes().isEmpty() && !alreadyExchanged.contains(agentName) && !currentlyExchanging.contains(agentName)) {
-                    	// AJOUTER LA TRANSMISSION DES LISTES DE TRESORS
-                        
-                        // FAIRE UN CAS Où LORSQU'ON COMMUNIQUE AVEC QLQ QUI A FINI DE NE PAS ATTENDRE CAR SINON PB
-                        // FAIRE UN TICKER POUR PAS TCHATTER NON STOP AVEC LE MEME (JSP SI VRAIMENT UTILE VU QU'ON FAIT DES LISTES PAR AGENTS)
 
-                    	System.out.println("dedans");
-                    	currentlyExchanging.add(agentName);
-                    	
-                    	if (myAgent.getLocalName().compareTo(agentName) < 0) {
-                    		//(agentName, partialGraph, this.myMap, this.nodesToTransmit, this.alreadyExchanged, this.currentlyExchanging, this.list_gold, this.list_diamond);
-                    		//(1, agentName);
-                    		myAgent.setTypeMsg(1);
-                    		myAgent.setReceiverName(agentName);
-                    		myAgent.setMapToSend(partialGraph);
-                    		this.exitValue = 3;
-                    	} else {
-                    		//((GlobalBehaviour)this.getParent()).setPongParams(agentName, partialGraph, this.myMap, this.nodesToTransmit, this.alreadyExchanged, this.currentlyExchanging, this.list_gold, this.list_diamond);
-                    		this.exitValue = 4;
-                    	}
-                    	this.finished = true;
-                    	return;
-                    } 
+                    if (partialGraph != null && !partialGraph.getAllNodes().isEmpty()) {
+                        //System.out.println("⛏ Comparaison stricte avec alreadyExchanged: " + alreadyExchanged);
+                        
+                        if (!alreadyExchanged.contains(agentName) && !currentlyExchanging.contains(agentName)) {
+                            //System.out.println("📡 Démarrage d’un échange avec " + agentName);
+                            currentlyExchanging.add(agentName);
+
+                            myAgent.setReceiverName(agentName);
+                            myAgent.setMapToSend(partialGraph);
+
+                            if (myAgent.getLocalName().compareTo(agentName) < 0) {
+                                myAgent.setTypeMsg(1); // PING initiateur
+                                this.exitValue = 3;
+                                
+                            } else {
+                                this.exitValue = 4; // PONG récepteur
+                            }
+
+                            this.finished = true;
+                            return;
+                        } else {
+                            System.out.println("❌ Échange déjà fait ou en cours avec " + agentName + ", on passe.");
+                        }
+                    }
                     
                 }
                 
@@ -251,7 +258,6 @@ public class ExploCoopBehaviour2 extends Behaviour {
     
     
     private String calculerBarycentreTopologique(Set<String> treasureNodes) {
-    	System.out.println("Trésors : " + treasureNodes);
         String bestNode = null;
         int minTotalDistance = Integer.MAX_VALUE;
       

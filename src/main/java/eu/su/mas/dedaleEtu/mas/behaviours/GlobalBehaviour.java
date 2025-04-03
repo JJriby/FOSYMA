@@ -35,21 +35,20 @@ public class GlobalBehaviour extends FSMBehaviour {
 	public GlobalBehaviour(final AbstractDedaleAgent myagent, MapRepresentation myMap, List<String> list_agentNames) {
 		super(myagent);
 		
-		ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
 		this.myMap = myMap;
 		this.agentNames = list_agentNames;
 		
 		// comportements
-        this.registerFirstState(new ExploCoopBehaviour2(myAgent, this.myMap), Explore);
-        this.registerState(new InterBlocageBehaviour(myAgent, this.myMap), InterBlocage);         
-        this.registerState(new PingBehaviour(myAgent, this.myMap), Ping);
-        this.registerState(new PongBehaviour(myAgent, this.myMap), Pong);
-        this.registerState(new ShareMapBehaviour3(myAgent, this.myMap), ShareMap);
+        this.registerFirstState(new ExploCoopBehaviour2((ExploreCoopAgent2) this.myAgent, this.myMap), Explore);
+        this.registerState(new InterBlocageBehaviour((ExploreCoopAgent2) this.myAgent, this.myMap), InterBlocage);         
+        this.registerState(new PingBehaviour((ExploreCoopAgent2) this.myAgent, this.myMap), Ping);
+        this.registerState(new PongBehaviour((ExploreCoopAgent2) this.myAgent, this.myMap), Pong);
+        this.registerState(new ShareMapBehaviour3((ExploreCoopAgent2) this.myAgent, this.myMap), ShareMap);
         
-        this.registerState(new GoToRdvBehaviour(myAgent, this.myMap), GoToRDV);
+        this.registerState(new GoToRdvBehaviour((ExploreCoopAgent2) this.myAgent, this.myMap), GoToRDV);
         
-        this.registerState(new CollectBehaviour(myAgent, this.myMap), Collect);
-        this.registerLastState(new PlanDAttaqueBehaviour(myAgent, this.myMap), PlanDAttaque);
+        this.registerState(new CollectBehaviour((ExploreCoopAgent2) this.myAgent, this.myMap), Collect);
+        this.registerLastState(new PlanDAttaqueBehaviour((ExploreCoopAgent2) this.myAgent, this.myMap), PlanDAttaque);
         
        
         // transitions
@@ -60,6 +59,7 @@ public class GlobalBehaviour extends FSMBehaviour {
         // faudra rajouter la transition d'interblocage vers explore
         
         this.registerTransition(Explore, Ping, 3);
+        this.registerTransition(Ping, Explore, 0);
         this.registerTransition(Ping, ShareMap, 1);
         this.registerTransition(ShareMap, Explore, 0);
         
@@ -68,4 +68,12 @@ public class GlobalBehaviour extends FSMBehaviour {
         
              
 	}
+	
+	public MapRepresentation getMyMap() {
+        return this.myMap;
+    }
+	
+	public void setMyMap(MapRepresentation myMap) {
+        this.myMap = myMap;
+    }
 }

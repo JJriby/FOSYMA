@@ -30,7 +30,7 @@ import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 
 
-public class PongBehaviour extends OneShotBehaviour {
+public class PongBehaviour extends Behaviour {
 
     private static final long serialVersionUID = 1L;
     private boolean finished = false;
@@ -41,11 +41,10 @@ public class PongBehaviour extends OneShotBehaviour {
     
     private MapRepresentation myMap;
     
-    public PongBehaviour(final ExploreCoopAgent2 myagent, MapRepresentation myMap) {
+    public PongBehaviour(final ExploreCoopAgent2 myagent, MapRepresentation myMap2) {
         super(myagent);
-        this.myMap = myMap;
     }
-
+    
     @Override
     public void action() {
     	
@@ -59,6 +58,8 @@ public class PongBehaviour extends OneShotBehaviour {
         this.currentlyExchanging = myAgent.getCurrentlyExchanging();
         Map<String, List<Integer>> list_gold = myAgent.getListGold();
         Map<String, List<Integer>> list_diamond = myAgent.getListDiamond();
+        
+    	this.myMap = ((GlobalBehaviour) this.getParent()).getMyMap();
     	    	
 
         MessageTemplate mt = MessageTemplate.or(
@@ -103,8 +104,7 @@ public class PongBehaviour extends OneShotBehaviour {
                     	SerializableSimpleGraph<String, MapAttribute> receivedMap = received.getLeft();
                         myMap.mergeMap(receivedMap);
                         System.out.println(myAgent.getLocalName() + " carte reçue et fusionnée de " + msg.getSender().getLocalName());
-
-                                               
+                    
                         if (mapToSend != null && !mapToSend.getAllNodes().isEmpty()) {
                             ACLMessage returnMap = new ACLMessage(ACLMessage.INFORM);
                             returnMap.setProtocol("SHARE-NEW-NODES-RETURN");
@@ -149,7 +149,6 @@ public class PongBehaviour extends OneShotBehaviour {
                         alreadyExchanged.add(receiverName);
                         System.out.println("PONG : " + myAgent.getLocalName() + " ✅ a marqué " + receiverName + " comme déjà échangé");
 
-                        System.out.println("ex pong : " + alreadyExchanged);
                         
                         finished = true;
                         this.exitValue = 0;
@@ -180,16 +179,14 @@ public class PongBehaviour extends OneShotBehaviour {
         }
     }
     
-    /*@Override
+    @Override
     public boolean done() {
     	this.currentlyExchanging.remove(receiverName);
         return finished;
-    }*/
+    }
     
     @Override
     public int onEnd() {
-    	System.out.println("pong");
-    	this.currentlyExchanging.remove(this.receiverName);
         return this.exitValue;
     }
 }

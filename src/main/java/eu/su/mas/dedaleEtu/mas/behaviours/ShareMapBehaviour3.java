@@ -29,9 +29,9 @@ public class ShareMapBehaviour3 extends OneShotBehaviour {
     
     private MapRepresentation myMap;
     
-    public ShareMapBehaviour3(final ExploreCoopAgent2 myagent, MapRepresentation myMap) {
+    public ShareMapBehaviour3(final ExploreCoopAgent2 myagent, MapRepresentation myMap2) {
         super(myagent);
-        this.myMap = myMap;
+        //this.myMap = myMap;
     }
     
 
@@ -49,6 +49,8 @@ public class ShareMapBehaviour3 extends OneShotBehaviour {
         this.currentlyExchanging = myAgent.getCurrentlyExchanging();
         Map<String, List<Integer>> list_gold = myAgent.getListGold();
         Map<String, List<Integer>> list_diamond = myAgent.getListDiamond();
+        
+        this.myMap = ((GlobalBehaviour) this.getParent()).getMyMap();
     	    	
         
     	// Envoi de la carte        
@@ -79,8 +81,8 @@ public class ShareMapBehaviour3 extends OneShotBehaviour {
         if (returnMap != null) {
             try {
             	
-            	System.out.println("trésors or avant : " + list_gold);
-            	System.out.println("trésors diamand avant : " + list_diamond);
+            	//System.out.println("trésors or avant : " + list_gold);
+            	//System.out.println("trésors diamand avant : " + list_diamond);
             	
             	Couple<SerializableSimpleGraph<String, MapAttribute>,Couple<Map<String, List<Integer>>,Map<String, List<Integer>>>> received = 
                         (Couple<SerializableSimpleGraph<String, MapAttribute>,Couple<Map<String, List<Integer>>,Map<String, List<Integer>>>>) returnMap.getContentObject();
@@ -114,8 +116,8 @@ public class ShareMapBehaviour3 extends OneShotBehaviour {
                 	}
                 }
                 
-                System.out.println("trésors or après : " + list_gold);
-            	System.out.println("trésors diamand après : " + list_diamond);
+                //System.out.println("trésors or après : " + list_gold);
+            	//System.out.println("trésors diamand après : " + list_diamond);
 
                 /*// Envoi de l’ACK final
                 ACLMessage ackMsg = new ACLMessage(ACLMessage.CONFIRM);
@@ -131,7 +133,6 @@ public class ShareMapBehaviour3 extends OneShotBehaviour {
             }
             
             alreadyExchanged.add(receiverName);
-            System.out.println("ex share : " + alreadyExchanged);
             System.out.println("PING : " + this.myAgent.getLocalName() + " échange terminé avec " + receiverName);
             
         } else {
@@ -150,7 +151,6 @@ public class ShareMapBehaviour3 extends OneShotBehaviour {
     
     @Override
     public int onEnd() {
-    	System.out.println("map");
     	this.currentlyExchanging.remove(this.receiverName);
         return this.exitValue;
     }

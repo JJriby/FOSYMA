@@ -30,13 +30,16 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 
-public class PingBehaviour extends OneShotBehaviour {
+public class PingBehaviour extends Behaviour {
 
 	private static final long serialVersionUID = 12L;
     private boolean finished = false;
     private int exitValue;
     
     private MapRepresentation myMap;
+    
+    Set<String> currentlyExchanging;
+    String receiverName;
 
     public PingBehaviour(final ExploreCoopAgent2 myagent, MapRepresentation myMap) {
         super(myagent);
@@ -45,6 +48,9 @@ public class PingBehaviour extends OneShotBehaviour {
 
     @Override
     public void action() {
+    	
+    	this.currentlyExchanging = ((ExploreCoopAgent2) this.myAgent).getCurrentlyExchanging();
+    	this.receiverName = ((ExploreCoopAgent2) this.myAgent).getReceiverName();
     	
     	ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
     	int type_msg = myAgent.getTypeMsg();
@@ -79,13 +85,13 @@ public class PingBehaviour extends OneShotBehaviour {
         return;
     }
 
-    /*@Override
+    @Override
     public boolean done() {
     	if(this.currentlyExchanging != null) {
     		this.currentlyExchanging.remove(receiverName);
     	}
         return finished;
-    }*/
+    }
     
     
     @Override
