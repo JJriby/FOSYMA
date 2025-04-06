@@ -41,7 +41,7 @@ public class PongBehaviour extends Behaviour {
     
     private MapRepresentation myMap;
     
-    public PongBehaviour(final ExploreCoopAgent2 myagent, MapRepresentation myMap2) {
+    public PongBehaviour(final ExploreCoopAgent2 myagent) {
         super(myagent);
     }
     
@@ -120,7 +120,7 @@ public class PongBehaviour extends Behaviour {
                     		}
                             
                             myAgent.sendMessage(returnMap);
-                            System.out.println(myAgent.getLocalName() + " 🔁 carte en retour envoyée à " + msg.getSender().getLocalName());
+                            System.out.println(myAgent.getLocalName() + " carte en retour envoyée à " + msg.getSender().getLocalName());
                             nodesToTransmit.put(receiverName, new SerializableSimpleGraph<>());
                         }
                         
@@ -147,7 +147,7 @@ public class PongBehaviour extends Behaviour {
                         
                         
                         alreadyExchanged.add(receiverName);
-                        System.out.println("PONG : " + myAgent.getLocalName() + " ✅ a marqué " + receiverName + " comme déjà échangé");
+                        System.out.println("PONG : " + myAgent.getLocalName() + " a marqué " + receiverName + " comme déjà échangé");
 
                         
                         finished = true;

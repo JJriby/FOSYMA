@@ -8,6 +8,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 import dataStructures.serializableGraph.SerializableSimpleGraph;
+import dataStructures.tuple.Couple;
+import eu.su.mas.dedale.env.Location;
+import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.*;
 
@@ -43,7 +46,7 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 
 	private static final long serialVersionUID = -7969469610241668140L;
 	private MapRepresentation myMap;
-	private List<String> list_agentNames;
+	private List<String> list_agentNames = new ArrayList<String>();
 	
 	// params à transmettre aux comportements
 	
@@ -57,6 +60,9 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 	// voir si c'est vraiment utile ces deux trucs mtn qu'on est en fsm
 	private Set<String> alreadyExchanged = new HashSet<>(); 
 	private Set<String> currentlyExchanging = new HashSet<>();
+	
+	//private List<Couple<Location, List<Couple<Observation, String>>>> lastObs = new ArrayList<>();
+	//private List<String> objectif = new ArrayList<>();
 	
 
 	/**
@@ -73,7 +79,7 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 		//get the parameters added to the agent at creation (if any)
 		final Object[] args = getArguments();
 		
-		list_agentNames=new ArrayList<String>();
+		//list_agentNames=new ArrayList<String>();
 		
 		if(args.length==0){
 			System.err.println("Error while creating the agent, names of agent to contact expected");
@@ -81,7 +87,7 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 		}else{
 			int i=2;// WARNING YOU SHOULD ALWAYS START AT 2. This will be corrected in the next release.
 			while (i<args.length) {
-				list_agentNames.add((String)args[i]);
+				this.list_agentNames.add((String)args[i]);
 				i++;
 			}
 		}
@@ -96,7 +102,7 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 		
 		//lb.add(new ExploCoopBehaviour2(this,this.myMap,list_agentNames));
 
-		lb.add(new GlobalBehaviour(this, this.myMap, list_agentNames));
+		lb.add(new GlobalBehaviour(this, this.myMap));
 		
 		/***
 		 * MANDATORY TO ALLOW YOUR AGENT TO BE DEPLOYED CORRECTLY
@@ -109,12 +115,7 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 
 	}
 	
-	// pas utile vu qu'on les passe en paramètre finalement (à changer)
-	/*public MapRepresentation getMyMap() {
-		return this.myMap;
-	}*/
 	
-	// pas utile vu qu'on les passe en paramètre finalement (à changer)
 	public List<String> getAgentNames(){
 		return this.list_agentNames;
 	}
@@ -155,10 +156,14 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 		return this.nodesToTransmit;
 	}
 	
+	/*public List<Couple<Location, List<Couple<Observation, String>>>> getLastObservation(){
+		return this.lastObs;
+	}
 	
-	/*public void setMyMap(MapRepresentation myMap) {
-		this.myMap = myMap;
+	public List<String> getObjectif(){
+		return this.objectif;
 	}*/
+	
 	
 	
 	public void setAgentNames(List<String> agentNames) {
@@ -200,6 +205,14 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 	public void setCurrentlyExchanging(Set<String> currentlyExchanging) {
 		this.currentlyExchanging = currentlyExchanging;
 	}
+	
+	/*public void setLastObservation(List<Couple<Location, List<Couple<Observation, String>>>> lastObs) {
+		this.lastObs = lastObs;
+	}
+	
+	public void setObjectif(List<String> objectif) {
+		this.objectif = objectif;
+	}*/
 	
 	
 	/**

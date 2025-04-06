@@ -32,31 +32,31 @@ public class GlobalBehaviour extends FSMBehaviour {
 	private static final String ShareMap = "ShareMap";
 
 	
-	public GlobalBehaviour(final AbstractDedaleAgent myagent, MapRepresentation myMap, List<String> list_agentNames) {
+	public GlobalBehaviour(final AbstractDedaleAgent myagent, MapRepresentation myMap) {
 		super(myagent);
 		
 		this.myMap = myMap;
-		this.agentNames = list_agentNames;
 		
 		// comportements
-        this.registerFirstState(new ExploCoopBehaviour2((ExploreCoopAgent2) this.myAgent, this.myMap), Explore);
-        this.registerState(new InterBlocageBehaviour((ExploreCoopAgent2) this.myAgent, this.myMap), InterBlocage);         
-        this.registerState(new PingBehaviour((ExploreCoopAgent2) this.myAgent, this.myMap), Ping);
-        this.registerState(new PongBehaviour((ExploreCoopAgent2) this.myAgent, this.myMap), Pong);
-        this.registerState(new ShareMapBehaviour3((ExploreCoopAgent2) this.myAgent, this.myMap), ShareMap);
+        this.registerFirstState(new ExploCoopBehaviour2((ExploreCoopAgent2) this.myAgent), Explore);
+        this.registerState(new InterBlocageBehaviour((ExploreCoopAgent2) this.myAgent), InterBlocage);         
+        this.registerState(new PingBehaviour((ExploreCoopAgent2) this.myAgent), Ping);
+        this.registerState(new PongBehaviour((ExploreCoopAgent2) this.myAgent), Pong);
+        this.registerState(new ShareMapBehaviour3((ExploreCoopAgent2) this.myAgent), ShareMap);
         
-        this.registerState(new GoToRdvBehaviour((ExploreCoopAgent2) this.myAgent, this.myMap), GoToRDV);
+        this.registerState(new GoToRdvBehaviour((ExploreCoopAgent2) this.myAgent), GoToRDV);
         
-        this.registerState(new CollectBehaviour((ExploreCoopAgent2) this.myAgent, this.myMap), Collect);
-        this.registerLastState(new PlanDAttaqueBehaviour((ExploreCoopAgent2) this.myAgent, this.myMap), PlanDAttaque);
+        this.registerState(new CollectBehaviour((ExploreCoopAgent2) this.myAgent), Collect);
+        this.registerLastState(new PlanDAttaqueBehaviour((ExploreCoopAgent2) this.myAgent), PlanDAttaque);
         
        
         // transitions
         this.registerTransition(Explore, GoToRDV, 1);
-        this.registerTransition(GoToRDV, PlanDAttaque, 1);
+        this.registerTransition(GoToRDV, PlanDAttaque, 2);
         
         this.registerTransition(Explore, InterBlocage, 2);
-        // faudra rajouter la transition d'interblocage vers explore
+        this.registerTransition(InterBlocage, GoToRDV, 1);
+        this.registerTransition(GoToRDV, Explore, 1);
         
         this.registerTransition(Explore, Ping, 3);
         this.registerTransition(Ping, Explore, 0);
@@ -64,9 +64,8 @@ public class GlobalBehaviour extends FSMBehaviour {
         this.registerTransition(ShareMap, Explore, 0);
         
         this.registerTransition(Explore, Pong, 4);
-        this.registerTransition(Pong,  Explore, 0);
-        
-             
+        this.registerTransition(Pong, Explore, 0);
+       
 	}
 	
 	public MapRepresentation getMyMap() {

@@ -14,35 +14,48 @@ public class GoToRdvBehaviour extends Behaviour {
 	
 	private static final long serialVersionUID = 7567689731496787661L;
 	private boolean finished = false;
-	private int exitValue = 0;
+	private int exitValue = -1;
 	private int cpt = 0;
-	
-	private MapRepresentation myMap;
-	
-	public GoToRdvBehaviour(final ExploreCoopAgent2 myagent, MapRepresentation myMap) {
+		
+	public GoToRdvBehaviour(final ExploreCoopAgent2 myagent) {
         super(myagent);
-        this.myMap = myMap;
 	}
 	
 	@Override
 	public void action() {
 		
+		this.finished = false;
+		this.exitValue = -1;
+		
 		// traiter un cas d'erreur où shortestPath serait égal à null ?
+		
+		// vérifier si lors de ce chemin aussi y a pas interblocage ?
+		
 		
 		ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
 		List<String> shortestPath = myAgent.getShortestPath(); 
 		
+		
 		if(cpt < shortestPath.size()) {
-			((AbstractDedaleAgent) this.myAgent).moveTo(new GsLocation(shortestPath.get(cpt)));
+			boolean moved = ((AbstractDedaleAgent) this.myAgent).moveTo(new GsLocation(shortestPath.get(cpt)));
 			cpt++;
+			
+			// dans le cas où on doit s'arrêter avant obj car embouteillage 
+			// pour le rdv après exploration faudra faire une condition au cas où 
+			// y en a un qu'est coincé alors qu'il pense être au rdv
+			if(!moved) {
+				this.exitValue = myAgent.getTypeMsg();
+				this.finished = true;
+				return;
+			}
 		}
 		else {
 			myAgent.setShortestPath(new ArrayList<>());
-			this.exitValue = 1;
+			this.exitValue = myAgent.getTypeMsg();
 			this.finished = true;
 			return;
 		}
-
+		
 	}
 	
 

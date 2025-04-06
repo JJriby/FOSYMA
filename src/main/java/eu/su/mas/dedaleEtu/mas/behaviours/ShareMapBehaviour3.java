@@ -29,7 +29,7 @@ public class ShareMapBehaviour3 extends OneShotBehaviour {
     
     private MapRepresentation myMap;
     
-    public ShareMapBehaviour3(final ExploreCoopAgent2 myagent, MapRepresentation myMap2) {
+    public ShareMapBehaviour3(final ExploreCoopAgent2 myagent) {
         super(myagent);
         //this.myMap = myMap;
     }

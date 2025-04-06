@@ -16,18 +16,35 @@ public class PlanDAttaqueBehaviour extends Behaviour {
     
     private MapRepresentation myMap;
     
-    public PlanDAttaqueBehaviour(final ExploreCoopAgent2 myagent, MapRepresentation myMap) {
+    public PlanDAttaqueBehaviour(final ExploreCoopAgent2 myagent) {
         super(myagent);
-        this.myMap = myMap;
     }
 
 	@Override
 	public void action() {
+		
+		System.out.println("Plan d'attaque en marche !");
+		
+		this.myMap = ((GlobalBehaviour) this.getParent()).getMyMap();
+		
 		/*for(String a : list_agentNames) {
 			
 		}*/
 		
-		System.out.println("xp : " + ((AbstractDedaleAgent) this.myAgent).getMyExpertise());
+		// System.out.println("xp : " + ((AbstractDedaleAgent) this.myAgent).getMyExpertise());
+		
+		
+		// l'agent avec la plus grande capacité du trésor en question choisit le plus gros trésor 
+		// il vérifie s'il peut l'ouvrir seul : lockingExpertise + Strengh et s'il peut alors il y va seul
+		// sinon, il génère plusieurs coalitions possibles en s'assurant que les autres n'ont pas un backpack de capacité nulle pour le trésor en question
+		// il choisit le groupe d'agents qui évite le plus la perte des 10% (donc j'imagine on veut le moins de personnes possibles)
+		
+		// ensuite, une fois les trésors attribués aux agents, on informe le silot des trésors sélectionnés
+		// il calcule ensuite un nouveau barycentre en fonction des trésors sélectionnés
+		
+		
+		
+		// on verra la partie de l'adaptation de la place du silot où l'un des coffres est vide plus tard
 
 	}
 

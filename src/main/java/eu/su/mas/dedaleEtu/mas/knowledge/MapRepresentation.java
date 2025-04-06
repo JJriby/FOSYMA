@@ -320,15 +320,15 @@ public class MapRepresentation implements Serializable {
 	public synchronized List<String> getShortestPath2(String idFrom,String idTo,List<String> noeudsInterdits){
 		List<String> shortestPath=new ArrayList<String>();
 
-		Dijkstra dijkstra = new Dijkstra();//number of edge
-		dijkstra.init(g);
-
 		List<Node> noeudsSupprimes = new ArrayList<>();
 	    for (String n_id : noeudsInterdits) {
 	        Node node = g.getNode(n_id);
 	        noeudsSupprimes.add(node);
 	        g.removeNode(n_id);
 	    }
+	    
+	    Dijkstra dijkstra = new Dijkstra();//number of edge
+		dijkstra.init(g);
 			
 		dijkstra.setSource(g.getNode(idFrom));
 		dijkstra.compute();//compute the distance to all nodes from idFrom
@@ -355,6 +355,10 @@ public class MapRepresentation implements Serializable {
 	public List<String> getShortestPathToClosestOpenNode2(String myPosition, List<String> noeudsInterdits) {
 		//1) Get all openNodes
 		List<String> opennodes=getOpenNodes();
+		
+		for(String n : noeudsInterdits) {
+			opennodes.remove(n);
+		}
 
 		//2) select the closest one
 		List<Couple<String,Integer>> lc=

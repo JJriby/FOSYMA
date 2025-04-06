@@ -40,7 +40,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
     
     private MapRepresentation myMap;
 
-    public ExploCoopBehaviour2(final ExploreCoopAgent2 myagent, MapRepresentation myMap2) {
+    public ExploCoopBehaviour2(final ExploreCoopAgent2 myagent) {
         super(myagent);
         //this.myMap = ((GlobalBehaviour) this.getParent()).getMyMap();
         /*this.list_agentNames = agentNames;
@@ -59,6 +59,9 @@ public class ExploCoopBehaviour2 extends Behaviour {
 
     @Override
     public void action() {
+    	
+    	// NE PAS OUBLIER DE MODIFIER LE ALREADYSEE POUR METTRE UNE ESPECE DE COMPTEUR
+    	// CAR ICI POUR L'INSTANT, JE LES OBLIGE A PARTAGER QU'UNE SEULE FOIS LEUR CARTE MAX
     	
     	this.finished = false;
     	this.exitValue = 0;    	
@@ -103,8 +106,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
         	this.cpt_block = 0;
         }
         
-        if(this.cpt_block == 5) {
-        	//((GlobalBehaviour)this.getParent()).setLastObservation(lobs);
+        if(this.cpt_block == 5) {        	
         	this.finished = true;
         	this.exitValue = 2;
         	return;
@@ -176,7 +178,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
                             this.finished = true;
                             return;
                         } else {
-                            System.out.println("❌ Échange déjà fait ou en cours avec " + agentName + ", on passe.");
+                            System.out.println("Échange déjà fait ou en cours avec " + agentName + ", on passe.");
                         }
                     }
                     
@@ -236,6 +238,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
             myAgent.setShortestPath(shortestPath);
             
             //((GlobalBehaviour)this.getParent()).setShortestPath(shortestPath);
+            myAgent.setTypeMsg(2);
         	this.exitValue = 1;
         	finished = true;
         	return;
@@ -252,7 +255,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
         	((AbstractDedaleAgent) myAgent).moveTo(new GsLocation(nextNodeId));
         }
         
-        // on garde en mémoire la position actuelle 
+        // on garde en mémoire la position actuelle
         this.lastPos = myPosition.getLocationId();
     }
     

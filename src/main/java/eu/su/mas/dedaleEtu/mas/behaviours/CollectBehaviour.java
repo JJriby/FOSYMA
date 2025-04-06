@@ -20,15 +20,17 @@ public class CollectBehaviour extends Behaviour {
     
     private Map<String, List<String>> list_obj;*/
     
-    public CollectBehaviour(final ExploreCoopAgent2 myagent, MapRepresentation myMap) {
+    public CollectBehaviour(final ExploreCoopAgent2 myagent) {
         super(myagent);
-        this.myMap = myMap;
         /*this.list_agentNames = agentNames;
         this.list_obj = list_obj;*/
     }
 
 	@Override
 	public void action() {
+		
+		this.myMap = ((GlobalBehaviour) this.getParent()).getMyMap();
+		
 		/*for(int i=0; i<this.list_agentNames.size(); i++) {
 			this.list_obj.put(this.list_agentNames.get(i), this.list_gold.get());
 		}*/

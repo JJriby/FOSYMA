@@ -13,7 +13,7 @@ import org.graphstream.graph.Node;
 import dataStructures.tuple.Couple;
 import eu.su.mas.dedale.env.Location;
 import eu.su.mas.dedale.env.Observation;
-
+import eu.su.mas.dedale.env.gs.GsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import jade.core.behaviours.Behaviour;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent2;
@@ -27,32 +27,58 @@ public class InterBlocageBehaviour extends Behaviour {
 	
 	private MapRepresentation myMap;
 		
-	public InterBlocageBehaviour(final ExploreCoopAgent2 myagent, MapRepresentation myMap) {
+	public InterBlocageBehaviour(final ExploreCoopAgent2 myagent) {
         super(myagent);
-        this.myMap = myMap;
 	}
 
 	@Override
 	public void action() { 
-		// on récupère les observations de l'agent bloqué
-		// List<Couple<Location, List<Couple<Observation, String>>>> lobs = ((GlobalBehaviour)this.getParent()).getLastObservation();
+				
+		this.finished = false;
+    	this.exitValue = 0; 
+		
+    	ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
+		this.myMap = ((GlobalBehaviour) this.getParent()).getMyMap();
 		
 		
-		// faire directement une condition avec getShortestpath si c'est null alors coincé donc l'autre bouge
-		/*
-		boolean coince = true;
-		for (Couple<Location, List<Couple<Observation, String>>> observation : lobs) {
-			for (Couple<Observation, String> o : observation.getRight()) {
-				if (o.getLeft() == null) {
-					System.out.println("ici : " + this.myAgent.getLocalName());
-				}
-			}
+		// on stocke tous les noeuds où y a des agents pour les éviter
+		List<String> noeudsAEviter = new ArrayList<>();
+		List<Couple<Location, List<Couple<Observation, String>>>> lobs = ((AbstractDedaleAgent) myAgent).observe();
+		for (Couple<Location, List<Couple<Observation, String>>> obs : lobs) {
+            Location nodeId = obs.getLeft();
+            
+            List<Couple<Observation, String>> details = obs.getRight();
+            for (Couple<Observation, String> detail : details) {
+                if (detail.getLeft() == Observation.AGENTNAME) {
+                    noeudsAEviter.add(nodeId.getLocationId());
+                }
+            }
 		}
-		*/
+		
+		if (noeudsAEviter.contains(myAgent.getCurrentPosition().getLocationId())) {
+			System.out.println("PB");
+		}
+				
+		// on cherche le chemin le plus court menant à un noeud ouvert en évitant les noeuds où se trouvent les agents
+		Location myPosition = ((AbstractDedaleAgent) myAgent).getCurrentPosition();
+		List<String> shortestPath = this.myMap.getShortestPathToClosestOpenNode2(myPosition.getLocationId(), noeudsAEviter);
+		
+		
+		//System.out.println("chemin : " + shortestPath);
+		// si on en a trouvé un, on y va, puis on retourne dans la phase d'exploration
+		if(shortestPath != null) {
+			myAgent.setShortestPath(shortestPath);
+			myAgent.setTypeMsg(1);
+			this.finished = true;
+			this.exitValue = 1;
+			return;
+		} 
+		
+		// dans le cas inverse, on réexécute le comportement jusqu'à ce qu'on trouve un chemin le temps que les agents blocants bougent
 		
 		
 		
-		// 1) si qtte trésor ramassée pareil ou égal à 0 --> communication chemin vers objectif
+		// 1) si qtte trésor ramassée pareille ou égale à 0 --> communication chemin vers objectif
 		// 2) l'agent avec chemin le plus petit garde sa route
 		// tandis que les autres recalculent un chemin vers leur objectif sans les noeuds nécessaires à l'autre
 		// et si un tel chemin n'existe pas on l'envoie dans un noeud random au loin

@@ -41,13 +41,14 @@ public class PingBehaviour extends Behaviour {
     Set<String> currentlyExchanging;
     String receiverName;
 
-    public PingBehaviour(final ExploreCoopAgent2 myagent, MapRepresentation myMap) {
+    public PingBehaviour(final ExploreCoopAgent2 myagent) {
         super(myagent);
-        this.myMap = myMap;
     }
 
     @Override
     public void action() {
+    	
+    	this.myMap = ((GlobalBehaviour) this.getParent()).getMyMap();
     	
     	this.currentlyExchanging = ((ExploreCoopAgent2) this.myAgent).getCurrentlyExchanging();
     	this.receiverName = ((ExploreCoopAgent2) this.myAgent).getReceiverName();
