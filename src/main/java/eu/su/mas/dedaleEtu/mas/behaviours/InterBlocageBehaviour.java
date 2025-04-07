@@ -26,6 +26,7 @@ public class InterBlocageBehaviour extends Behaviour {
 	private int exitValue = 0;
 	
 	private MapRepresentation myMap;
+	private List<String> noeudsAEviter = new ArrayList<>();
 		
 	public InterBlocageBehaviour(final ExploreCoopAgent2 myagent) {
         super(myagent);
@@ -33,6 +34,8 @@ public class InterBlocageBehaviour extends Behaviour {
 
 	@Override
 	public void action() { 
+		
+		//System.out.println("interblocage position init : " + ((AbstractDedaleAgent) myAgent).getCurrentPosition());
 				
 		this.finished = false;
     	this.exitValue = 0; 
@@ -40,9 +43,9 @@ public class InterBlocageBehaviour extends Behaviour {
     	ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
 		this.myMap = ((GlobalBehaviour) this.getParent()).getMyMap();
 		
+		// Potentiellement faire le même principe pour consensus après partage de carte
 		
 		// on stocke tous les noeuds où y a des agents pour les éviter
-		List<String> noeudsAEviter = new ArrayList<>();
 		List<Couple<Location, List<Couple<Observation, String>>>> lobs = ((AbstractDedaleAgent) myAgent).observe();
 		for (Couple<Location, List<Couple<Observation, String>>> obs : lobs) {
             Location nodeId = obs.getLeft();
@@ -50,29 +53,64 @@ public class InterBlocageBehaviour extends Behaviour {
             List<Couple<Observation, String>> details = obs.getRight();
             for (Couple<Observation, String> detail : details) {
                 if (detail.getLeft() == Observation.AGENTNAME) {
-                    noeudsAEviter.add(nodeId.getLocationId());
+                    this.noeudsAEviter.add(nodeId.getLocationId());
                 }
             }
 		}
 		
-		if (noeudsAEviter.contains(myAgent.getCurrentPosition().getLocationId())) {
-			System.out.println("PB");
-		}
+		//System.out.println(" a eviter : " + this.noeudsAEviter + " par " + myAgent.getLocalName());
 				
 		// on cherche le chemin le plus court menant à un noeud ouvert en évitant les noeuds où se trouvent les agents
 		Location myPosition = ((AbstractDedaleAgent) myAgent).getCurrentPosition();
 		List<String> shortestPath = this.myMap.getShortestPathToClosestOpenNode2(myPosition.getLocationId(), noeudsAEviter);
 		
-		
+		//System.out.println("chemin trouvé : " + shortestPath);
 		//System.out.println("chemin : " + shortestPath);
 		// si on en a trouvé un, on y va, puis on retourne dans la phase d'exploration
 		if(shortestPath != null) {
+			this.noeudsAEviter = new ArrayList<>();
 			myAgent.setShortestPath(shortestPath);
 			myAgent.setTypeMsg(1);
 			this.finished = true;
 			this.exitValue = 1;
 			return;
-		} 
+		} else {
+			// A TRAITER POTENTIELLEMENT : dans le cas où t'as vraiment besoin d'aller à ce noeud car il te reste plus que lui et idem pour l'inverse
+			//System.out.println("Noeuds à éviter mtn : " + this.noeudsAEviter);
+			
+			List<Couple<Location, List<Couple<Observation, String>>>> voisins = ((AbstractDedaleAgent) myAgent).observe();
+		    List<String> voisinsLibres = new ArrayList<>();
+
+		    for (Couple<Location, List<Couple<Observation, String>>> obs : voisins) {
+		        String voisinId = obs.getLeft().getLocationId();
+		        boolean isLibre = true;
+
+		        for (Couple<Observation, String> o : obs.getRight()) {
+		            if (o.getLeft() == Observation.AGENTNAME) {
+		                isLibre = false;
+		                break;
+		            }
+		        }
+
+		        if (isLibre && !voisinId.equals(myPosition.getLocationId())) {
+		            voisinsLibres.add(voisinId);
+		        }
+		    }
+
+		    if (!voisinsLibres.isEmpty()) {
+		        String aleatoire = voisinsLibres.get((int)(Math.random() * voisinsLibres.size()));
+		        System.out.println("Pas de chemin dispo, déplacement aléatoire vers : " + aleatoire);
+		        myAgent.setShortestPath(List.of(aleatoire));
+		        myAgent.setTypeMsg(1);
+		        this.exitValue = 1;
+		        this.finished = true;
+		        return;
+		    } else {
+		        System.out.println("Aucun voisin libre, attente...");
+		        block(500); // Attendre un moment avant de réessayer
+		        // Le comportement ne se termine pas encore ici
+		    }
+		}
 		
 		// dans le cas inverse, on réexécute le comportement jusqu'à ce qu'on trouve un chemin le temps que les agents blocants bougent
 		

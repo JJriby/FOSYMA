@@ -48,6 +48,9 @@ public class PongBehaviour extends Behaviour {
     @Override
     public void action() {
     	
+    	this.finished = false;
+    	this.exitValue = -1;
+    	
     	ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
     	
     	this.receiverName = myAgent.getReceiverName();

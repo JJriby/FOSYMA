@@ -23,7 +23,7 @@ public class PlanDAttaqueBehaviour extends Behaviour {
 	@Override
 	public void action() {
 		
-		System.out.println("Plan d'attaque en marche !");
+		//System.out.println("Plan d'attaque en marche !");
 		
 		this.myMap = ((GlobalBehaviour) this.getParent()).getMyMap();
 		

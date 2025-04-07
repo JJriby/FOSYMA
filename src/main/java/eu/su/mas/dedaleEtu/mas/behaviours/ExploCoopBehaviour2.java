@@ -178,7 +178,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
                             this.finished = true;
                             return;
                         } else {
-                            System.out.println("Échange déjà fait ou en cours avec " + agentName + ", on passe.");
+                            System.out.println("Échange déjà fait ou en cours avec " + agentName + ", on passe. Avancée du compteur : " + this.cpt_block);
                         }
                     }
                     
@@ -257,6 +257,10 @@ public class ExploCoopBehaviour2 extends Behaviour {
         
         // on garde en mémoire la position actuelle
         this.lastPos = myPosition.getLocationId();
+        
+        /*if(this.cpt_block == 4) {
+        	System.out.println("id Node : " + nextNodeId);
+        }*/
     }
     
     

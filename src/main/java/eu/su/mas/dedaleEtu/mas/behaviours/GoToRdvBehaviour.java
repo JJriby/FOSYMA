@@ -38,18 +38,21 @@ public class GoToRdvBehaviour extends Behaviour {
 		
 		if(cpt < shortestPath.size()) {
 			boolean moved = ((AbstractDedaleAgent) this.myAgent).moveTo(new GsLocation(shortestPath.get(cpt)));
-			cpt++;
 			
 			// dans le cas où on doit s'arrêter avant obj car embouteillage 
 			// pour le rdv après exploration faudra faire une condition au cas où 
 			// y en a un qu'est coincé alors qu'il pense être au rdv
 			if(!moved) {
+				this.cpt = 0;
 				this.exitValue = myAgent.getTypeMsg();
 				this.finished = true;
 				return;
+			} else {
+				cpt++;
 			}
 		}
 		else {
+			this.cpt = 0;
 			myAgent.setShortestPath(new ArrayList<>());
 			this.exitValue = myAgent.getTypeMsg();
 			this.finished = true;

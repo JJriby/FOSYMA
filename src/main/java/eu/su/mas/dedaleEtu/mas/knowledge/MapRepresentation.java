@@ -318,47 +318,91 @@ public class MapRepresentation implements Serializable {
 	// Fonctions que j'ai rajoutées
 	
 	public synchronized List<String> getShortestPath2(String idFrom,String idTo,List<String> noeudsInterdits){
-		List<String> shortestPath=new ArrayList<String>();
+		List<String> shortestPath = new ArrayList<>();
 
-		List<Node> noeudsSupprimes = new ArrayList<>();
+	    // 📋 Copie du graphe de travail dans tempG
+	    Graph tempG = new SingleGraph("tempCopy");
+
+	    // Copier les noeuds et leurs attributs
+	    this.g.nodes().forEach(node -> {
+	        Node newNode = tempG.addNode(node.getId());
+	        node.attributeKeys().forEach(attrKey -> {
+	            newNode.setAttribute(attrKey, node.getAttribute(attrKey));
+	        });
+	    });
+
+	    // Copier les arêtes et leurs attributs
+	    this.g.edges().forEach(edge -> {
+	        String id = edge.getId();
+	        String src = edge.getSourceNode().getId();
+	        String tgt = edge.getTargetNode().getId();
+	        boolean directed = edge.isDirected();
+
+	        if (tempG.getNode(src) != null && tempG.getNode(tgt) != null) {
+	            Edge newEdge = tempG.addEdge(id, src, tgt, directed);
+	            edge.attributeKeys().forEach(attrKey -> {
+	                newEdge.setAttribute(attrKey, edge.getAttribute(attrKey));
+	            });
+	        }
+	    });
+
+	    // ❌ Supprimer les nœuds interdits de tempG
 	    for (String n_id : noeudsInterdits) {
-	        Node node = g.getNode(n_id);
-	        noeudsSupprimes.add(node);
-	        g.removeNode(n_id);
+	        if (tempG.getNode(n_id) != null) {
+	            tempG.removeNode(n_id);
+	        }
 	    }
-	    
-	    Dijkstra dijkstra = new Dijkstra();//number of edge
-		dijkstra.init(g);
-			
-		dijkstra.setSource(g.getNode(idFrom));
-		dijkstra.compute();//compute the distance to all nodes from idFrom
-		List<Node> path=dijkstra.getPath(g.getNode(idTo)).getNodePath(); //the shortest path from idFrom to idTo
-		Iterator<Node> iter=path.iterator();
-		while (iter.hasNext()){
-			shortestPath.add(iter.next().getId());
-		}
-		dijkstra.clear();
-		
-		for (Node node : noeudsSupprimes) {
-            g.addNode(node.getId()); 
-        }
-		
-		if (shortestPath.isEmpty()) {//The openNode is not currently reachable
-			return null;
-		}else {
-			shortestPath.remove(0);//remove the current position
-		}
-		return shortestPath;
+
+	    // ✅ Vérifier que les nœuds de départ et d’arrivée existent
+	    Node source = tempG.getNode(idFrom);
+	    Node target = tempG.getNode(idTo);
+
+	    if (source == null || target == null) {
+	        //System.out.println("❌ Source ou cible absente du graphe temp : " + idFrom + " -> " + idTo);
+	        noeudsInterdits.add(idTo);  // On ajoute le nœud cible à éviter
+	        return null;
+	    }
+
+	    // 🔍 Calcul du plus court chemin via Dijkstra
+	    Dijkstra dijkstra = new Dijkstra();
+	    dijkstra.init(tempG);
+	    dijkstra.setSource(source);
+	    dijkstra.compute();
+
+	    List<Node> path = dijkstra.getPath(target).getNodePath();
+
+	    for (Node n : path) {
+	        shortestPath.add(n.getId());
+	    }
+
+	    dijkstra.clear();
+
+	    if (shortestPath.isEmpty()) {
+	        noeudsInterdits.add(idTo);
+	        return null;
+	    }
+
+	    // On enlève la position actuelle du chemin s’il est en tête
+	    if (shortestPath.get(0).equals(idFrom)) {
+	        shortestPath.remove(0);
+	    }
+
+	    return shortestPath;
 	}
 
 	
 	public List<String> getShortestPathToClosestOpenNode2(String myPosition, List<String> noeudsInterdits) {
 		//1) Get all openNodes
-		List<String> opennodes=getOpenNodes();
 		
-		for(String n : noeudsInterdits) {
-			opennodes.remove(n);
-		}
+		/*System.out.println("Position actuelle : " + myPosition);
+		System.out.println("Noeuds à éviter : " + noeudsInterdits);
+		System.out.println("OpenNodes initiaux : " + getOpenNodes());
+		System.out.println("Noeuds dans le graphe réel : ");
+		this.g.nodes().forEach(n -> System.out.print(n.getId() + " "));*/
+		System.out.println();
+		
+		List<String> opennodes=getOpenNodes();
+		opennodes.removeAll(noeudsInterdits);
 
 		//2) select the closest one
 		List<Couple<String,Integer>> lc=
@@ -367,6 +411,12 @@ public class MapRepresentation implements Serializable {
 				.collect(Collectors.toList());
 
 		Optional<Couple<String,Integer>> closest=lc.stream().min(Comparator.comparing(Couple::getRight));
+		
+		if (closest.isEmpty() || closest.get().getRight() == Integer.MAX_VALUE) {
+	        System.out.println("Aucun chemin atteignable depuis " + myPosition);
+	        return null;
+	    }
+		
 		//3) Compute shorterPath
 
 		return getShortestPath2(myPosition,closest.get().getLeft(), noeudsInterdits);
