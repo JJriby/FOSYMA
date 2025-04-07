@@ -50,8 +50,8 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 	
 	// params à transmettre aux comportements
 	
-	private Map<String, List<Integer>> list_gold = new HashMap<>();
-	private Map<String, List<Integer>> list_diamond = new HashMap<>();
+	private Map<String, Map<Observation, String>> list_gold = new HashMap<>();
+	private Map<String, Map<Observation, String>> list_diamond = new HashMap<>();
 	private List<String> shortestPath = new ArrayList<>();
 	private int type_msg = -1;
 	private String receiverName = "";
@@ -60,6 +60,11 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 	// voir si c'est vraiment utile ces deux trucs mtn qu'on est en fsm
 	private Set<String> alreadyExchanged = new HashSet<>(); 
 	private Set<String> currentlyExchanging = new HashSet<>();
+	
+	private Map<String,Observation> list_treasure_type = new HashMap<>();
+	private Map<String, Set<Couple<Observation, Integer>>> list_expertise = new HashMap<>();
+	private Map<String, List<Couple<Observation,Integer>>> list_back_free_space = new HashMap<>();
+	private Map<String,Boolean> list_validation = new HashMap<>();
 	
 	//private List<Couple<Location, List<Couple<Observation, String>>>> lastObs = new ArrayList<>();
 	//private List<String> objectif = new ArrayList<>();
@@ -91,6 +96,23 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 				i++;
 			}
 		}
+		
+		// on initialise les listes avec les noms des agents pour les remplir ensuite
+		/*this.list_treasure_type.put(this.getLocalName(), null);
+		this.list_expertise.put(this.getLocalName(), new HashSet<>());
+		this.list_back_free_space.put(this.getLocalName(), new ArrayList<>());
+		*/
+		
+		this.list_validation.put(this.getLocalName(),  false);
+		
+		for(String a : this.list_agentNames) {
+			/*this.list_treasure_type.put(a, null);
+			this.list_expertise.put(a, new HashSet<>());
+			this.list_back_free_space.put(a, new ArrayList<>());
+			*/
+			this.list_validation.put(a, false);
+		}
+		
 
 		List<Behaviour> lb=new ArrayList<Behaviour>();
 		
@@ -120,11 +142,11 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 		return this.list_agentNames;
 	}
 	
-	public Map<String, List<Integer>> getListGold(){
+	public Map<String, Map<Observation, String>> getListGold(){
 		return this.list_gold;
 	}
 	
-	public Map<String, List<Integer>> getListDiamond(){
+	public Map<String, Map<Observation, String>> getListDiamond(){
 		return this.list_diamond;
 	}
 	
@@ -156,6 +178,22 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 		return this.nodesToTransmit;
 	}
 	
+	public Map<String,Observation> getListTreasureType(){
+		return this.list_treasure_type;
+	}
+	
+	public Map<String, Set<Couple<Observation, Integer>>> getListExpertise(){
+		return this.list_expertise;
+	}
+	
+	public Map<String, List<Couple<Observation,Integer>>> getListBackFreeSpace(){
+		return this.list_back_free_space;
+	}
+	
+	public Map<String, Boolean> getListValidation(){
+		return this.list_validation;
+	}
+	
 	/*public List<Couple<Location, List<Couple<Observation, String>>>> getLastObservation(){
 		return this.lastObs;
 	}
@@ -170,11 +208,11 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 		this.list_agentNames = agentNames;
 	}
 	
-	public void setGold(Map<String, List<Integer>> list_gold) {
+	public void setGold(Map<String, Map<Observation, String>> list_gold) {
 		this.list_gold = list_gold;
 	}
 	
-	public void setDiamond(Map<String, List<Integer>> list_diamond) {
+	public void setDiamond(Map<String, Map<Observation, String>> list_diamond) {
 		this.list_diamond = list_diamond;
 	}
 	
@@ -204,6 +242,22 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 
 	public void setCurrentlyExchanging(Set<String> currentlyExchanging) {
 		this.currentlyExchanging = currentlyExchanging;
+	}
+	
+	public void setListTreasureType(Map<String,Observation> list_treasure_type) {
+		this.list_treasure_type = list_treasure_type;
+	}
+	
+	public void setListExpertise(Map<String, Set<Couple<Observation, Integer>>> list_expertise) {
+		this.list_expertise = list_expertise;
+	}
+	
+	public void setListBackFreeSpace(Map<String, List<Couple<Observation,Integer>>> list_back_free_space) {
+		this.list_back_free_space = list_back_free_space;
+	}
+	
+	public void setListValidation(Map<String,Boolean> list_validation) {
+		this.list_validation = list_validation;
 	}
 	
 	/*public void setLastObservation(List<Couple<Location, List<Couple<Observation, String>>>> lastObs) {

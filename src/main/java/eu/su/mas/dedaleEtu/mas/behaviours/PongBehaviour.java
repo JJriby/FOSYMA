@@ -59,8 +59,8 @@ public class PongBehaviour extends Behaviour {
         Map<String, SerializableSimpleGraph<String, MapAttribute>> nodesToTransmit = myAgent.getNodesToTransmit();
         Set<String> alreadyExchanged = myAgent.getAlreadyExchanged();
         this.currentlyExchanging = myAgent.getCurrentlyExchanging();
-        Map<String, List<Integer>> list_gold = myAgent.getListGold();
-        Map<String, List<Integer>> list_diamond = myAgent.getListDiamond();
+        Map<String, Map<Observation, String>> list_gold = myAgent.getListGold();
+        Map<String, Map<Observation, String>> list_diamond = myAgent.getListDiamond();
         
     	this.myMap = ((GlobalBehaviour) this.getParent()).getMyMap();
     	    	
@@ -101,8 +101,8 @@ public class PongBehaviour extends Behaviour {
 
                 case "SHARE-NEW-NODES":
                     try {
-                    	Couple<SerializableSimpleGraph<String, MapAttribute>,Couple<Map<String, List<Integer>>,Map<String, List<Integer>>>> received = 
-                            (Couple<SerializableSimpleGraph<String, MapAttribute>,Couple<Map<String, List<Integer>>,Map<String, List<Integer>>>>) msg.getContentObject();
+                    	Couple<SerializableSimpleGraph<String, MapAttribute>,Couple<Map<String, Map<Observation, String>>,Map<String, Map<Observation, String>>>> received = 
+                            (Couple<SerializableSimpleGraph<String, MapAttribute>,Couple<Map<String, Map<Observation, String>>,Map<String, Map<Observation, String>>>>) msg.getContentObject();
                     	
                     	SerializableSimpleGraph<String, MapAttribute> receivedMap = received.getLeft();
                         myMap.mergeMap(receivedMap);
@@ -115,8 +115,8 @@ public class PongBehaviour extends Behaviour {
                             returnMap.addReceiver(new AID(receiverName, AID.ISLOCALNAME));
                             
                             try {		
-                            	Couple<Map<String, List<Integer>>,Map<String, List<Integer>>> tresors = new Couple<>(list_gold, list_diamond); 
-                            	Couple<SerializableSimpleGraph<String, MapAttribute>,Couple<Map<String, List<Integer>>,Map<String, List<Integer>>>> a_envoyer = new Couple<>(mapToSend, tresors);
+                            	Couple<Map<String, Map<Observation, String>>,Map<String, Map<Observation, String>>> tresors = new Couple<>(list_gold, list_diamond); 
+                            	Couple<SerializableSimpleGraph<String, MapAttribute>,Couple<Map<String, Map<Observation, String>>,Map<String, Map<Observation, String>>>> a_envoyer = new Couple<>(mapToSend, tresors);
                             	returnMap.setContentObject(a_envoyer);
                     		} catch (IOException e) {
                     			e.printStackTrace();
@@ -128,21 +128,21 @@ public class PongBehaviour extends Behaviour {
                         }
                         
                         // fusion des cartes de trésors 
-                        Couple<Map<String, List<Integer>>,Map<String, List<Integer>>> tresors = received.getRight();
-                        Map<String, List<Integer>> golds = tresors.getLeft();
-                        Map<String, List<Integer>> diamonds = tresors.getRight();
+                        Couple<Map<String, Map<Observation, String>>,Map<String, Map<Observation, String>>> tresors = received.getRight();
+                        Map<String, Map<Observation, String>> golds = tresors.getLeft();
+                        Map<String, Map<Observation, String>> diamonds = tresors.getRight();
                         
-                        for(Map.Entry<String, List<Integer>> g : golds.entrySet()) {
+                        for(Map.Entry<String, Map<Observation, String>> g : golds.entrySet()) {
                         	String g_key = g.getKey();
-                        	List<Integer> g_value = g.getValue();
+                        	Map<Observation, String> g_value = g.getValue();
                         	if(!list_gold.containsKey(g_key)) {
                         		list_gold.put(g_key, g_value);
                         	}
                         }
                         
-                        for(Map.Entry<String, List<Integer>> d : diamonds.entrySet()) {
+                        for(Map.Entry<String, Map<Observation, String>> d : diamonds.entrySet()) {
                         	String d_key = d.getKey();
-                        	List<Integer> d_value = d.getValue();
+                        	Map<Observation, String> d_value = d.getValue();
                         	if(!list_diamond.containsKey(d_key)) {
                         		list_diamond.put(d_key, d_value);
                         	}

@@ -71,8 +71,8 @@ public class ExploCoopBehaviour2 extends Behaviour {
 
     	//MapRepresentation myMap = myAgent.getMyMap();
     	List<String> agentNames = myAgent.getAgentNames();
-    	Map<String, List<Integer>> list_gold = myAgent.getListGold();
-    	Map<String, List<Integer>> list_diamond = myAgent.getListDiamond();
+    	Map<String, Map<Observation, String>> list_gold = myAgent.getListGold();
+    	Map<String, Map<Observation, String>> list_diamond = myAgent.getListDiamond();
     	Set<String> alreadyExchanged = myAgent.getAlreadyExchanged();
     	Set<String> currentlyExchanging = myAgent.getCurrentlyExchanging();
     	Map<String, SerializableSimpleGraph<String, MapAttribute>> nodesToTransmit = myAgent.getNodesToTransmit();
@@ -141,7 +141,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
             }
             
             // Initialisation des listes de trésors à transmettre
-            List<Integer> data = new ArrayList<Integer>(); 
+            Map<Observation, String> data = new HashMap<>(); 
         	boolean gold = false;
         	boolean diamond = false;
         	
@@ -190,25 +190,30 @@ public class ExploCoopBehaviour2 extends Behaviour {
                 
                 // Ajout des informations des trésors
                 if (detail.getLeft() == Observation.LOCKPICKING) {
-                	data.add(Integer.parseInt(detail.getRight()));
+                	//data.add(Integer.parseInt(detail.getRight()));
+                	data.put(detail.getLeft(), detail.getRight());
             	}
                 
                 if (detail.getLeft() == Observation.STRENGH) {
-                	data.add(Integer.parseInt(detail.getRight()));
+                	//data.add(Integer.parseInt(detail.getRight()));
+                	data.put(detail.getLeft(), detail.getRight());
             	}
                 
                 if (detail.getLeft() == Observation.LOCKSTATUS) {
-                	data.add(Integer.parseInt(detail.getRight()));
+                	//data.add(Integer.parseInt(detail.getRight()));
+                	data.put(detail.getLeft(), detail.getRight());
             	}
                 
                 if (detail.getLeft() == Observation.GOLD) {
                 	gold = true;
-                	data.add(Integer.parseInt(detail.getRight()));
+                	//data.add(Integer.parseInt(detail.getRight()));
+                	data.put(detail.getLeft(), detail.getRight());
                 }
                 
                 if (detail.getLeft() == Observation.DIAMOND) {
                 	diamond = true;
-                	data.add(Integer.parseInt(detail.getRight()));
+                	//data.add(Integer.parseInt(detail.getRight()));
+                	data.put(detail.getLeft(), detail.getRight());
                 }
             }
             

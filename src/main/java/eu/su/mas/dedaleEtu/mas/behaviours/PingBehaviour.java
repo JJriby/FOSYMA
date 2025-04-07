@@ -48,6 +48,9 @@ public class PingBehaviour extends Behaviour {
     @Override
     public void action() {
     	
+    	this.finished = false;
+        this.exitValue = -1;
+    	
     	this.myMap = ((GlobalBehaviour) this.getParent()).getMyMap();
     	
     	this.currentlyExchanging = ((ExploreCoopAgent2) this.myAgent).getCurrentlyExchanging();

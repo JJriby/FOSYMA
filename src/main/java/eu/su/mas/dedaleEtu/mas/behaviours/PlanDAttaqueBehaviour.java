@@ -1,8 +1,12 @@
 package eu.su.mas.dedaleEtu.mas.behaviours;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import dataStructures.tuple.Couple;
+import eu.su.mas.dedale.env.Location;
+import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent2;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
@@ -12,7 +16,7 @@ public class PlanDAttaqueBehaviour extends Behaviour {
 	
 	private static final long serialVersionUID = 8597689931496787661L;
     private boolean finished = false;
-    private int exitValue = 0;
+    private int exitValue = -1;
     
     private MapRepresentation myMap;
     
@@ -23,15 +27,54 @@ public class PlanDAttaqueBehaviour extends Behaviour {
 	@Override
 	public void action() {
 		
-		//System.out.println("Plan d'attaque en marche !");
-		
+		this.finished = false;
+	    this.exitValue = -1;
+	    
+	    ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
+	    
+	    // on récupère les caractéristiques des trésors
+	    Map<String, Map<Observation, String>> list_gold = myAgent.getListGold();
+		Map<String, Map<Observation, String>> list_diamond = myAgent.getListDiamond();
+				
 		this.myMap = ((GlobalBehaviour) this.getParent()).getMyMap();
 		
-		/*for(String a : list_agentNames) {
-			
-		}*/
+		// on récupère les caratéristiques de l'agent
+		myAgent.getListTreasureType().put(myAgent.getLocalName(), ((AbstractDedaleAgent) myAgent).getMyTreasureType());
+		myAgent.getListExpertise().put(myAgent.getLocalName(), ((AbstractDedaleAgent) myAgent).getMyExpertise());
+		myAgent.getListBackFreeSpace().put(myAgent.getLocalName(), ((AbstractDedaleAgent) myAgent).getBackPackFreeSpace());
 		
-		// System.out.println("xp : " + ((AbstractDedaleAgent) this.myAgent).getMyExpertise());
+		
+        List<Couple<Location, List<Couple<Observation, String>>>> lobs = ((AbstractDedaleAgent) myAgent).observe();
+	
+        for (Couple<Location, List<Couple<Observation, String>>> obs : lobs) {
+            Location accessibleNode = obs.getLeft();
+            List<Couple<Observation, String>> details = obs.getRight();
+		
+            for (Couple<Observation, String> detail : details) {
+            	if (detail.getLeft() == Observation.AGENTNAME) {
+                    String agentName = detail.getRight();
+                    
+                    if (myAgent.getLocalName().compareTo(agentName) < 0) {
+                    	// si ta case du this.list_validation n'est pas à true, sinon t'as rien à demander (faire des contains)
+                        myAgent.setTypeMsg(2); // PING initiateur
+                        this.exitValue = 3;
+                        
+                    } else {
+                    	// si this.list_validation y a pas que des true
+                        this.exitValue = 4; // PONG récepteur
+                    }
+
+                    this.finished = true;
+                    return;
+                    
+                    
+                    
+            	}
+            }
+        }
+        
+        // s'il reçoit une liste de validation différente de la sienne alors il transmet à tout le monde sauf à l'agent qui lui a transmis la nouvelle info
+		
 		
 		
 		// l'agent avec la plus grande capacité du trésor en question choisit le plus gros trésor 
