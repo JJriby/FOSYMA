@@ -20,7 +20,6 @@ public class GlobalBehaviour extends FSMBehaviour {
 	
 	private static final long serialVersionUID = 1L;
 	private MapRepresentation myMap;
-	private List<String> agentNames;
 	
 	private static final String Explore = "Explore";
 	private static final String GoToRDV = "GoToRDV";
@@ -30,6 +29,7 @@ public class GlobalBehaviour extends FSMBehaviour {
 	private static final String Ping = "Ping";
 	private static final String Pong = "Pong";
 	private static final String ShareMap = "ShareMap";
+	private static final String ShareExpertise = "ShareExpertise";
 
 	
 	public GlobalBehaviour(final AbstractDedaleAgent myagent, MapRepresentation myMap) {
@@ -47,7 +47,8 @@ public class GlobalBehaviour extends FSMBehaviour {
         this.registerState(new GoToRdvBehaviour((ExploreCoopAgent2) this.myAgent), GoToRDV);
         
         this.registerState(new CollectBehaviour((ExploreCoopAgent2) this.myAgent), Collect);
-        this.registerLastState(new PlanDAttaqueBehaviour((ExploreCoopAgent2) this.myAgent), PlanDAttaque);
+        this.registerState(new PlanDAttaqueBehaviour((ExploreCoopAgent2) this.myAgent), PlanDAttaque);
+        this.registerState(new ShareExpertise((ExploreCoopAgent2) this.myAgent), ShareExpertise);
         
        
         // transitions
@@ -65,6 +66,13 @@ public class GlobalBehaviour extends FSMBehaviour {
         
         this.registerTransition(Explore, Pong, 4);
         this.registerTransition(Pong, Explore, 0);
+        
+        this.registerTransition(PlanDAttaque, Ping, 3);
+        this.registerTransition(PlanDAttaque, Pong, 4);
+        this.registerTransition(Ping, PlanDAttaque, 2);
+        this.registerTransition(Ping, ShareExpertise, 3);
+        this.registerTransition(ShareExpertise, PlanDAttaque, 1);
+        this.registerTransition(Pong, PlanDAttaque, 2);
        
 	}
 	

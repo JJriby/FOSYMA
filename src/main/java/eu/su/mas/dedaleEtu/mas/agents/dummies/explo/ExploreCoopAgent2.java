@@ -54,6 +54,7 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 	private Map<String, Map<Observation, String>> list_diamond = new HashMap<>();
 	private List<String> shortestPath = new ArrayList<>();
 	private int type_msg = -1;
+	private int msg_retour = -1;
 	private String receiverName = "";
 	private SerializableSimpleGraph<String, MapAttribute> mapToSend = new SerializableSimpleGraph<>();
 	private Map<String,SerializableSimpleGraph<String, MapAttribute>> nodesToTransmit = new HashMap<>();
@@ -166,6 +167,10 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 		return this.type_msg;
 	}
 	
+	public int getMsgRetour() {
+		return this.msg_retour;
+	}
+	
 	public String getReceiverName() {
 		return this.receiverName;
 	}
@@ -222,6 +227,10 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 	
 	public void setTypeMsg(int type_msg) {
 		this.type_msg = type_msg;
+	}
+	
+	public void setMsgRetour(int msg_retour) {
+		this.msg_retour = msg_retour;
 	}
 	
 	public void setReceiverName(String receiverName) {

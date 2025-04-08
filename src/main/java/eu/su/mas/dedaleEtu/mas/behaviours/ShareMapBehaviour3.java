@@ -19,7 +19,7 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 
-public class ShareMapBehaviour3 extends OneShotBehaviour {
+public class ShareMapBehaviour3 extends Behaviour {
 
 	private static final long serialVersionUID = 12L;
     private boolean finished = false;
@@ -144,11 +144,11 @@ public class ShareMapBehaviour3 extends OneShotBehaviour {
         this.finished = true;
     }
 
-    /*@Override
+    @Override
     public boolean done() {
     	this.currentlyExchanging.remove(receiverName);
         return finished;
-    }*/
+    }
     
     @Override
     public int onEnd() {

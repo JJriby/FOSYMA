@@ -44,8 +44,8 @@ public class PlanDAttaqueBehaviour extends Behaviour {
 		myAgent.getListBackFreeSpace().put(myAgent.getLocalName(), ((AbstractDedaleAgent) myAgent).getBackPackFreeSpace());
 		
 		
-        List<Couple<Location, List<Couple<Observation, String>>>> lobs = ((AbstractDedaleAgent) myAgent).observe();
-	
+		
+        List<Couple<Location, List<Couple<Observation, String>>>> lobs = ((AbstractDedaleAgent) myAgent).observe();	
         for (Couple<Location, List<Couple<Observation, String>>> obs : lobs) {
             Location accessibleNode = obs.getLeft();
             List<Couple<Observation, String>> details = obs.getRight();
@@ -54,18 +54,28 @@ public class PlanDAttaqueBehaviour extends Behaviour {
             	if (detail.getLeft() == Observation.AGENTNAME) {
                     String agentName = detail.getRight();
                     
-                    if (myAgent.getLocalName().compareTo(agentName) < 0) {
-                    	// si ta case du this.list_validation n'est pas à true, sinon t'as rien à demander (faire des contains)
-                        myAgent.setTypeMsg(2); // PING initiateur
-                        this.exitValue = 3;
-                        
-                    } else {
-                    	// si this.list_validation y a pas que des true
-                        this.exitValue = 4; // PONG récepteur
+                    if(!myAgent.getCurrentlyExchanging().contains(agentName)) {
+                    
+	                    myAgent.setMsgRetour(2);
+	                    myAgent.setReceiverName(agentName);
+	                    
+	                    myAgent.getCurrentlyExchanging().add(agentName);
+	                    
+	                    //System.out.println("communication " + myAgent.getLocalName());
+	                    
+	                    if (myAgent.getLocalName().compareTo(agentName) < 0) {
+	                    	// si ta case du this.list_validation n'est pas à true, sinon t'as rien à demander (faire des contains)
+	                        myAgent.setTypeMsg(3); // PING initiateur
+	                        this.exitValue = 3;
+	                        
+	                    } else {
+	                    	// si this.list_validation y a pas que des true
+	                        this.exitValue = 4; // PONG récepteur
+	                    }
+	
+	                    this.finished = true;
+	                    return;
                     }
-
-                    this.finished = true;
-                    return;
                     
                     
                     
@@ -93,7 +103,7 @@ public class PlanDAttaqueBehaviour extends Behaviour {
 
 	@Override
 	public boolean done() {
-		return finished;
+		return this.finished;
 	}
 	
 	@Override

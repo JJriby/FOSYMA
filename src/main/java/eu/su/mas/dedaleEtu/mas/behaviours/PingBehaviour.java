@@ -47,7 +47,7 @@ public class PingBehaviour extends Behaviour {
 
     @Override
     public void action() {
-    	
+    	    	
     	this.finished = false;
         this.exitValue = -1;
     	
@@ -79,7 +79,7 @@ public class PingBehaviour extends Behaviour {
         ACLMessage pong = this.myAgent.blockingReceive(pongTemplate, 3000);
         if (pong == null) {
             System.out.println(myAgent.getLocalName() + " Pas de PONG de " + receiverName);
-            this.exitValue = 0;
+            this.exitValue = myAgent.getMsgRetour();
         } else {
 	        System.out.println(myAgent.getLocalName() + " PONG reçu de " + receiverName);
 	        this.exitValue = type_msg;

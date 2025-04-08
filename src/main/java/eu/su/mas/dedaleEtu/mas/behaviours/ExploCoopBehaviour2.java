@@ -167,19 +167,20 @@ public class ExploCoopBehaviour2 extends Behaviour {
                             myAgent.setReceiverName(agentName);
                             myAgent.setMapToSend(partialGraph);
 
+                            myAgent.setMsgRetour(0);
                             if (myAgent.getLocalName().compareTo(agentName) < 0) {
-                                myAgent.setTypeMsg(1); // PING initiateur
-                                this.exitValue = 3;
+                            	myAgent.setTypeMsg(1);
+                            	this.exitValue = 3;
                                 
                             } else {
-                                this.exitValue = 4; // PONG récepteur
+                                this.exitValue = 4;
                             }
 
                             this.finished = true;
                             return;
-                        } else {
+                        } /*else {
                             System.out.println("Échange déjà fait ou en cours avec " + agentName + ", on passe. Avancée du compteur : " + this.cpt_block);
-                        }
+                        }*/
                     }
                     
                 }
