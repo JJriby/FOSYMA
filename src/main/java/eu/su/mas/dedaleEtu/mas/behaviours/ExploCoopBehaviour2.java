@@ -39,6 +39,8 @@ public class ExploCoopBehaviour2 extends Behaviour {
     private int exitValue = 0;
     
     private MapRepresentation myMap;
+    
+    private Map<String, Integer> historique_com = new HashMap<>();
 
     public ExploCoopBehaviour2(final ExploreCoopAgent2 myagent) {
         super(myagent);
@@ -54,6 +56,10 @@ public class ExploCoopBehaviour2 extends Behaviour {
         for (String agentName : agentNames) {
             this.agents_fin.put(agentName, false);
         }*/
+        
+        for(String n : ((ExploreCoopAgent2) this.myAgent).getAgentNames()) {
+        	this.historique_com.put(n, 0);
+        }
                 
     }
 
@@ -83,6 +89,15 @@ public class ExploCoopBehaviour2 extends Behaviour {
         	myMap = new MapRepresentation();
         	((GlobalBehaviour) this.getParent()).setMyMap(myMap);
         }
+        
+        for (String n : historique_com.keySet()) {
+            int cpt = historique_com.get(n);
+            if (cpt > 0) {
+                historique_com.put(n, cpt - 1);
+            }
+        }
+        
+        
 
         // 0) Récupérer la position actuelle de l'agent
         Location myPosition = ((AbstractDedaleAgent) myAgent).getCurrentPosition();
@@ -160,9 +175,11 @@ public class ExploCoopBehaviour2 extends Behaviour {
                     if (partialGraph != null && !partialGraph.getAllNodes().isEmpty()) {
                         //System.out.println("⛏ Comparaison stricte avec alreadyExchanged: " + alreadyExchanged);
                         
-                        if (!alreadyExchanged.contains(agentName) && !currentlyExchanging.contains(agentName)) {
+                        //if (!alreadyExchanged.contains(agentName) && !currentlyExchanging.contains(agentName)) {
+                    	if (this.historique_com.get(agentName) == 0 && !currentlyExchanging.contains(agentName)) {
                             //System.out.println("📡 Démarrage d’un échange avec " + agentName);
                             currentlyExchanging.add(agentName);
+                            this.historique_com.put(agentName, 10);
 
                             myAgent.setReceiverName(agentName);
                             myAgent.setMapToSend(partialGraph);
@@ -245,6 +262,9 @@ public class ExploCoopBehaviour2 extends Behaviour {
             
             //((GlobalBehaviour)this.getParent()).setShortestPath(shortestPath);
             myAgent.setTypeMsg(2);
+            
+            alreadyExchanged.clear();
+            
         	this.exitValue = 1;
         	finished = true;
         	return;

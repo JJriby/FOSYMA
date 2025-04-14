@@ -29,6 +29,8 @@ public class CollectBehaviour extends Behaviour {
 	@Override
 	public void action() {
 		
+		System.out.println("Phase collecte : " + this.myAgent.getLocalName());
+		
 		this.myMap = ((GlobalBehaviour) this.getParent()).getMyMap();
 		
 		/*for(int i=0; i<this.list_agentNames.size(); i++) {

@@ -36,11 +36,15 @@ public class ShareExpertise extends Behaviour {
 	    this.exitValue = -1;
 	    
 	    ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
+	    List<String> agentNames = myAgent.getAgentNames();
 	    String receiverName = myAgent.getReceiverName();
 	    Map<String, Observation> list_treasure_type = myAgent.getListTreasureType();
 	    Map<String, Set<Couple<Observation,Integer>>> list_expertise = myAgent.getListExpertise();
 	    Map<String, List<Couple<Observation,Integer>>> list_back_free_space = myAgent.getListBackFreeSpace();
 	    Map<String, Boolean> list_validation = myAgent.getListValidation();
+	    Set<String> alreadyExchanged = myAgent.getAlreadyExchanged();
+	    
+	    String parole = myAgent.getParole();
 		
 		
 	    // envoi des 4 listes
@@ -75,9 +79,6 @@ public class ShareExpertise extends Behaviour {
         if (returnListes != null) {
             try {
             	
-            	//System.out.println("trésors or avant : " + list_gold);
-            	//System.out.println("trésors diamand avant : " + list_diamond);
-            	
             	Couple<Couple<Map<String, Observation>, Map<String, Set<Couple<Observation,Integer>>>>, Couple<Map<String, List<Couple<Observation,Integer>>>, Map<String, Boolean>>> received =
             			(Couple<Couple<Map<String, Observation>, Map<String, Set<Couple<Observation,Integer>>>>, Couple<Map<String, List<Couple<Observation,Integer>>>, Map<String, Boolean>>>) returnListes.getContentObject();
             	
@@ -103,14 +104,20 @@ public class ShareExpertise extends Behaviour {
         	    
         	    // on fusionne la liste de validation
         	    for(Map.Entry<String, Boolean> elt : list2_validation.entrySet()) {
-        	    	list_validation.putIfAbsent(elt.getKey(), elt.getValue());
+        	    	if (elt.getValue() == true){
+        	    		list_validation.put(elt.getKey(), elt.getValue());
+        	    	}
+        	    }
+        	    
+        	    if(list_treasure_type.size() == agentNames.size() && list_expertise.size() == agentNames.size() && list_back_free_space.size() == agentNames.size()) {
+        	    	list_validation.put(myAgent.getLocalName(), true);
         	    }
                    
             } catch (UnreadableException e) {
                 e.printStackTrace();
             }           
             
-            //alreadyExchanged.add(receiverName);
+            alreadyExchanged.add(receiverName);
             System.out.println("PING : " + this.myAgent.getLocalName() + " échange terminé avec " + receiverName);
             System.out.println("liste trésors types : " + myAgent.getListTreasureType());
     		System.out.println("liste expertise : " + myAgent.getListExpertise());

@@ -1,6 +1,7 @@
 package eu.su.mas.dedaleEtu.mas.agents.dummies.explo;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
@@ -66,6 +67,10 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 	private Map<String, Set<Couple<Observation, Integer>>> list_expertise = new HashMap<>();
 	private Map<String, List<Couple<Observation,Integer>>> list_back_free_space = new HashMap<>();
 	private Map<String,Boolean> list_validation = new HashMap<>();
+	private String agent_cible = "";
+	private int cpt_ordre = 0;
+	private List<String> list_ordre = new ArrayList<>();
+	private String parole = "";
 	
 	//private List<Couple<Location, List<Couple<Observation, String>>>> lastObs = new ArrayList<>();
 	//private List<String> objectif = new ArrayList<>();
@@ -113,6 +118,13 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 			*/
 			this.list_validation.put(a, false);
 		}
+		
+		
+		this.list_ordre.add(this.getLocalName());
+		this.list_ordre.addAll(this.list_agentNames);
+		Collections.sort(this.list_ordre);
+		
+		this.setParole(this.list_ordre.get(0));
 		
 
 		List<Behaviour> lb=new ArrayList<Behaviour>();
@@ -199,6 +211,23 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 		return this.list_validation;
 	}
 	
+	public String getAgentCible(){
+		return this.agent_cible;
+	}
+	
+	public int getCptOrdre(){
+		return this.cpt_ordre;
+	}
+	
+	public List<String> getListOrdre(){
+		return this.list_ordre;
+	}
+	
+	public String getParole() {
+		return this.parole;
+	}
+	
+	
 	/*public List<Couple<Location, List<Couple<Observation, String>>>> getLastObservation(){
 		return this.lastObs;
 	}
@@ -267,6 +296,22 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 	
 	public void setListValidation(Map<String,Boolean> list_validation) {
 		this.list_validation = list_validation;
+	}
+	
+	public void setAgentCible(String nom) {
+		this.agent_cible = nom;
+	}
+	
+	public void setCptOrdre(int cpt) {
+		this.cpt_ordre = cpt;
+	}
+	
+	public void setListOrdre(List<String> list_ordre) {
+		this.list_ordre = list_ordre;
+	}
+	
+	public void setParole(String nom) {
+		this.parole = nom;
 	}
 	
 	/*public void setLastObservation(List<Couple<Location, List<Couple<Observation, String>>>> lastObs) {

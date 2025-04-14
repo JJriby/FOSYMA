@@ -11,6 +11,7 @@ import eu.su.mas.dedale.env.Location;
 import eu.su.mas.dedale.env.Observation;
 
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
+import eu.su.mas.dedaleEtu.ParoleBehaviour;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent2;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
@@ -30,6 +31,7 @@ public class GlobalBehaviour extends FSMBehaviour {
 	private static final String Pong = "Pong";
 	private static final String ShareMap = "ShareMap";
 	private static final String ShareExpertise = "ShareExpertise";
+	private static final String Parole = "Parole";
 
 	
 	public GlobalBehaviour(final AbstractDedaleAgent myagent, MapRepresentation myMap) {
@@ -49,6 +51,7 @@ public class GlobalBehaviour extends FSMBehaviour {
         this.registerState(new CollectBehaviour((ExploreCoopAgent2) this.myAgent), Collect);
         this.registerState(new PlanDAttaqueBehaviour((ExploreCoopAgent2) this.myAgent), PlanDAttaque);
         this.registerState(new ShareExpertise((ExploreCoopAgent2) this.myAgent), ShareExpertise);
+        this.registerState(new ParoleBehaviour((ExploreCoopAgent2) this.myAgent), Parole);
         
        
         // transitions
@@ -73,6 +76,10 @@ public class GlobalBehaviour extends FSMBehaviour {
         this.registerTransition(Ping, ShareExpertise, 3);
         this.registerTransition(ShareExpertise, PlanDAttaque, 1);
         this.registerTransition(Pong, PlanDAttaque, 2);
+        this.registerTransition(Ping, Parole, 4);
+        this.registerTransition(Parole, PlanDAttaque, 1);
+        
+        this.registerTransition(PlanDAttaque, Collect, 1);
        
 	}
 	
@@ -83,4 +90,5 @@ public class GlobalBehaviour extends FSMBehaviour {
 	public void setMyMap(MapRepresentation myMap) {
         this.myMap = myMap;
     }
+	
 }

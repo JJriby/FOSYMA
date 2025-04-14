@@ -35,7 +35,6 @@ public class GoToRdvBehaviour extends Behaviour {
 		ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
 		List<String> shortestPath = myAgent.getShortestPath(); 
 		
-		
 		if(cpt < shortestPath.size()) {
 			boolean moved = ((AbstractDedaleAgent) this.myAgent).moveTo(new GsLocation(shortestPath.get(cpt)));
 			

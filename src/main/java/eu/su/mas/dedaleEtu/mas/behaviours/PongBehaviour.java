@@ -47,7 +47,7 @@ public class PongBehaviour extends Behaviour {
     
     @Override
     public void action() {
-    	    	
+    	    	    	
     	this.finished = false;
     	this.exitValue = -1;
     	
@@ -65,6 +65,7 @@ public class PongBehaviour extends Behaviour {
     	this.myMap = ((GlobalBehaviour) this.getParent()).getMyMap();
     	
     	// pour shareExpertise
+    	List<String> agentNames = myAgent.getAgentNames();
 	    Map<String, Observation> list_treasure_type = myAgent.getListTreasureType();
 	    Map<String, Set<Couple<Observation,Integer>>> list_expertise = myAgent.getListExpertise();
 	    Map<String, List<Couple<Observation,Integer>>> list_back_free_space = myAgent.getListBackFreeSpace();
@@ -75,7 +76,9 @@ public class PongBehaviour extends Behaviour {
         		MessageTemplate.or(
                 MessageTemplate.MatchProtocol("PING"),
                 MessageTemplate.MatchProtocol("SHARE-NEW-NODES")),
-                MessageTemplate.MatchProtocol("SHARE-EXPERTISE")
+        		MessageTemplate.or(
+        		MessageTemplate.MatchProtocol("SHARE-EXPERTISE"),
+        		MessageTemplate.MatchProtocol("CHGT-PAROLE"))
         	);
 
         // réception des messages en laissant 3 secondes d'attente et si y a rien on part
@@ -101,7 +104,7 @@ public class PongBehaviour extends Behaviour {
                     pong.setPerformative(ACLMessage.INFORM);
                     pong.setProtocol("PONG");
                     pong.setSender(myAgent.getAID());
-                    pong.addReceiver(new AID(receiverName, AID.ISLOCALNAME));
+                    pong.addReceiver(new AID(this.receiverName, AID.ISLOCALNAME));
                     pong.setContent("Je suis bien dispo !");
                     myAgent.sendMessage(pong);
                     System.out.println(myAgent.getLocalName() + " → PONG envoyé à " + msg.getSender().getLocalName());
@@ -213,10 +216,15 @@ public class PongBehaviour extends Behaviour {
                 	    
                 	    // on fusionne la liste de validation
                 	    for(Map.Entry<String, Boolean> elt : list2_validation.entrySet()) {
-                	    	list_validation.putIfAbsent(elt.getKey(), elt.getValue());
+                	    	if (elt.getValue() == true){
+                	    		list_validation.put(elt.getKey(), elt.getValue());
+                	    	}
                 	    }
                 	    
-                	    
+                	    if(list_treasure_type.size() == agentNames.size() && list_expertise.size() == agentNames.size() && list_back_free_space.size() == agentNames.size()) {
+                	    	list_validation.put(myAgent.getLocalName(), true);
+                	    }
+                	       
                 	    
                 	    // envoi en retour
                 	    try {
@@ -251,7 +259,15 @@ public class PongBehaviour extends Behaviour {
                         e.printStackTrace();
                     }
                     break;
-                
+                    
+                case "CHGT-PAROLE":
+                	System.out.println("changement");
+                	String msg_received = msg.getContent();
+                	myAgent.setParole(msg_received);
+                	this.exitValue = myAgent.getMsgRetour();
+                    this.finished = true;
+                    return;
+                    
             } 
             this.exitValue = myAgent.getMsgRetour();
             this.finished = true;
@@ -261,7 +277,7 @@ public class PongBehaviour extends Behaviour {
     
     @Override
     public boolean done() {
-    	this.currentlyExchanging.remove(receiverName);
+    	this.currentlyExchanging.remove(this.receiverName);
         return finished;
     }
     
