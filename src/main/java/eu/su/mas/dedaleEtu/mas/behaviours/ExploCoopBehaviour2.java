@@ -190,6 +190,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
                             	this.exitValue = 3;
                                 
                             } else {
+                            	System.out.println(myAgent.getLocalName() + " doit aller dans pong");
                                 this.exitValue = 4;
                             }
 

@@ -109,7 +109,8 @@ public class ShareExpertise extends Behaviour {
         	    	}
         	    }
         	    
-        	    if(list_treasure_type.size() == agentNames.size() && list_expertise.size() == agentNames.size() && list_back_free_space.size() == agentNames.size()) {
+        	    // agentNames.size + 1 car agentNames ne contient pas l'agent courant
+        	    if(list_treasure_type.size() == agentNames.size()+1 && list_expertise.size() == agentNames.size()+1 && list_back_free_space.size() == agentNames.size()+1) {
         	    	list_validation.put(myAgent.getLocalName(), true);
         	    }
                    

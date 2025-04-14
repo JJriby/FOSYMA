@@ -72,28 +72,11 @@ public class PlanDAttaqueBehaviour extends Behaviour {
 	    	}
 	    }
 		
-	    /*if(myAgent.getLocalName().equals(myAgent.getAgentCible())) {
-        	// si this.list_validation y a pas que des true
-	    	myAgent.setAgentCible("");
-            this.exitValue = 4; // PONG récepteur
-            this.finished = true;
-            return;
-	    }*/
-	    
-	    List<Couple<Location, List<Couple<Observation, String>>>> lobs = ((AbstractDedaleAgent) myAgent).observe();	
-        /*System.out.println("obs : " + lobs);
-        
-        System.out.println("all_validation : " + all_validation);
-        System.out.println("agent courant : " + myAgent.getLocalName());
-        System.out.println("agent attendu (cptOrdre) : " + agentNames.get(myAgent.getCptOrdre()));
-        System.out.println("equals ? " + myAgent.getLocalName().equals(agentNames.get(myAgent.getCptOrdre())));
-		*/
-	    
-		//if(!all_validation && myAgent.getLocalName().equals(agentNames.get(myAgent.getCptOrdre()))) {
-	        //List<Couple<Location, List<Couple<Observation, String>>>> lobs = ((AbstractDedaleAgent) myAgent).observe();	
-	        //System.out.println("obs : " + lobs);
-        if(myAgent.getLocalName().equals(parole)) {
-	        for (Couple<Location, List<Couple<Observation, String>>> obs : lobs) {
+
+	    if(!all_validation) {
+		    List<Couple<Location, List<Couple<Observation, String>>>> lobs = ((AbstractDedaleAgent) myAgent).observe();	
+	
+		    for (Couple<Location, List<Couple<Observation, String>>> obs : lobs) {
 	            Location accessibleNode = obs.getLeft();
 	            List<Couple<Observation, String>> details = obs.getRight();
 			
@@ -102,80 +85,33 @@ public class PlanDAttaqueBehaviour extends Behaviour {
 	            		
 	                    String agentName = detail.getRight();	                    
 	                    
-	                    
-	                    
 	                    //if(!alreadyExchanged.contains(agentName) && !myAgent.getCurrentlyExchanging().contains(agentName)) {
-	                    if(!this.already_com.contains(agentName)) {
-	                    	
+	                    if(!this.already_com.contains(agentName) && !myAgent.getCurrentlyExchanging().contains(agentName)) {
 	                    	this.already_com.add(agentName);
-	                    	this.voisins.add(agentName);
-	                    
-		                    myAgent.setMsgRetour(2);
-		                    myAgent.setReceiverName(agentName);
-		                    
-		                    myAgent.getCurrentlyExchanging().add(agentName);
-		       
-		                    // si ta case du this.list_validation n'est pas à true, sinon t'as rien à demander (faire des contains)
-		                    myAgent.setAgentCible(agentName);
-		                  	myAgent.setTypeMsg(3); // PING initiateur
-		                    this.exitValue = 3;
+	                    	//this.voisins.add(agentName);
+	                    	myAgent.setReceiverName(agentName);
+	                    	myAgent.getCurrentlyExchanging().add(agentName);
+	                    	myAgent.setMsgRetour(2);
+	                    	
+	                    	if (myAgent.getLocalName().compareTo(agentName) < 0) {
+	                        	myAgent.setTypeMsg(3);
+	                        	this.exitValue = 3;
+	                            
+	                        } else {
+	                        	System.out.println(myAgent.getLocalName() + " doit aller dans pong");
+	                            this.exitValue = 4;
+	                        }
+	                    	
 			                this.finished = true;
 		                    return;
 	                    }
 	            	}    
-            	}
-            }
-	        
-	        
-	        // quand on a fini la liste, on la recommence
-	        /*if(myAgent.getCptOrdre() + 1 == agentNames.size()) {
-	        	myAgent.setCptOrdre(0);
-	        } else {
-	        	// si l'agent courant a communiqué avec tous ceux qu'il a observé, alors le prochain communique avec ceux qu'il voit
-	        	myAgent.setCptOrdre(myAgent.getCptOrdre() + 1);
-	        }*/
-	        
-	        // on réinitialise la liste pour le prochain tour s'il y en a un
-	        
-	        if(this.already_paroles_passees.size() == this.voisins.size()) {
-	        	this.already_paroles_passees.clear();
-	        }
-	        alreadyExchanged.clear();
-	        this.voisins.clear();
-	        
-	        for(String n : list_ordre) {
-	        	if(voisins.contains(n) && !this.already_paroles_passees.contains(n)) {
-	        		this.already_paroles_passees.add(n);
-	        		myAgent.setParole(n);
-	        		
-	        		myAgent.setMsgRetour(2);
-                    myAgent.setReceiverName(n);
-                    
-                    //myAgent.getCurrentlyExchanging().add(n);
-                    
-                    //System.out.println("communication " + myAgent.getLocalName());
-                    
-       
-                    // si ta case du this.list_validation n'est pas à true, sinon t'as rien à demander (faire des contains)
-                    myAgent.setAgentCible(n);
-                  	myAgent.setTypeMsg(4); // PING initiateur
-                    this.exitValue = 3;
-	                this.finished = true;
-                    return;
-	        		
 	        	}
 	        }
-        } else {
-        	myAgent.setMsgRetour(2);
-        	System.out.println("prêt pour pong " + myAgent.getLocalName());
-            this.exitValue = 4; // PONG récepteur
-            this.finished = true;
-            return;
-        }
-		
-		/*this.finished = true;
-	    this.exitValue = 1;
-	    return;*/
+		    this.already_com.clear();
+	    } else {
+	    	System.out.println("Finito : Seconde phase");
+	    }
 		
 		
         

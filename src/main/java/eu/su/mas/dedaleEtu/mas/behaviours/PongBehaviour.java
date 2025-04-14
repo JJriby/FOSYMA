@@ -53,6 +53,8 @@ public class PongBehaviour extends Behaviour {
     	
     	ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
     	
+    	System.out.println("dans pong : " + myAgent.getLocalName());
+    	
     	// pour shareMap
     	this.receiverName = myAgent.getReceiverName();
         SerializableSimpleGraph<String, MapAttribute> mapToSend = myAgent.getMapToSend();
@@ -221,7 +223,7 @@ public class PongBehaviour extends Behaviour {
                 	    	}
                 	    }
                 	    
-                	    if(list_treasure_type.size() == agentNames.size() && list_expertise.size() == agentNames.size() && list_back_free_space.size() == agentNames.size()) {
+                	    if(list_treasure_type.size() == agentNames.size()+1 && list_expertise.size() == agentNames.size()+1 && list_back_free_space.size() == agentNames.size()+1) {
                 	    	list_validation.put(myAgent.getLocalName(), true);
                 	    }
                 	       
