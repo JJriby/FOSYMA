@@ -1,4 +1,4 @@
-package eu.su.mas.dedaleEtu.mas.behaviours;
+package eu.su.mas.dedaleEtu.mas.behaviours.poubelle;
 
 import java.io.IOException;
 import dataStructures.serializableGraph.SerializableSimpleGraph;

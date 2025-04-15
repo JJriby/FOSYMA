@@ -141,6 +141,11 @@ public class InterBlocageBehaviour extends Behaviour {
 		// ... tous les cas de figures improbables et chiants mais possibles
 		
 		
+		// pourquoi pas faire une condition du plus court chemin dans le cas d'interblocage pour changer de chemin
+		// et si aucun chemin possible est trouvé (donc null), l'autre ayaant la priorité communique le chemin par lequel il doit passer
+		// et l'agent courant lui se déplace de cases en cases tant qu'il n'est pas sur une case donc l'autre a besoin, et attend le temps que l'autre passe
+		
+		
 	}
 	
 	

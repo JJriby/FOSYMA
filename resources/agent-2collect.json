@@ -22,7 +22,7 @@
   "lockPickingExpertise":1
   },
 { 
-    "agentType":"agentCollect",
+    "agentType":"agentTanker",
     "agentName": "Silo",
     "communicationRange": 3,
     "initialLocation": "free",

@@ -52,9 +52,7 @@ public class PongBehaviour extends Behaviour {
     	this.exitValue = -1;
     	
     	ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
-    	
-    	System.out.println("dans pong : " + myAgent.getLocalName());
-    	
+    	    	
     	// pour shareMap
     	this.receiverName = myAgent.getReceiverName();
         SerializableSimpleGraph<String, MapAttribute> mapToSend = myAgent.getMapToSend();
