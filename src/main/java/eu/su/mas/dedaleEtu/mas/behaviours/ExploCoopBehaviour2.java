@@ -31,12 +31,9 @@ public class ExploCoopBehaviour2 extends Behaviour {
 
     private static final long serialVersionUID = 8567689731496787661L;
     private boolean finished = false;        
-    private boolean stop = false;
-    //private Map<String, Boolean> agents_fin;    
-    private Set<String> alreadyPinged = new HashSet<>();
     private String lastPos = "";
     private int cpt_block = 0;  
-    private int exitValue = 0;
+    private int exitValue = -1;
     
     private MapRepresentation myMap;
     
@@ -44,18 +41,6 @@ public class ExploCoopBehaviour2 extends Behaviour {
 
     public ExploCoopBehaviour2(final ExploreCoopAgent2 myagent) {
         super(myagent);
-        //this.myMap = ((GlobalBehaviour) this.getParent()).getMyMap();
-        /*this.list_agentNames = agentNames;
-        this.nodesToTransmit = new HashMap<>();
-        this.list_gold = list_gold;
-        this.list_diamond = list_diamond;
-        this.agents_fin = new HashMap<>();
-        
-        
-        // faire partie où on attend que tout le monde ait fini pour vraiment finir la communication
-        for (String agentName : agentNames) {
-            this.agents_fin.put(agentName, false);
-        }*/
         
         for(String n : ((ExploreCoopAgent2) this.myAgent).getAgentNames()) {
         	this.historique_com.put(n, 0);
@@ -65,12 +50,9 @@ public class ExploCoopBehaviour2 extends Behaviour {
 
     @Override
     public void action() {
-    	
-    	// NE PAS OUBLIER DE MODIFIER LE ALREADYSEE POUR METTRE UNE ESPECE DE COMPTEUR
-    	// CAR ICI POUR L'INSTANT, JE LES OBLIGE A PARTAGER QU'UNE SEULE FOIS LEUR CARTE MAX
-    	
+    	    	
     	this.finished = false;
-    	this.exitValue = 0;    	
+    	this.exitValue = -1;    	
     	
     	// variables récupérées de l'agent
     	ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
@@ -111,6 +93,18 @@ public class ExploCoopBehaviour2 extends Behaviour {
 
         try { myAgent.doWait(1000); } catch (Exception e) { e.printStackTrace(); }
 
+        
+        // si le noeud où on se trouve était précédemment ouvert, on l'ajoute dans les noeuds à partager
+        for(String a : agentNames) {
+        	nodesToTransmit.putIfAbsent(a, new SerializableSimpleGraph<>());
+        	SerializableSimpleGraph<String, MapAttribute> g = nodesToTransmit.get(a);
+            SerializableNode<String, MapAttribute> node = g.getNode(myPosition.getLocationId());
+            if(node == null || node.getNodeContent() == MapAttribute.open) {
+            	g.addNode(myPosition.getLocationId(), MapAttribute.closed);
+            }
+        }
+        
+        
         // 2) Marquer le nœud actuel comme visité
         myMap.addNode(myPosition.getLocationId(), MapAttribute.closed);
         
@@ -138,17 +132,31 @@ public class ExploCoopBehaviour2 extends Behaviour {
             
             // Vérifie que le nœud observé (accessibleNode) n'est pas la position actuelle (myPosition).
             if (!myPosition.getLocationId().equals(accessibleNode.getLocationId())) {
-                myMap.addEdge(myPosition.getLocationId(), accessibleNode.getLocationId());                
+                myMap.addEdge(myPosition.getLocationId(), accessibleNode.getLocationId());   
                 
-                // On ajoute les noeuds et arcs découverts dans les listes à partager
-                if(isNewNode) {
-	                for (String agentName : agentNames) {
-	                    nodesToTransmit.putIfAbsent(agentName, new SerializableSimpleGraph<>());
-	                    SerializableSimpleGraph<String, MapAttribute> g = nodesToTransmit.get(agentName);
-	                    g.addNode(myPosition.getLocationId(), MapAttribute.closed);
-	                    g.addNode(accessibleNode.getLocationId(), MapAttribute.open);
-	                    g.addEdge("", myPosition.getLocationId(), accessibleNode.getLocationId());
-	                }
+                // on ajoute le noeud accessible avec la MapAttribute adéquat de myMap
+                MapAttribute currentAttr = myMap.getOpenNodes().contains(accessibleNode.getLocationId())
+                		? MapAttribute.open
+                	    : MapAttribute.closed;
+
+            	for (String agentName : agentNames) {
+            	    nodesToTransmit.putIfAbsent(agentName, new SerializableSimpleGraph<>());
+            	    SerializableSimpleGraph<String, MapAttribute> g = nodesToTransmit.get(agentName);
+
+            	    SerializableNode<String, MapAttribute> node = g.getNode(accessibleNode.getLocationId());
+            	    if (node == null || node.getNodeContent() != currentAttr) {
+            	        g.addNode(accessibleNode.getLocationId(), currentAttr);
+            	    }
+            	}
+                
+                // On ajoute l'arc découvert dans les listes à partager
+                if(isNewNode) {                	
+                	for (String agentName : agentNames) {
+                        SerializableSimpleGraph<String, MapAttribute> g = nodesToTransmit.get(agentName);
+
+                        //g.addNode(myPosition.getLocationId(), MapAttribute.closed); // position actuelle
+                        g.addEdge("", myPosition.getLocationId(), accessibleNode.getLocationId());
+                    }
                 }
                 
                 // nextNodeId devient le noeud nouvellement découvert (s'il y en a un) à visiter à la prochaine itération
@@ -166,19 +174,16 @@ public class ExploCoopBehaviour2 extends Behaviour {
             	
             	// Détecter les agents voisins et leur envoyer les nouveaux nœuds
                 if (detail.getLeft() == Observation.AGENTNAME) {
-                    String agentName = detail.getRight();
-                    stop = true;
-                    
+                    String agentName = detail.getRight();                    
                        
                     SerializableSimpleGraph<String, MapAttribute> partialGraph = nodesToTransmit.get(agentName);
 
                     if (partialGraph != null && !partialGraph.getAllNodes().isEmpty()) {
-                        //System.out.println("⛏ Comparaison stricte avec alreadyExchanged: " + alreadyExchanged);
-                        
+                        System.out.println(myAgent.getLocalName() + " veut communiquer avec " + agentName + " mais cpt à " + this.historique_com.get(agentName));
                         //if (!alreadyExchanged.contains(agentName) && !currentlyExchanging.contains(agentName)) {
                     	if (this.historique_com.get(agentName) == 0 && !currentlyExchanging.contains(agentName)) {
-                            //System.out.println("📡 Démarrage d’un échange avec " + agentName);
-                            currentlyExchanging.add(agentName);
+
+                    		currentlyExchanging.add(agentName);
                             this.historique_com.put(agentName, 10);
 
                             myAgent.setReceiverName(agentName);
@@ -190,7 +195,6 @@ public class ExploCoopBehaviour2 extends Behaviour {
                             	this.exitValue = 3;
                                 
                             } else {
-                            	System.out.println(myAgent.getLocalName() + " doit aller dans pong");
                                 this.exitValue = 4;
                             }
 
@@ -261,7 +265,6 @@ public class ExploCoopBehaviour2 extends Behaviour {
             List<String> shortestPath = myMap.getShortestPath(myPosition.getLocationId(), obj);
             myAgent.setShortestPath(shortestPath);
             
-            //((GlobalBehaviour)this.getParent()).setShortestPath(shortestPath);
             myAgent.setTypeMsg(2);
             
             alreadyExchanged.clear();
@@ -284,10 +287,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
         
         // on garde en mémoire la position actuelle
         this.lastPos = myPosition.getLocationId();
-        
-        /*if(this.cpt_block == 4) {
-        	System.out.println("id Node : " + nextNodeId);
-        }*/
+       
     }
     
     

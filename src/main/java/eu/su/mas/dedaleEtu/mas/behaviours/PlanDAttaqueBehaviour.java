@@ -32,7 +32,7 @@ public class PlanDAttaqueBehaviour extends Behaviour {
 
 	@Override
 	public void action() {
-				
+						
 		// faire une condition pour attendre que tout le monde soit là pour communiquer
 		
 		this.finished = false;
@@ -126,6 +126,8 @@ public class PlanDAttaqueBehaviour extends Behaviour {
 	    	
 	    	
 	    	if(stratege.equals(myAgent.getLocalName())){
+	    		
+	    		System.out.println("Stratège du plan d'attaque : " + stratege);
 	    		/*
 	    		 * liste trésors types : {Tim=Gold, Silo=Any}
 				 * liste expertise : {Tim=[<Strength, 1>, <LockPicking, 3>], Silo=[<Strength, -1>, <LockPicking, -1>]}
@@ -235,6 +237,10 @@ public class PlanDAttaqueBehaviour extends Behaviour {
 	    			for(Map.Entry<String, Map<Observation, String>> elt2 : tri_tresors_gold) {
 	    				String localisation = elt2.getKey();
 	    				Map<Observation, String> details = elt2.getValue();
+	    				
+	    				if(list_objectifs.containsValue(localisation)) {
+	    					continue;
+	    				}
 	    					    				
 	    				String is_open = details.get(Observation.LOCKSTATUS);
 	    					    				
@@ -315,14 +321,18 @@ public class PlanDAttaqueBehaviour extends Behaviour {
 	    					}
 	    				}
 	    				
-	    				// on met à jour les objectifs des membres de la coalition
-	    				for(String a : coalition_finale) {
-	    					list_objectifs.put(a, localisation);
-	    				}		
+	    				if(!coalition_finale.isEmpty()) {
+		    				// on met à jour les objectifs des membres de la coalition
+		    				for(String a : coalition_finale) {
+		    					list_objectifs.put(a, localisation);
+		    				}	
+		    				break;
+	    				}
 	    			}
 	    		}
 	    		
 	    		// faire une condition si on n'a pas attribué une localisation à tout le monde (mettre localisation aléatoire ou jsp)
+	    		// ou sinon l'ajouter à l'une des coalitions pour qu'il récupère quand même des trésors
 	    		
 	    	}
 	    }
@@ -344,7 +354,7 @@ public class PlanDAttaqueBehaviour extends Behaviour {
 	            return couple.getRight();
 	        }
 	    }
-	    return 0;  // valeur par défaut si l'observation n'est pas trouvée
+	    return 0;
 	}
 	
 	

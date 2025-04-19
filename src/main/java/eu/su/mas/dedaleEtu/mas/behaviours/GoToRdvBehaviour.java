@@ -57,7 +57,6 @@ public class GoToRdvBehaviour extends Behaviour {
 			this.finished = true;
 			return;
 		}
-		
 	}
 	
 

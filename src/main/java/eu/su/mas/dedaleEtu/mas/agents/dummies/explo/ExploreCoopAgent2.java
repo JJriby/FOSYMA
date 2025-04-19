@@ -71,6 +71,8 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 	private int cpt_ordre = 0;
 	private List<String> list_ordre = new ArrayList<>();
 	private String parole = "";
+	private Map<String, Boolean> list_fin_explo = new HashMap<>();
+	
 	
 	//private List<Couple<Location, List<Couple<Observation, String>>>> lastObs = new ArrayList<>();
 	//private List<String> objectif = new ArrayList<>();
@@ -110,6 +112,7 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 		*/
 		
 		this.list_validation.put(this.getLocalName(),  false);
+		this.list_fin_explo.put(this.getLocalName(),  false);
 		
 		for(String a : this.list_agentNames) {
 			/*this.list_treasure_type.put(a, null);
@@ -117,6 +120,7 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 			this.list_back_free_space.put(a, new ArrayList<>());
 			*/
 			this.list_validation.put(a, false);
+			this.list_fin_explo.put(a, false);
 		}
 		
 		
@@ -227,6 +231,11 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 		return this.parole;
 	}
 	
+	public Map<String, Boolean> getListFinExplo(){
+		return this.list_fin_explo;
+	}
+	
+	
 	
 	/*public List<Couple<Location, List<Couple<Observation, String>>>> getLastObservation(){
 		return this.lastObs;
@@ -313,6 +322,11 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 	public void setParole(String nom) {
 		this.parole = nom;
 	}
+	
+	public void setListFinExplo(Map<String,Boolean> list_fin_explo) {
+		this.list_fin_explo = list_fin_explo;
+	}
+
 	
 	/*public void setLastObservation(List<Couple<Location, List<Couple<Observation, String>>>> lastObs) {
 		this.lastObs = lastObs;

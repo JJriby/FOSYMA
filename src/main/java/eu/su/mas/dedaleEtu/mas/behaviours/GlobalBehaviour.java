@@ -31,8 +31,9 @@ public class GlobalBehaviour extends FSMBehaviour {
 	private static final String Pong = "Pong";
 	private static final String ShareMap = "ShareMap";
 	private static final String ShareExpertise = "ShareExpertise";
-	private static final String Parole = "Parole";
-
+	//private static final String Parole = "Parole"; // PENSER A SUPPRIMER TOUT CE QUI CONCERNE LA PAROLE SI ON ABANDONNE DEFINITIVEMENT L'IDEE
+	private static final String FinExplo = "FinExplo";
+	private static final String ShareFinExplo = "ShareFinExplo";
 	
 	public GlobalBehaviour(final AbstractDedaleAgent myagent, MapRepresentation myMap) {
 		super(myagent);
@@ -51,12 +52,14 @@ public class GlobalBehaviour extends FSMBehaviour {
         this.registerState(new CollectBehaviour((ExploreCoopAgent2) this.myAgent), Collect);
         this.registerState(new PlanDAttaqueBehaviour((ExploreCoopAgent2) this.myAgent), PlanDAttaque);
         this.registerState(new ShareExpertise((ExploreCoopAgent2) this.myAgent), ShareExpertise);
-        this.registerState(new ParoleBehaviour((ExploreCoopAgent2) this.myAgent), Parole);
-        
+        //this.registerState(new ParoleBehaviour((ExploreCoopAgent2) this.myAgent), Parole);
+        this.registerState(new FinExploBehaviour((ExploreCoopAgent2) this.myAgent), FinExplo);
+        this.registerState(new ShareFinExploBehaviour((ExploreCoopAgent2) this.myAgent), ShareFinExplo);
        
         // transitions
         this.registerTransition(Explore, GoToRDV, 1);
-        this.registerTransition(GoToRDV, PlanDAttaque, 2);
+        this.registerTransition(GoToRDV, FinExplo, 2);
+        this.registerTransition(FinExplo, PlanDAttaque, 2);
         
         this.registerTransition(Explore, InterBlocage, 2);
         this.registerTransition(InterBlocage, GoToRDV, 1);
@@ -70,14 +73,23 @@ public class GlobalBehaviour extends FSMBehaviour {
         this.registerTransition(Explore, Pong, 4);
         this.registerTransition(Pong, Explore, 0);
         
+        this.registerTransition(FinExplo, Ping, 3);
+        this.registerTransition(Ping, FinExplo, 4);
+        this.registerTransition(Ping, ShareFinExplo, 5);
+        this.registerTransition(ShareFinExplo, FinExplo, 1);
+        this.registerTransition(FinExplo, Pong, 4);
+        this.registerTransition(Pong, FinExplo, 4);
+        this.registerTransition(ShareFinExplo, ShareMap, 2);
+        this.registerTransition(ShareMap, FinExplo, 4);
+        
         this.registerTransition(PlanDAttaque, Ping, 3);
         this.registerTransition(PlanDAttaque, Pong, 4);
         this.registerTransition(Ping, PlanDAttaque, 2);
         this.registerTransition(Ping, ShareExpertise, 3);
         this.registerTransition(ShareExpertise, PlanDAttaque, 1);
         this.registerTransition(Pong, PlanDAttaque, 2);
-        this.registerTransition(Ping, Parole, 4);
-        this.registerTransition(Parole, PlanDAttaque, 1);
+        //this.registerTransition(Ping, Parole, 4);
+        //this.registerTransition(Parole, PlanDAttaque, 1);
         
         this.registerTransition(PlanDAttaque, Collect, 1);
        

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import dataStructures.serializableGraph.SerializableNode;
 import dataStructures.serializableGraph.SerializableSimpleGraph;
 import dataStructures.tuple.Couple;
 import eu.su.mas.dedale.env.Observation;
@@ -89,6 +90,16 @@ public class ShareMapBehaviour3 extends Behaviour {
                         (Couple<SerializableSimpleGraph<String, MapAttribute>,Couple<Map<String, Map<Observation, String>>,Map<String, Map<Observation, String>>>>) returnMap.getContentObject();
                 	
                 SerializableSimpleGraph<String, MapAttribute> receivedMap = received.getLeft();
+                
+
+				/*System.out.println("===== Graphe reçu =====");
+				
+				// Affichage des noeuds
+				System.out.println("Noeuds :");
+				for (SerializableNode<String, MapAttribute> node : receivedMap.getAllNodes()) {
+				    System.out.println("- " + node.getNodeId() + " : " + node.getNodeContent());
+				}*/
+
                 myMap.mergeMap(receivedMap);
                 System.out.println(myAgent.getLocalName() + " a reçu et fusionné la carte en retour de " + receiverName);
                 
@@ -140,7 +151,7 @@ public class ShareMapBehaviour3 extends Behaviour {
             System.out.println(myAgent.getLocalName() + " n’a pas reçu de carte en retour de " + receiverName);
         }
         
-        this.exitValue = 0;
+        this.exitValue = myAgent.getMsgRetour();
         this.finished = true;
     }
 
