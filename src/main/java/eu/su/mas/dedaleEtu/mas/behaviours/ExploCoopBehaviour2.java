@@ -27,6 +27,8 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 
+import org.graphstream.graph.Node;
+
 public class ExploCoopBehaviour2 extends Behaviour {
 
     private static final long serialVersionUID = 8567689731496787661L;
@@ -135,29 +137,31 @@ public class ExploCoopBehaviour2 extends Behaviour {
                 myMap.addEdge(myPosition.getLocationId(), accessibleNode.getLocationId());   
                 
                 // on ajoute le noeud accessible avec la MapAttribute adéquat de myMap
-                MapAttribute currentAttr = myMap.getOpenNodes().contains(accessibleNode.getLocationId())
-                		? MapAttribute.open
-                	    : MapAttribute.closed;
+                MapAttribute currentAttr = null;
+                Node graphNode = myMap.getGraph().getNode(accessibleNode.getLocationId());
+                if (graphNode != null) {
+                    currentAttr = MapAttribute.valueOf((String) graphNode.getAttribute("ui.class"));
+                } else {
+                    currentAttr = MapAttribute.open; // fallback
+                }
 
             	for (String agentName : agentNames) {
             	    nodesToTransmit.putIfAbsent(agentName, new SerializableSimpleGraph<>());
             	    SerializableSimpleGraph<String, MapAttribute> g = nodesToTransmit.get(agentName);
 
-            	    SerializableNode<String, MapAttribute> node = g.getNode(accessibleNode.getLocationId());
-            	    if (node == null || node.getNodeContent() != currentAttr) {
-            	        g.addNode(accessibleNode.getLocationId(), currentAttr);
-            	    }
+            	    g.addNode(accessibleNode.getLocationId(), currentAttr);
             	}
                 
                 // On ajoute l'arc découvert dans les listes à partager
-                if(isNewNode) {                	
-                	for (String agentName : agentNames) {
-                        SerializableSimpleGraph<String, MapAttribute> g = nodesToTransmit.get(agentName);
+            	for (String agentName : agentNames) {
+            	    SerializableSimpleGraph<String, MapAttribute> g = nodesToTransmit.get(agentName);
 
-                        //g.addNode(myPosition.getLocationId(), MapAttribute.closed); // position actuelle
-                        g.addEdge("", myPosition.getLocationId(), accessibleNode.getLocationId());
-                    }
-                }
+            	    // Avoid duplicates if needed
+            	    Set<String> neighbors = g.getEdges(myPosition.getLocationId());
+            	    if (neighbors == null || !neighbors.contains(accessibleNode.getLocationId())) {
+            	        g.addEdge("", myPosition.getLocationId(), accessibleNode.getLocationId());
+            	    }
+            	}
                 
                 // nextNodeId devient le noeud nouvellement découvert (s'il y en a un) à visiter à la prochaine itération
                 if (nextNodeId == null && isNewNode) nextNodeId = accessibleNode.getLocationId();

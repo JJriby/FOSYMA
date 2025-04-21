@@ -217,6 +217,9 @@ public class MapRepresentation implements Serializable {
 		serializeGraphTopology();
 		return this.sg;
 	}
+	public org.graphstream.graph.Graph getGraph() {
+	    return this.g;
+	}
 
 	/**
 	 * After migration we load the serialized data and recreate the non serializable components (Gui,..)
@@ -289,9 +292,10 @@ public class MapRepresentation implements Serializable {
 			}else{
 				newnode=this.g.getNode(n.getNodeId());
 				//3 check its attribute. If it is below the one received, update it.
-				if (((String) newnode.getAttribute("ui.class"))==MapAttribute.closed.toString() || n.getNodeContent().toString()==MapAttribute.closed.toString()) {
-					newnode.setAttribute("ui.class",MapAttribute.closed.toString());
-				}
+				if (MapAttribute.closed.toString().equals(newnode.getAttribute("ui.class")) 
+						 || MapAttribute.closed.toString().equals(n.getNodeContent().toString())) {
+						    newnode.setAttribute("ui.class", MapAttribute.closed.toString());
+						}
 			}
 		}
 

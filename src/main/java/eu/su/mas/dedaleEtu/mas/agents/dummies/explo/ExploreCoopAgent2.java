@@ -353,5 +353,8 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 		super.afterMove();
 		//System.out.println("I migrated");
 	}
+	
+	
+	
 
 }
