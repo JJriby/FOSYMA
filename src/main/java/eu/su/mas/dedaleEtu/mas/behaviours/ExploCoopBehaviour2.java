@@ -98,11 +98,17 @@ public class ExploCoopBehaviour2 extends Behaviour {
         
         // si le noeud où on se trouve était précédemment ouvert, on l'ajoute dans les noeuds à partager
         for(String a : agentNames) {
-        	nodesToTransmit.putIfAbsent(a, new SerializableSimpleGraph<>());
-        	SerializableSimpleGraph<String, MapAttribute> g = nodesToTransmit.get(a);
+            nodesToTransmit.putIfAbsent(a, new SerializableSimpleGraph<>());
+            SerializableSimpleGraph<String, MapAttribute> g = nodesToTransmit.get(a);
+
+            Node currentNode = myMap.getGraph().getNode(myPosition.getLocationId());
+            MapAttribute currentAttribute = (currentNode != null && currentNode.getAttribute("ui.class").equals(MapAttribute.closed.toString())) 
+                ? MapAttribute.closed 
+                : MapAttribute.open;
+
             SerializableNode<String, MapAttribute> node = g.getNode(myPosition.getLocationId());
-            if(node == null || node.getNodeContent() == MapAttribute.open) {
-            	g.addNode(myPosition.getLocationId(), MapAttribute.closed);
+            if(node == null || node.getNodeContent() != currentAttribute) {
+                g.addNode(myPosition.getLocationId(), currentAttribute);
             }
         }
         
@@ -124,132 +130,111 @@ public class ExploCoopBehaviour2 extends Behaviour {
         }
         
         
-        // 3) Explorer les nœuds accessibles et ajouter les nouvelles connexions
+     // 3) Explorer les nœuds accessibles et ajouter les nouvelles connexions
         String nextNodeId = null;
         for (Couple<Location, List<Couple<Observation, String>>> obs : lobs) {
             Location accessibleNode = obs.getLeft();
             List<Couple<Observation, String>> details = obs.getRight();
-            
+
             boolean isNewNode = myMap.addNewNode(accessibleNode.getLocationId());
-            
+
             // Vérifie que le nœud observé (accessibleNode) n'est pas la position actuelle (myPosition).
             if (!myPosition.getLocationId().equals(accessibleNode.getLocationId())) {
-                myMap.addEdge(myPosition.getLocationId(), accessibleNode.getLocationId());   
-                
-                // on ajoute le noeud accessible avec la MapAttribute adéquat de myMap
-                MapAttribute currentAttr = null;
+                myMap.addEdge(myPosition.getLocationId(), accessibleNode.getLocationId());
+
+                // On récupère l'état réel du noeud depuis myMap
                 Node graphNode = myMap.getGraph().getNode(accessibleNode.getLocationId());
-                if (graphNode != null) {
-                    currentAttr = MapAttribute.valueOf((String) graphNode.getAttribute("ui.class"));
-                } else {
-                    currentAttr = MapAttribute.open; // fallback
+                MapAttribute currentAttr = (graphNode != null && graphNode.getAttribute("ui.class").equals(MapAttribute.closed.toString()))
+                    ? MapAttribute.closed
+                    : MapAttribute.open;
+
+                // Mise à jour correcte des nodesToTransmit avec l'attribut réel
+                for (String agentName : agentNames) {
+                    nodesToTransmit.putIfAbsent(agentName, new SerializableSimpleGraph<>());
+                    SerializableSimpleGraph<String, MapAttribute> g = nodesToTransmit.get(agentName);
+
+                    SerializableNode<String, MapAttribute> existingNode = g.getNode(accessibleNode.getLocationId());
+                    if (existingNode == null || existingNode.getNodeContent() != currentAttr) {
+                        g.addNode(accessibleNode.getLocationId(), currentAttr);
+                    }
+
+                    // ajout des arcs
+                    Set<String> neighbors = g.getEdges(myPosition.getLocationId());
+                    if (neighbors == null || !neighbors.contains(accessibleNode.getLocationId())) {
+                        g.addEdge("", myPosition.getLocationId(), accessibleNode.getLocationId());
+                    }
                 }
 
-            	for (String agentName : agentNames) {
-            	    nodesToTransmit.putIfAbsent(agentName, new SerializableSimpleGraph<>());
-            	    SerializableSimpleGraph<String, MapAttribute> g = nodesToTransmit.get(agentName);
-
-            	    g.addNode(accessibleNode.getLocationId(), currentAttr);
-            	}
-                
-                // On ajoute l'arc découvert dans les listes à partager
-            	for (String agentName : agentNames) {
-            	    SerializableSimpleGraph<String, MapAttribute> g = nodesToTransmit.get(agentName);
-
-            	    // Avoid duplicates if needed
-            	    Set<String> neighbors = g.getEdges(myPosition.getLocationId());
-            	    if (neighbors == null || !neighbors.contains(accessibleNode.getLocationId())) {
-            	        g.addEdge("", myPosition.getLocationId(), accessibleNode.getLocationId());
-            	    }
-            	}
-                
                 // nextNodeId devient le noeud nouvellement découvert (s'il y en a un) à visiter à la prochaine itération
-                if (nextNodeId == null && isNewNode) nextNodeId = accessibleNode.getLocationId();
+                if (nextNodeId == null && isNewNode)
+                    nextNodeId = accessibleNode.getLocationId();
             }
-            
+
             // Initialisation des listes de trésors à transmettre
-            Map<Observation, String> data = new HashMap<>(); 
-        	boolean gold = false;
-        	boolean diamond = false;
-        	
+            Map<Observation, String> data = new HashMap<>();
+            boolean gold = false;
+            boolean diamond = false;
 
             // 4) Observation
             for (Couple<Observation, String> detail : details) {
-            	
-            	// Détecter les agents voisins et leur envoyer les nouveaux nœuds
+
+                // Détecter les agents voisins et leur envoyer les nouveaux nœuds
                 if (detail.getLeft() == Observation.AGENTNAME) {
-                    String agentName = detail.getRight();                    
-                       
+                    String agentName = detail.getRight();
+
                     SerializableSimpleGraph<String, MapAttribute> partialGraph = nodesToTransmit.get(agentName);
 
-                    if (partialGraph != null && !partialGraph.getAllNodes().isEmpty()) {
-                        System.out.println(myAgent.getLocalName() + " veut communiquer avec " + agentName + " mais cpt à " + this.historique_com.get(agentName));
-                        //if (!alreadyExchanged.contains(agentName) && !currentlyExchanging.contains(agentName)) {
-                    	if (this.historique_com.get(agentName) == 0 && !currentlyExchanging.contains(agentName)) {
+                    if (this.historique_com.get(agentName) == 0 && !currentlyExchanging.contains(agentName)) {
 
-                    		currentlyExchanging.add(agentName);
-                            this.historique_com.put(agentName, 10);
+                        currentlyExchanging.add(agentName);
+                        this.historique_com.put(agentName, 10);
 
-                            myAgent.setReceiverName(agentName);
-                            myAgent.setMapToSend(partialGraph);
+                        myAgent.setReceiverName(agentName);
 
-                            myAgent.setMsgRetour(0);
-                            if (myAgent.getLocalName().compareTo(agentName) < 0) {
-                            	myAgent.setTypeMsg(1);
-                            	this.exitValue = 3;
-                                
-                            } else {
-                                this.exitValue = 4;
-                            }
+                     // 💡 FRESH serialization from actual map
+                     SerializableSimpleGraph<String, MapAttribute> freshGraph = myMap.getSerializableGraph();
+                     myAgent.setMapToSend(freshGraph);
 
-                            this.finished = true;
-                            return;
-                        } /*else {
-                            System.out.println("Échange déjà fait ou en cours avec " + agentName + ", on passe. Avancée du compteur : " + this.cpt_block);
-                        }*/
+                     // Debug: print what you're sending
+                     System.out.println("\n[DEBUG FIX] Agent " + myAgent.getLocalName() + " is now sending fresh map to " + agentName + ":");
+                     for (SerializableNode<String, MapAttribute> node : freshGraph.getAllNodes()) {
+                         System.out.println("[DEBUG FIX] Node " + node.getNodeId() + " state: " + node.getNodeContent());
+                     }
+                     System.out.println("[DEBUG FIX] --- END FRESH MAP ---\n");
+
+                        myAgent.setMsgRetour(0);
+                        if (myAgent.getLocalName().compareTo(agentName) < 0) {
+                            myAgent.setTypeMsg(1);
+                            this.exitValue = 3;
+                        } else {
+                            this.exitValue = 4;
+                        }
+
+                        this.finished = true;
+                        return;
                     }
-                    
                 }
-                
-                // VOIR POUR AUSSI TRANSMETTTRE CETTE LISTE DE FACON OPTI
-                // POTENTIELLEMENT FAIRE UN TICKER POUR LES MAJ AU CAS OU MODIFICATION TRESOR PAR GOLEM ETC, POUR ENVOI MESS DU CHGT LE PLUS RECENT
-                
-                
+
                 // Ajout des informations des trésors
-                if (detail.getLeft() == Observation.LOCKPICKING) {
-                	//data.add(Integer.parseInt(detail.getRight()));
-                	data.put(detail.getLeft(), detail.getRight());
-            	}
-                
-                if (detail.getLeft() == Observation.STRENGH) {
-                	//data.add(Integer.parseInt(detail.getRight()));
-                	data.put(detail.getLeft(), detail.getRight());
-            	}
-                
-                if (detail.getLeft() == Observation.LOCKSTATUS) {
-                	//data.add(Integer.parseInt(detail.getRight()));
-                	data.put(detail.getLeft(), detail.getRight());
-            	}
-                
-                if (detail.getLeft() == Observation.GOLD) {
-                	gold = true;
-                	//data.add(Integer.parseInt(detail.getRight()));
-                	data.put(detail.getLeft(), detail.getRight());
-                }
-                
-                if (detail.getLeft() == Observation.DIAMOND) {
-                	diamond = true;
-                	//data.add(Integer.parseInt(detail.getRight()));
-                	data.put(detail.getLeft(), detail.getRight());
+                if (detail.getLeft() == Observation.LOCKPICKING ||
+                    detail.getLeft() == Observation.STRENGH ||
+                    detail.getLeft() == Observation.LOCKSTATUS ||
+                    detail.getLeft() == Observation.GOLD ||
+                    detail.getLeft() == Observation.DIAMOND) {
+
+                    data.put(detail.getLeft(), detail.getRight());
+
+                    if (detail.getLeft() == Observation.GOLD) gold = true;
+                    if (detail.getLeft() == Observation.DIAMOND) diamond = true;
                 }
             }
-            
-            if(gold) {
-            	list_gold.putIfAbsent(myPosition.getLocationId(), data);
+
+            if (gold) {
+                list_gold.putIfAbsent(myPosition.getLocationId(), data);
             }
-            
-            if(diamond) {
-            	list_diamond.putIfAbsent(myPosition.getLocationId(), data);
+
+            if (diamond) {
+                list_diamond.putIfAbsent(myPosition.getLocationId(), data);
             }
         }
         

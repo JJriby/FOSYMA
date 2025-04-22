@@ -272,8 +272,10 @@ public class MapRepresentation implements Serializable {
 	}
 
 	public void mergeMap(SerializableSimpleGraph<String, MapAttribute> sgreceived) {
-		//System.out.println("You should decide what you want to save and how");
-		//System.out.println("We currently blindy add the topology");
+		System.out.println("Merging received map:");
+	    for (SerializableNode<String, MapAttribute> n : sgreceived.getAllNodes()){
+	        System.out.println("  Received node " + n.getNodeId() + " as " + n.getNodeContent());
+	    }
 
 		for (SerializableNode<String, MapAttribute> n: sgreceived.getAllNodes()){
 			//System.out.println(n);
@@ -287,15 +289,17 @@ public class MapRepresentation implements Serializable {
 				//System.out.println("Already in"+n.getNodeId());
 			}
 			if (!alreadyIn) {
-				newnode.setAttribute("ui.label", newnode.getId());
-				newnode.setAttribute("ui.class", n.getNodeContent().toString());
-			}else{
-				newnode=this.g.getNode(n.getNodeId());
-				//3 check its attribute. If it is below the one received, update it.
-				if (MapAttribute.closed.toString().equals(newnode.getAttribute("ui.class")) 
-						 || MapAttribute.closed.toString().equals(n.getNodeContent().toString())) {
-						    newnode.setAttribute("ui.class", MapAttribute.closed.toString());
-						}
+			    newnode.setAttribute("ui.label", newnode.getId());
+			    newnode.setAttribute("ui.class", n.getNodeContent().toString());
+			} else {
+			    newnode = this.g.getNode(n.getNodeId());
+			    String receivedAttr = n.getNodeContent().toString();
+			    String currentAttr = (String)newnode.getAttribute("ui.class");
+
+			    // ALWAYS prefer "closed" over "open"
+			    if (currentAttr.equals(MapAttribute.open.toString()) && receivedAttr.equals(MapAttribute.closed.toString())) {
+			        newnode.setAttribute("ui.class", MapAttribute.closed.toString());
+			    }
 			}
 		}
 
