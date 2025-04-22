@@ -115,6 +115,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
         
         // 2) Marquer le nœud actuel comme visité
         myMap.addNode(myPosition.getLocationId(), MapAttribute.closed);
+        System.out.println("[DEBUG] " + myAgent.getLocalName() + " marked current node " + myPosition.getLocationId() + " as CLOSED");
         
         // Détection si inter-blocage et si c'est le cas on part chercher une solution
         if(this.lastPos == myPosition.getLocationId() && currentlyExchanging.isEmpty()) {
@@ -190,6 +191,13 @@ public class ExploCoopBehaviour2 extends Behaviour {
                         this.historique_com.put(agentName, 10);
 
                         myAgent.setReceiverName(agentName);
+                        
+                        
+                        Node currentNode = myMap.getGraph().getNode(myPosition.getLocationId());
+                        if (currentNode != null && !currentNode.getAttribute("ui.class").equals(MapAttribute.closed.toString())) {
+                            System.out.println("[DEBUG FIX] Forcing closure of current node: " + myPosition.getLocationId());
+                            myMap.addNode(myPosition.getLocationId(), MapAttribute.closed);
+                        }
 
                      // 💡 FRESH serialization from actual map
                      SerializableSimpleGraph<String, MapAttribute> freshGraph = myMap.getSerializableGraph();

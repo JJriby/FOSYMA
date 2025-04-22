@@ -356,5 +356,84 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 	
 	
 	
+	//ADDED FOR INTERBLOCAGE 
+	
+	private int collectedTreasureValue = 0;
+
+	public int getCollectedTreasureValue() {
+	    return this.collectedTreasureValue;
+	}
+
+	public void addCollectedTreasure(int amount) {
+	    this.collectedTreasureValue += amount;
+	}
+	
+	private int equityCounter = 0;
+
+	public int getEquityCounter() {
+	    return this.equityCounter;
+	}
+
+	public void incrementEquityCounter() {
+	    this.equityCounter++;
+	}
+	
+	private String goalNode = null;
+
+	public String getGoalNode() {
+	    return this.goalNode;
+	}
+
+	public void setGoalNode(String nodeId) {
+	    this.goalNode = nodeId;
+	}
+	
+	private List<String> pathToAvoid = new ArrayList<>();
+
+	public List<String> getPathToAvoid() {
+	    return new ArrayList<>(this.pathToAvoid);
+	}
+
+	public void setPathToAvoid(List<String> path) {
+	    this.pathToAvoid = new ArrayList<>(path);
+	}
+	
+	public List<String> getFarAwayOpenNodes() {
+	    return this.myMap.getFarAwayOpenNodes(getCurrentPosition().getLocationId());
+	}
+	
+	private String blockingAgent = null;
+
+	public void setBlockingAgent(String name) {
+	    this.blockingAgent = name;
+	}
+
+	public String getBlockingAgent() {
+	    return this.blockingAgent;
+	}
+	
+	private Map<String, Integer> knownTreasureValues = new HashMap<>();
+	private Map<String, Integer> knownEquityCounters = new HashMap<>();
+	
+
+	public void updateKnownTreasureValue(String agentName, int value) {
+	    knownTreasureValues.put(agentName, value);
+	}
+
+	public int getKnownTreasureValue(String agentName) {
+	    return knownTreasureValues.getOrDefault(agentName, 0);
+	}
+
+	public void updateKnownEquityCounter(String agentName, int counter) {
+	    knownEquityCounters.put(agentName, counter);
+	}
+
+	public int getKnownEquityCounter(String agentName) {
+	    return knownEquityCounters.getOrDefault(agentName, 0);
+	}
+	
+
+	
+	
 
 }

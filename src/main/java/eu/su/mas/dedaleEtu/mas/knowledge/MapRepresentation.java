@@ -217,7 +217,7 @@ public class MapRepresentation implements Serializable {
 		serializeGraphTopology();
 		return this.sg;
 	}
-	public org.graphstream.graph.Graph getGraph() {
+	public Graph getGraph() {
 	    return this.g;
 	}
 
@@ -428,6 +428,69 @@ public class MapRepresentation implements Serializable {
 		//3) Compute shorterPath
 
 		return getShortestPath2(myPosition,closest.get().getLeft(), noeudsInterdits);
+	}
+	
+	
+	////ADDED FOR INTERBLOCAGE PERPOSE
+	/// 
+	
+	public List<String> getFarAwayOpenNodes(String fromNode) {
+	    List<String> result = new ArrayList<>();
+
+	    if (this.g == null || !this.g.iterator().hasNext()) {
+	        return result;
+	    }
+
+	    Dijkstra dijkstra = new Dijkstra();
+	    dijkstra.init(this.g);
+	    dijkstra.setSource(this.g.getNode(fromNode));
+	    dijkstra.compute();
+
+	    for (Node n : this.g) {
+	        if (n.hasAttribute("ui.class") && n.getAttribute("ui.class").equals(MapAttribute.open.toString())) {
+	            double dist = dijkstra.getPathLength(n);
+	            if (dist > 10) { // seuil de distance arbitraire
+	                result.add(n.getId());
+	            }
+	        }
+	    }
+
+	    return result;
+	}
+	
+	public List<String> getAlternativePath(String from, String to, List<String> avoid) {
+	    Graph graph = this.getGraph();
+	    Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, null, "length");
+
+	    // Supprimer temporairement les noeuds à éviter
+	    List<Node> removed = new ArrayList<>();
+	    for (String id : avoid) {
+	        Node n = graph.getNode(id);
+	        if (n != null) {
+	            removed.add(n);
+	            n.setAttribute("removed", true); // Marque pour restauration
+	            n.removeAttribute("ui.class"); // Cache si besoin
+	        }
+	    }
+
+	    dijkstra.init(graph);
+	    dijkstra.setSource(graph.getNode(from));
+	    dijkstra.compute();
+
+	    List<String> path = new ArrayList<>();
+	    if (dijkstra.getPath(graph.getNode(to)) != null) {
+	        for (Node node : dijkstra.getPath(graph.getNode(to)).getNodePath()) {
+	            path.add(node.getId());
+	        }
+	    }
+
+	    // Restaurer les noeuds supprimés
+	    for (Node n : removed) {
+	        n.setAttribute("ui.class", MapAttribute.open.toString());
+	        n.removeAttribute("removed");
+	    }
+
+	    return path.isEmpty() ? null : path;
 	}
 
 
