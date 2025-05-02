@@ -19,6 +19,9 @@ public class FinExploBehaviour extends Behaviour {
 	private int exitValue = -1;
 	
 	private Set<String> already_com = new HashSet<>();
+	private Set<String> last_com = new HashSet<>();
+	
+    private int pour_debugger = 0;
 		
 	public FinExploBehaviour(final ExploreCoopAgent2 myagent) {
         super(myagent);
@@ -27,16 +30,18 @@ public class FinExploBehaviour extends Behaviour {
 	@Override
 	public void action() {
 		
+		if(pour_debugger == 0) {
+			System.out.println(myAgent.getLocalName() + " est dans fin d'explo");
+			pour_debugger++;
+		}
+				
 		this.finished = false;
 	    this.exitValue = -1;
 	    
 	    ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
 	    List<String> agentNames = myAgent.getAgentNames();
 	    Map<String, Boolean> list_fin_explo = myAgent.getListFinExplo();
-	    
-	    // on se met à true dans la liste_validation car j'ai bien fini
-	    list_fin_explo.put(myAgent.getLocalName(), true);
-		
+	    		
 		// si tous les agents connaissent les caractéristiques de tout le monde, 
 		// alors on arrête la communication d'expertise et on part préparer le plan d'attaque
 		boolean all_validation = true;
@@ -60,11 +65,11 @@ public class FinExploBehaviour extends Behaviour {
 	                    String agentName = detail.getRight();	                    
 	                    
 	                    //if(!alreadyExchanged.contains(agentName) && !myAgent.getCurrentlyExchanging().contains(agentName)) {
-	                    if(!this.already_com.contains(agentName) && !myAgent.getCurrentlyExchanging().contains(agentName)) {
+	                    if(!this.already_com.contains(agentName)) {
 	                    	this.already_com.add(agentName);
 	                    	//this.voisins.add(agentName);
 	                    	myAgent.setReceiverName(agentName);
-	                    	myAgent.getCurrentlyExchanging().add(agentName);
+	                    	//myAgent.getCurrentlyExchanging().add(agentName);
 	                    	myAgent.setMsgRetour(4);
 	                    	
 	                    	if (myAgent.getLocalName().compareTo(agentName) < 0) {
@@ -94,11 +99,11 @@ public class FinExploBehaviour extends Behaviour {
 	                    String agentName = detail.getRight();	                    
 	                    
 	                    //if(!alreadyExchanged.contains(agentName) && !myAgent.getCurrentlyExchanging().contains(agentName)) {
-	                    if(!this.already_com.contains(agentName) && !myAgent.getCurrentlyExchanging().contains(agentName)) {
-	                    	this.already_com.add(agentName);
+	                    if(!this.last_com.contains(agentName)) {
+	                    	this.last_com.add(agentName);
 	                    	//this.voisins.add(agentName);
 	                    	myAgent.setReceiverName(agentName);
-	                    	myAgent.getCurrentlyExchanging().add(agentName);
+	                    	//myAgent.getCurrentlyExchanging().add(agentName);
 	                    	myAgent.setMsgRetour(4);
 	                    	
 	                    	if (myAgent.getLocalName().compareTo(agentName) < 0) {
@@ -116,6 +121,7 @@ public class FinExploBehaviour extends Behaviour {
 	        	}
 	        }
 		    this.already_com.clear();
+		    this.last_com.clear();
 	    	
 	    	this.finished = true;
 	    	this.exitValue = 2;

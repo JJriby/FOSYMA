@@ -23,6 +23,7 @@ import org.graphstream.ui.view.Viewer.CloseFramePolicy;
 
 import dataStructures.serializableGraph.*;
 import dataStructures.tuple.Couple;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
 import javafx.application.Platform;
 
 /**
@@ -272,10 +273,10 @@ public class MapRepresentation implements Serializable {
 	}
 
 	public void mergeMap(SerializableSimpleGraph<String, MapAttribute> sgreceived) {
-		System.out.println("Merging received map:");
+		/*System.out.println("Merging received map:");
 	    for (SerializableNode<String, MapAttribute> n : sgreceived.getAllNodes()){
 	        System.out.println("  Received node " + n.getNodeId() + " as " + n.getNodeContent());
-	    }
+	    }*/
 
 		for (SerializableNode<String, MapAttribute> n: sgreceived.getAllNodes()){
 			//System.out.println(n);
@@ -323,15 +324,14 @@ public class MapRepresentation implements Serializable {
 	}
 
 	
-	// Fonctions que j'ai rajoutées
+	// Fonctions ajoutées
 	
 	public synchronized List<String> getShortestPath2(String idFrom,String idTo,List<String> noeudsInterdits){
 		List<String> shortestPath = new ArrayList<>();
 
-	    // 📋 Copie du graphe de travail dans tempG
 	    Graph tempG = new SingleGraph("tempCopy");
 
-	    // Copier les noeuds et leurs attributs
+	    // on copie les noeuds et leurs attributs
 	    this.g.nodes().forEach(node -> {
 	        Node newNode = tempG.addNode(node.getId());
 	        node.attributeKeys().forEach(attrKey -> {
@@ -339,7 +339,7 @@ public class MapRepresentation implements Serializable {
 	        });
 	    });
 
-	    // Copier les arêtes et leurs attributs
+	    // on copie les arêtes et leurs attributs
 	    this.g.edges().forEach(edge -> {
 	        String id = edge.getId();
 	        String src = edge.getSourceNode().getId();
@@ -354,24 +354,20 @@ public class MapRepresentation implements Serializable {
 	        }
 	    });
 
-	    // ❌ Supprimer les nœuds interdits de tempG
 	    for (String n_id : noeudsInterdits) {
 	        if (tempG.getNode(n_id) != null) {
 	            tempG.removeNode(n_id);
 	        }
 	    }
 
-	    // ✅ Vérifier que les nœuds de départ et d’arrivée existent
 	    Node source = tempG.getNode(idFrom);
 	    Node target = tempG.getNode(idTo);
 
 	    if (source == null || target == null) {
-	        //System.out.println("❌ Source ou cible absente du graphe temp : " + idFrom + " -> " + idTo);
-	        noeudsInterdits.add(idTo);  // On ajoute le nœud cible à éviter
+	        noeudsInterdits.add(idTo);  // On ajoute le noeud cible à éviter
 	        return null;
 	    }
 
-	    // 🔍 Calcul du plus court chemin via Dijkstra
 	    Dijkstra dijkstra = new Dijkstra();
 	    dijkstra.init(tempG);
 	    dijkstra.setSource(source);
@@ -402,13 +398,6 @@ public class MapRepresentation implements Serializable {
 	public List<String> getShortestPathToClosestOpenNode2(String myPosition, List<String> noeudsInterdits) {
 		//1) Get all openNodes
 		
-		/*System.out.println("Position actuelle : " + myPosition);
-		System.out.println("Noeuds à éviter : " + noeudsInterdits);
-		System.out.println("OpenNodes initiaux : " + getOpenNodes());
-		System.out.println("Noeuds dans le graphe réel : ");
-		this.g.nodes().forEach(n -> System.out.print(n.getId() + " "));*/
-		System.out.println();
-		
 		List<String> opennodes=getOpenNodes();
 		opennodes.removeAll(noeudsInterdits);
 
@@ -429,6 +418,33 @@ public class MapRepresentation implements Serializable {
 
 		return getShortestPath2(myPosition,closest.get().getLeft(), noeudsInterdits);
 	}
+	
+    public String calculBarycentre(Set<String> treasureNodes) {
+        String bestNode = null;
+        int min_dist = Integer.MAX_VALUE;
+      
+        for (SerializableNode<String, MapAttribute> node : this.getSerializableGraph().getAllNodes()) {
+        	String candidat = node.getNodeId();
+        	int tot_dist = 0;
+            boolean atteint = true;
+
+            for (String t : treasureNodes) {
+                List<String> path = this.getShortestPath(candidat, t);
+                if (path == null || path.isEmpty()) {
+                    atteint = false;
+                    break;
+                }
+                tot_dist += path.size(); // nombre de transitions
+            }
+
+            if (atteint && tot_dist < min_dist) {
+                min_dist = tot_dist;
+                bestNode = candidat;
+            }
+        }
+
+        return bestNode;
+    }
 	
 	
 	////ADDED FOR INTERBLOCAGE PERPOSE

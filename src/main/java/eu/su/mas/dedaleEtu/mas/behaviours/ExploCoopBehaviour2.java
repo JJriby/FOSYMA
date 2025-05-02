@@ -64,7 +64,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
     	Map<String, Map<Observation, String>> list_gold = myAgent.getListGold();
     	Map<String, Map<Observation, String>> list_diamond = myAgent.getListDiamond();
     	Set<String> alreadyExchanged = myAgent.getAlreadyExchanged();
-    	Set<String> currentlyExchanging = myAgent.getCurrentlyExchanging();
+    	//Set<String> currentlyExchanging = myAgent.getCurrentlyExchanging();
     	Map<String, SerializableSimpleGraph<String, MapAttribute>> nodesToTransmit = myAgent.getNodesToTransmit();
     	
     	this.myMap = ((GlobalBehaviour) this.getParent()).getMyMap();
@@ -115,10 +115,10 @@ public class ExploCoopBehaviour2 extends Behaviour {
         
         // 2) Marquer le nœud actuel comme visité
         myMap.addNode(myPosition.getLocationId(), MapAttribute.closed);
-        System.out.println("[DEBUG] " + myAgent.getLocalName() + " marked current node " + myPosition.getLocationId() + " as CLOSED");
+        //System.out.println("[DEBUG] " + myAgent.getLocalName() + " marked current node " + myPosition.getLocationId() + " as CLOSED");
         
         // Détection si inter-blocage et si c'est le cas on part chercher une solution
-        if(this.lastPos == myPosition.getLocationId() && currentlyExchanging.isEmpty()) {
+        if(this.lastPos == myPosition.getLocationId()) {
         	this.cpt_block++;
         } else {
         	this.cpt_block = 0;
@@ -178,16 +178,15 @@ public class ExploCoopBehaviour2 extends Behaviour {
 
             // 4) Observation
             for (Couple<Observation, String> detail : details) {
-
+            	
                 // Détecter les agents voisins et leur envoyer les nouveaux nœuds
                 if (detail.getLeft() == Observation.AGENTNAME) {
                     String agentName = detail.getRight();
 
                     SerializableSimpleGraph<String, MapAttribute> partialGraph = nodesToTransmit.get(agentName);
 
-                    if (this.historique_com.get(agentName) == 0 && !currentlyExchanging.contains(agentName)) {
+                    if (this.historique_com.get(agentName) == 0) {
 
-                        currentlyExchanging.add(agentName);
                         this.historique_com.put(agentName, 10);
 
                         myAgent.setReceiverName(agentName);
@@ -195,21 +194,21 @@ public class ExploCoopBehaviour2 extends Behaviour {
                         
                         Node currentNode = myMap.getGraph().getNode(myPosition.getLocationId());
                         if (currentNode != null && !currentNode.getAttribute("ui.class").equals(MapAttribute.closed.toString())) {
-                            System.out.println("[DEBUG FIX] Forcing closure of current node: " + myPosition.getLocationId());
+                            //System.out.println("[DEBUG FIX] Forcing closure of current node: " + myPosition.getLocationId());
                             myMap.addNode(myPosition.getLocationId(), MapAttribute.closed);
                         }
 
-                     // 💡 FRESH serialization from actual map
-                     SerializableSimpleGraph<String, MapAttribute> freshGraph = myMap.getSerializableGraph();
-                     myAgent.setMapToSend(freshGraph);
-
-                     // Debug: print what you're sending
-                     System.out.println("\n[DEBUG FIX] Agent " + myAgent.getLocalName() + " is now sending fresh map to " + agentName + ":");
-                     for (SerializableNode<String, MapAttribute> node : freshGraph.getAllNodes()) {
-                         System.out.println("[DEBUG FIX] Node " + node.getNodeId() + " state: " + node.getNodeContent());
-                     }
-                     System.out.println("[DEBUG FIX] --- END FRESH MAP ---\n");
-
+	                    // 💡 FRESH serialization from actual map
+	                    SerializableSimpleGraph<String, MapAttribute> freshGraph = myMap.getSerializableGraph();
+	                    myAgent.setMapToSend(freshGraph);
+	
+	                    // Debug: print what you're sending
+	                    /*System.out.println("\n[DEBUG FIX] Agent " + myAgent.getLocalName() + " is now sending fresh map to " + agentName + ":");
+	                    for (SerializableNode<String, MapAttribute> node : freshGraph.getAllNodes()) {
+	                        System.out.println("[DEBUG FIX] Node " + node.getNodeId() + " state: " + node.getNodeContent());
+	                    }
+	                    System.out.println("[DEBUG FIX] --- END FRESH MAP ---\n");
+	                    */
                         myAgent.setMsgRetour(0);
                         if (myAgent.getLocalName().compareTo(agentName) < 0) {
                             myAgent.setTypeMsg(1);
@@ -255,12 +254,15 @@ public class ExploCoopBehaviour2 extends Behaviour {
             Set<String> treasureNodes = new HashSet<>();
             treasureNodes.addAll(list_gold.keySet());
             treasureNodes.addAll(list_diamond.keySet());
-            String obj = this.calculerBarycentreTopologique(treasureNodes);
-            System.out.println("RDV : "+ obj);
+            String obj = myMap.calculBarycentre(treasureNodes);
+            System.out.println("RDV : "+ obj + " trésors : " + treasureNodes);
             
             // En avant toute pour le barycentre !
             List<String> shortestPath = myMap.getShortestPath(myPosition.getLocationId(), obj);
             myAgent.setShortestPath(shortestPath);
+            
+    	    // on se met à true dans la liste_validation car j'ai bien fini
+    	    myAgent.getListFinExplo().put(myAgent.getLocalName(), true);
             
             myAgent.setTypeMsg(2);
             
@@ -278,42 +280,14 @@ public class ExploCoopBehaviour2 extends Behaviour {
         
 
         // 7) Se déplacer vers le prochain nœud
-        if (currentlyExchanging.isEmpty()) {
-        	((AbstractDedaleAgent) myAgent).moveTo(new GsLocation(nextNodeId));
-        }
+       	((AbstractDedaleAgent) myAgent).moveTo(new GsLocation(nextNodeId));
+        
         
         // on garde en mémoire la position actuelle
         this.lastPos = myPosition.getLocationId();
        
     }
     
-    
-    private String calculerBarycentreTopologique(Set<String> treasureNodes) {
-        String bestNode = null;
-        int minTotalDistance = Integer.MAX_VALUE;
-      
-        for (SerializableNode<String, MapAttribute> node : myMap.getSerializableGraph().getAllNodes()) {
-        	String candidate = node.getNodeId();
-        	int totalDistance = 0;
-            boolean reachable = true;
-
-            for (String treasure : treasureNodes) {
-                List<String> path = myMap.getShortestPath(candidate, treasure);
-                if (path == null || path.isEmpty()) {
-                    reachable = false;
-                    break;
-                }
-                totalDistance += path.size(); // nombre de transitions
-            }
-
-            if (reachable && totalDistance < minTotalDistance) {
-                minTotalDistance = totalDistance;
-                bestNode = candidate;
-            }
-        }
-
-        return bestNode;
-    }
     
     @Override
     public boolean done() {

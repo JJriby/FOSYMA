@@ -1,4 +1,4 @@
-package eu.su.mas.dedaleEtu.mas.behaviours;
+package eu.su.mas.dedaleEtu.mas.behaviours.communication;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -49,49 +49,26 @@ public class ShareFinExploBehaviour extends Behaviour {
         } catch (IOException e) {
             e.printStackTrace();
         }
-				
 		
-		// Attente de l’ACK - liste validation en retour
-        MessageTemplate returnListeTemp = MessageTemplate.and(
-            MessageTemplate.MatchProtocol("SHARE-FIN-EXPLO-RETURN"),
-            MessageTemplate.MatchPerformative(ACLMessage.INFORM)
-        );
-        
-        ACLMessage returnListe = myAgent.blockingReceive(returnListeTemp, 3000);
-        
-        if (returnListe != null) {
-            try {
-            	
-            	Map<String, Boolean> list2_fin_explo =
-            			(Map<String, Boolean>) returnListe.getContentObject();
-            	    
-        	    // on fusionne la liste de validation
-        	    for(Map.Entry<String, Boolean> elt : list2_fin_explo.entrySet()) {
-        	    	if (elt.getValue() == true){
-        	    		list_fin_explo.put(elt.getKey(), elt.getValue());
-        	    	}
-        	    } 
-        	    
-        	    // si l'agent avec qui on vient de communiquer n'a pas fini son explo, on va dans le behaviour shareMap pour lui partager sa map
-        	    if(list_fin_explo.get(receiverName) == false) {
-        	    	this.finished = true;
-        	    	this.exitValue = 2;
-        	    	return;
-        	    }
-        	    
-            } catch (UnreadableException e) {
-                e.printStackTrace();
-            }           
-            
-            System.out.println("PING : " + this.myAgent.getLocalName() + " échange terminé avec " + receiverName);
-    		System.out.println("liste fin explo : " + myAgent.getListFinExplo());
-            
-        } else {
-            System.out.println(myAgent.getLocalName() + " n’a pas reçu de liste de validation en retour de " + receiverName);
-        }
+		System.out.println(myAgent.getLocalName() + " envoie : " + list_fin_explo + " à " + receiverName);
 	    
-	    this.finished = true;
-	    this.exitValue = 1;
+		if(list_fin_explo.get(myAgent.getLocalName()) == false) {
+	    	myAgent.setSent(true); // comme ça on fera juste la réception de map et pas l'envoi
+	    	myAgent.setReceived(false); 
+	    	this.finished = true;
+	    	this.exitValue = 7;
+	    	return;
+	    }
+		
+		if(myAgent.getReceived()) {
+			myAgent.setReceived(false);
+			this.exitValue = myAgent.getMsgRetour();
+		} else {
+			myAgent.setSent(true);
+			this.exitValue = myAgent.getTypeMsg();
+		}
+		
+        this.finished = true;
 	}
 
 	@Override

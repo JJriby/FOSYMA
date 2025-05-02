@@ -73,6 +73,13 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 	private String parole = "";
 	private Map<String, Boolean> list_fin_explo = new HashMap<>();
 	
+	private boolean sent = false;
+	private boolean received = false;
+	private int type_msg_init = -1;
+	
+	private Map<String, String> list_objectifs = new HashMap<>();
+	private String pos_silo = "";
+	
 	
 	//private List<Couple<Location, List<Couple<Observation, String>>>> lastObs = new ArrayList<>();
 	//private List<String> objectif = new ArrayList<>();
@@ -235,6 +242,26 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 		return this.list_fin_explo;
 	}
 	
+	public Boolean getSent() {
+		return this.sent;
+	}
+	
+	public Boolean getReceived() {
+		return this.received;
+	}
+	
+	public int getTypeMsgInit() {
+		return this.type_msg_init;
+	}
+	
+	public Map<String, String> getListObjectifs(){
+		return this.list_objectifs;
+	}
+	
+	public String getPosSilo() {
+		return this.pos_silo;
+	}
+	
 	
 	
 	/*public List<Couple<Location, List<Couple<Observation, String>>>> getLastObservation(){
@@ -325,6 +352,26 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 	
 	public void setListFinExplo(Map<String,Boolean> list_fin_explo) {
 		this.list_fin_explo = list_fin_explo;
+	}
+	
+	public void setSent(boolean sent) {
+		this.sent = sent;
+	}
+	
+	public void setReceived(boolean received) {
+		this.received = received;
+	}
+	
+	public void setTypeMsgInit(int type_msg_init) {
+		this.type_msg_init = type_msg_init;
+	}
+	
+	public void setListObjectifs(Map<String, String> l) {
+		this.list_objectifs = l;
+	}
+	
+	public void setPosSilo(String pos) {
+		this.pos_silo = pos;
 	}
 
 	

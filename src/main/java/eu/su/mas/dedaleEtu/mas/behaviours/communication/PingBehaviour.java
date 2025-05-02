@@ -1,4 +1,4 @@
-package eu.su.mas.dedaleEtu.mas.behaviours;
+package eu.su.mas.dedaleEtu.mas.behaviours.communication;
 
 import jade.core.behaviours.Behaviour;
 
@@ -19,6 +19,7 @@ import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.env.gs.GsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent2;
+import eu.su.mas.dedaleEtu.mas.behaviours.GlobalBehaviour;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
 import jade.core.AID;
@@ -47,24 +48,26 @@ public class PingBehaviour extends Behaviour {
 
     @Override
     public void action() {
+    	
+    	
     	    	
     	this.finished = false;
         this.exitValue = -1;
     	
     	this.myMap = ((GlobalBehaviour) this.getParent()).getMyMap();
-    	
     	this.currentlyExchanging = ((ExploreCoopAgent2) this.myAgent).getCurrentlyExchanging();
-    	this.receiverName = ((ExploreCoopAgent2) this.myAgent).getReceiverName();
-    	
+    	this.receiverName = ((ExploreCoopAgent2) this.myAgent).getReceiverName();	
     	ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
     	int type_msg = myAgent.getTypeMsg();
-    	String receiverName = myAgent.getReceiverName();
-    	    	    	
+    	
+    	System.out.println("numéro msg : " + type_msg);
+    	    	   
+    	
         // 1. Envoi du PING
-        ACLMessage ping = new ACLMessage(ACLMessage.QUERY_IF);
+        ACLMessage ping = new ACLMessage(ACLMessage.INFORM);
         ping.setProtocol("PING");
         ping.addReceiver(new AID(receiverName, AID.ISLOCALNAME));
-        ping.setContent("Tu es dispo ?");
+        ping.setContent(Integer.toString(type_msg));
         ping.setSender(myAgent.getAID());
         myAgent.sendMessage(ping);
         System.out.println(myAgent.getLocalName() + " → PING envoyé à " + receiverName);
@@ -86,14 +89,13 @@ public class PingBehaviour extends Behaviour {
         }
         
         this.finished = true;
-        return;
     }
 
     @Override
     public boolean done() {
-    	if(this.currentlyExchanging != null) {
+    	/*if(this.currentlyExchanging != null) {
     		this.currentlyExchanging.remove(receiverName);
-    	}
+    	}*/
         return finished;
     }
     
