@@ -112,7 +112,8 @@ public class PlanDAttaqueBehaviour extends Behaviour {
 	        	}
 	        }
 		    this.already_com.clear();
-	    } else {	
+	    } else {
+	    	// pourquoi pas faire juste des ping pour envoyer à ceux qui le veulent ? plutôt que rester en mode ping-pong
 	    	System.out.println("liste contactés : " + last_com);
 	    	List<Couple<Location, List<Couple<Observation, String>>>> lobs = ((AbstractDedaleAgent) myAgent).observe();	
 	    	
@@ -167,6 +168,10 @@ public class PlanDAttaqueBehaviour extends Behaviour {
 	    	    	stratege = nom_agent;
 	    	    }
 	    	}
+	    	
+	    	
+	    	// on le garde en mémoire pour la récolte
+	    	myAgent.setAgentSilo(stratege);
 	    	
 	    	
 	    	if(stratege.equals(myAgent.getLocalName())){

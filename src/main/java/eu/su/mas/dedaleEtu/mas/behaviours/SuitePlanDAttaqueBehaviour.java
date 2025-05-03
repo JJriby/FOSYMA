@@ -7,11 +7,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.graphstream.graph.Node;
+
+import dataStructures.serializableGraph.SerializableSimpleGraph;
 import dataStructures.tuple.Couple;
+import eu.su.mas.dedale.env.Location;
 import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent2;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
 import jade.core.behaviours.Behaviour;
 
 public class SuitePlanDAttaqueBehaviour extends Behaviour {
@@ -29,7 +34,7 @@ public class SuitePlanDAttaqueBehaviour extends Behaviour {
     Map<String, String> list_objectifs;
     Map<String, Integer> list_lock_agents = new HashMap<>();
     Map<String, Integer> list_strength_agents = new HashMap<>();
-    
+        
     private int pour_debugger = 0;
     
     public SuitePlanDAttaqueBehaviour(final ExploreCoopAgent2 myagent) {
@@ -62,18 +67,40 @@ public class SuitePlanDAttaqueBehaviour extends Behaviour {
 				
 		this.myMap = ((GlobalBehaviour) this.getParent()).getMyMap();
 		
-		/*
-		 * liste trésors types : {Tim=Gold, Silo=Any}
-		 * liste expertise : {Tim=[<Strength, 1>, <LockPicking, 3>], Silo=[<Strength, -1>, <LockPicking, -1>]}
-		 * liste back pack : {Tim=[<Gold, 15>, <Diamond, 0>], Silo=[<Gold, 10000>, <Diamond, 10000>]}
-		 * liste validation : {Elsa=false, Tim=false, Silo=false}
-		 */
 		
-		/*
-		 * golds : {14={LockIsOpen=0, Strength=0, LockPicking=1, Gold=24}, 82={LockIsOpen=0, Strength=0, LockPicking=0, Gold=95}, 96={LockIsOpen=0, Strength=1, LockPicking=2, Gold=24}}
-		 * diamonds : {66={LockIsOpen=0, Strength=1, LockPicking=0, Diamond=46}, 112={LockIsOpen=0, Strength=0, LockPicking=0, Diamond=10}, 19={LockIsOpen=0, Strength=1, LockPicking=0, Diamond=41}}
-		 */
-		
+		// si on a fini d'établir le plan d'attaque, on le transmet à tous nos voisins
+		if(myAgent.getPosSilo() != "") {
+			
+			List<Couple<Location, List<Couple<Observation, String>>>> lobs = ((AbstractDedaleAgent) myAgent).observe();	
+	    	
+		    for (Couple<Location, List<Couple<Observation, String>>> obs : lobs) {
+	            List<Couple<Observation, String>> details = obs.getRight();
+			
+	            for (Couple<Observation, String> detail : details) {
+	            	if (detail.getLeft() == Observation.AGENTNAME) {
+	            		
+	                    String agentName = detail.getRight();	                    
+	                    
+	                    if(!this.already_com.contains(agentName)) {
+	                    	this.already_com.add(agentName); // peut-être plutôt l'ajouter seulement une fois ShareObjectifs effectué
+	                    	myAgent.setReceiverName(agentName);
+	                    	myAgent.setMsgRetour(10);
+	                    	
+	                        System.out.println(myAgent.getLocalName() + " doit aller dans ping");
+	                       	myAgent.setTypeMsg(11);
+	                       	this.exitValue = 3;                               	
+			                this.finished = true;
+			                return;
+	                    }
+	            	}    
+	        	}
+	        }
+		    this.already_com.clear();
+		    myAgent.setTypeMsg(16);
+		    this.finished = true;
+		    this.exitValue = 12;
+		    return;
+		}
 		
 		// On trie la liste des trésors d'or
 		List<Map.Entry<String, Map<Observation, String>>> tri_tresors_gold = new ArrayList<>(list_gold.entrySet());
@@ -159,6 +186,7 @@ public class SuitePlanDAttaqueBehaviour extends Behaviour {
 		
 		System.out.println("attribution des objectifs : " + myAgent.getListObjectifs());
 		System.out.println("position du silo : " + myAgent.getPosSilo());
+		System.out.println("chemin à parcourir : " + myAgent.getShortestPath());
 		
 	}
 	
@@ -193,7 +221,7 @@ public class SuitePlanDAttaqueBehaviour extends Behaviour {
 				continue;
 			}
 			
-			// on garde que les coalitions de l'agent avec le plus gros back pack
+			// on garde que les coalitions de l'agent courant
 			List<List<String>> list_coalitions_agent = new ArrayList<>();
 			for(List<String> l : list_coalitions) {
 				if(l.contains(agentName)) {
@@ -277,7 +305,7 @@ public class SuitePlanDAttaqueBehaviour extends Behaviour {
 				}
 				
 				// on choisit quelle coalition prendre (évite le plus la perte des 10%)
-				double gain = 0;
+				int comparaison = Integer.MAX_VALUE;
 				List<String> coalition_finale = new ArrayList<>();
 				for(List<String> l : list_coalitions_agent) {
 					int back_pack_tot = 0;
@@ -291,11 +319,20 @@ public class SuitePlanDAttaqueBehaviour extends Behaviour {
 			    			}
 						}
 					}
-					double gain_coalition = back_pack_tot * (1 - 0.1 * l.size()); // pas sûre de la formule, à revoir
+					
+					/*double gain_coalition = back_pack_tot * (1 - 0.1 * l.size()); // pas sûre de la formule, à revoir
 					if(gain_coalition > gain) {
 						gain = gain_coalition;
 						coalition_finale = l;
+					}*/
+					
+					int capacite_tresor = Integer.parseInt(details.get(obs));
+					int comparaison_coalition = Math.abs(capacite_tresor - back_pack_tot); 
+					if(comparaison_coalition < comparaison) {
+						comparaison = comparaison_coalition;
+						coalition_finale = l;
 					}
+					
 				}
 				
 				if(!coalition_finale.isEmpty()) {

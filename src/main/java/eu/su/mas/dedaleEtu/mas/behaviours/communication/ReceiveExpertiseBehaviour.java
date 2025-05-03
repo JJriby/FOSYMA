@@ -93,11 +93,11 @@ public class ReceiveExpertiseBehaviour extends Behaviour {
             
             //alreadyExchanged.add(receiverName);
             System.out.println(this.myAgent.getLocalName() + " échange terminé avec " + receiverName);
-            System.out.println("liste trésors types : " + myAgent.getListTreasureType());
+            /*System.out.println("liste trésors types : " + myAgent.getListTreasureType());
     		System.out.println("liste expertise : " + myAgent.getListExpertise());
     		System.out.println("liste back pack : " + myAgent.getListBackFreeSpace());
     		System.out.println("liste validation : " + myAgent.getListValidation());
-            
+            */
     		
     		if(myAgent.getSent()) {
             	myAgent.setSent(false);

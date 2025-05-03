@@ -75,7 +75,8 @@ public class PongBehaviour extends Behaviour {
         // on se dirige à la réception du partage adéquat
         myAgent.setTypeMsg(Integer.parseInt(ping.getContent()));
         
-        System.out.println("numéro msg pong : " + myAgent.getTypeMsg());
+        
+    	System.out.println("pong : " + myAgent.getLocalName() + " msg retour : " + myAgent.getMsgRetour() + " msg autre : " + myAgent.getTypeMsg());
         
         // 2. Envoi du Pong
         ACLMessage pong = ping.createReply();

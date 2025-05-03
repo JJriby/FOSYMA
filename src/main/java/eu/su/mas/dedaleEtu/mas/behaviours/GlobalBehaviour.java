@@ -17,9 +17,11 @@ import eu.su.mas.dedaleEtu.mas.behaviours.communication.PongBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.communication.ReceiveExpertiseBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.communication.ReceiveFinExploBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.communication.ReceiveMapBehaviour;
+import eu.su.mas.dedaleEtu.mas.behaviours.communication.ReceiveObjectifsBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.communication.ShareExpertise;
 import eu.su.mas.dedaleEtu.mas.behaviours.communication.ShareFinExploBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.communication.ShareMapBehaviour3;
+import eu.su.mas.dedaleEtu.mas.behaviours.communication.ShareObjectifsBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.poubelle.ParoleBehaviour;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
@@ -50,6 +52,11 @@ public class GlobalBehaviour extends FSMBehaviour {
 	private static final String SuitePlanDAttaque = "SuitePlanDAttaque";
 	private static final String Attente = "Attente";
 	
+	private static final String ShareObjectifs = "ShareObjectifs";
+	private static final String ReceiveObjectifs = "ReceiveObjectifs";
+	
+	private static final String CollectSilo = "CollectSilo";
+	
 	public GlobalBehaviour(final AbstractDedaleAgent myagent, MapRepresentation myMap) {
 		super(myagent);
 		
@@ -78,6 +85,10 @@ public class GlobalBehaviour extends FSMBehaviour {
         this.registerState(new SuitePlanDAttaqueBehaviour((ExploreCoopAgent2) this.myAgent), SuitePlanDAttaque);
         this.registerState(new AttenteBehaviour((ExploreCoopAgent2) this.myAgent), Attente);
         
+        this.registerState(new ShareObjectifsBehaviour((ExploreCoopAgent2) this.myAgent), ShareObjectifs);
+        this.registerState(new ReceiveObjectifsBehaviour((ExploreCoopAgent2) this.myAgent), ReceiveObjectifs);
+
+        this.registerState(new CollectSiloBehaviour((ExploreCoopAgent2) this.myAgent), CollectSilo);
        
         // transitions
         this.registerTransition(Explore, GoToRDV, 1);
@@ -164,7 +175,60 @@ public class GlobalBehaviour extends FSMBehaviour {
         this.registerTransition(PlanDAttaque, Attente, 9);
         
         
-        // partage des listes des objectifs
+        // partage des listes des objectifs (pdv Silo)
+        this.registerTransition(SuitePlanDAttaque, Ping, 3);
+        this.registerTransition(Ping, SuitePlanDAttaque, 10);
+        
+        this.registerTransition(Ping, ShareObjectifs, 11);
+        this.registerTransition(ShareObjectifs, SuitePlanDAttaque, 10);
+        
+        this.registerTransition(SuitePlanDAttaque, GoToRDV, 12);
+        
+        
+        // partage des listes des objectifs (pdv autres agents)
+        this.registerTransition(Attente, Ping, 3);
+        this.registerTransition(Attente, Pong, 4);
+        
+        this.registerTransition(Ping, Attente, 13);
+        this.registerTransition(Pong, Attente, 13);
+        
+        this.registerTransition(Pong, ReceiveObjectifs, 11);
+        
+        this.registerTransition(ShareObjectifs, Attente, 13);
+        this.registerTransition(ReceiveObjectifs, Attente, 13);
+        
+        this.registerTransition(Attente, GoToRDV, 12);
+        
+        
+        // faire des temps d'attente quand on change de phase de comportements
+        
+        // au cas où qlq n'a pas fini de demander les expertises
+        this.registerTransition(ShareExpertise, Attente, 13);  
+        
+        // au cas où qlq tjrs dans PlanDAttaque continue de partager ses expertises
+        this.registerTransition(ReceiveObjectifs, PlanDAttaque, 2);
+        
+        // je ne sais plus à ce niveau là
+        this.registerTransition(ShareExpertise, FinExplo, 4);
+        this.registerTransition(ShareExpertise, GoToRDV, 6);
+        this.registerTransition(ReceiveObjectifs, GoToRDV, 6);
+        
+        
+        // une fois le partage des objectifs fini, chacun se dirige vers la destination attribuée pour la récolte
+        this.registerTransition(GoToRDV, Collect, 14);
+        this.registerTransition(GoToRDV, CollectSilo, 16);
+        
+        
+        // pour l'interblocage lors du trajet jusqu'au point de rdv
+        this.registerTransition(GoToRDV, InterBlocage, 5);
+        
+        
+        
+        // pour la collecte pdv agents
+        this.registerTransition(Collect, GoToRDV, 15);
+       
+        
+        // pour la récolte pdv Silo
         
         
         
@@ -173,8 +237,6 @@ public class GlobalBehaviour extends FSMBehaviour {
         //this.registerTransition(Ping, Parole, 4);
         //this.registerTransition(Parole, PlanDAttaque, 1);
         
-        this.registerTransition(PlanDAttaque, Collect, 1);
-               
 	}
 	
 	public MapRepresentation getMyMap() {

@@ -124,7 +124,8 @@ public class ExploCoopBehaviour2 extends Behaviour {
         	this.cpt_block = 0;
         }
         
-        if(this.cpt_block == 5) {        	
+        if(this.cpt_block == 5) { 
+        	myAgent.setTypeInterblocage(1);
         	this.finished = true;
         	this.exitValue = 2;
         	return;
@@ -198,7 +199,6 @@ public class ExploCoopBehaviour2 extends Behaviour {
                             myMap.addNode(myPosition.getLocationId(), MapAttribute.closed);
                         }
 
-	                    // 💡 FRESH serialization from actual map
 	                    SerializableSimpleGraph<String, MapAttribute> freshGraph = myMap.getSerializableGraph();
 	                    myAgent.setMapToSend(freshGraph);
 	

@@ -45,11 +45,15 @@ public class GoToRdvBehaviour extends Behaviour {
 		
         try { myAgent.doWait(1000); } catch (Exception e) { e.printStackTrace(); }
         
-        if(myAgent.getListFinExplo().get(myAgent.getLocalName())) {
+        
+        
+        if(myAgent.getListFinExplo().get(myAgent.getLocalName()) && myAgent.getPosSilo() == "") {
         	
         	if(myAgent.getTypeMsgInit() == -1) {
         		myAgent.setTypeMsgInit(myAgent.getTypeMsg());
         	}
+        	
+        	System.out.println("on est dans gotordv alors qu'il faut pas : " + myAgent.getMsgRetour() + " fin explo moi : " + myAgent.getListFinExplo().get(myAgent.getLocalName()) + " posSilo : " + myAgent.getPosSilo());
         	
 	        // on guette si on croise un agent n'ayant pas fini sur le chemin et on lui envoie une map dans ce cas
 	        List<Couple<Location, List<Couple<Observation, String>>>> lobs = ((AbstractDedaleAgent) myAgent).observe();	
@@ -101,6 +105,8 @@ public class GoToRdvBehaviour extends Behaviour {
 		        	} else {
 		        		this.exitValue = myAgent.getTypeMsg();
 		        	}
+					//myAgent.setTypeInterblocage(2);
+					//this.exitValue = 5;
 					this.finished = true;
 					return;
 				}

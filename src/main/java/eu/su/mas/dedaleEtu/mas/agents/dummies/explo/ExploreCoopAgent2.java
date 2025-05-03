@@ -80,6 +80,10 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 	private Map<String, String> list_objectifs = new HashMap<>();
 	private String pos_silo = "";
 	
+	private int type_interblocage = -1;
+	private String agent_silo = "";
+	private Map<Observation, Integer> stockage = new HashMap<>(); 
+	
 	
 	//private List<Couple<Location, List<Couple<Observation, String>>>> lastObs = new ArrayList<>();
 	//private List<String> objectif = new ArrayList<>();
@@ -131,11 +135,14 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 		}
 		
 		
-		this.list_ordre.add(this.getLocalName());
+		/*this.list_ordre.add(this.getLocalName());
 		this.list_ordre.addAll(this.list_agentNames);
 		Collections.sort(this.list_ordre);
 		
-		this.setParole(this.list_ordre.get(0));
+		this.setParole(this.list_ordre.get(0));*/
+		
+		this.stockage.put(Observation.GOLD, 0);
+		this.stockage.put(Observation.DIAMOND, 0);
 		
 
 		List<Behaviour> lb=new ArrayList<Behaviour>();
@@ -262,6 +269,18 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 		return this.pos_silo;
 	}
 	
+	public int getTypeInterblocage() {
+		return this.type_interblocage;
+	}
+	
+	public String getAgentSilo() {
+		return this.agent_silo;
+	}
+	
+	public Map<Observation,Integer> getStockage(){
+		return this.stockage;
+	}
+	
 	
 	
 	/*public List<Couple<Location, List<Couple<Observation, String>>>> getLastObservation(){
@@ -372,6 +391,18 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 	
 	public void setPosSilo(String pos) {
 		this.pos_silo = pos;
+	}
+	
+	public void setTypeInterblocage(int interbloc) {
+		this.type_interblocage = interbloc;
+	}
+	
+	public void setAgentSilo(String nom_a) {
+		this.agent_silo = nom_a;
+	}
+	
+	public void setStockage(Map<Observation,Integer> stockage) {
+		this.stockage = stockage;
 	}
 
 	

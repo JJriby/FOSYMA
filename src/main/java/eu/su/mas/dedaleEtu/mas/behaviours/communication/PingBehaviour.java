@@ -60,8 +60,7 @@ public class PingBehaviour extends Behaviour {
     	ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
     	int type_msg = myAgent.getTypeMsg();
     	
-    	System.out.println("numéro msg : " + type_msg);
-    	    	   
+    	System.out.println("ping : " + myAgent.getLocalName() + " msg retour : " + myAgent.getMsgRetour() + " msg autre : " + type_msg);
     	
         // 1. Envoi du PING
         ACLMessage ping = new ACLMessage(ACLMessage.INFORM);
