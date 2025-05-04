@@ -44,7 +44,7 @@ public class AttenteBehaviour extends Behaviour {
 		
 	    ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
 	    
-		// si on a fini d'établir le plan d'attaque, on le transmet à tous nos voisins
+		// si le plan d'attaque est fini, on le transmet à tous nos voisins
 		if(myAgent.getPosSilo() != "") {
 			
 			List<Couple<Location, List<Couple<Observation, String>>>> lobs = ((AbstractDedaleAgent) myAgent).observe();	

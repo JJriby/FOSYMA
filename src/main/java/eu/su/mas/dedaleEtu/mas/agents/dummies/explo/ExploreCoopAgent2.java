@@ -20,6 +20,8 @@ import eu.su.mas.dedaleEtu.mas.behaviours.GlobalBehaviour;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
 import jade.core.behaviours.Behaviour;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 
 /**
  * <pre>
@@ -83,7 +85,9 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 	private int type_interblocage = -1;
 	private String agent_silo = "";
 	private Map<Observation, Integer> stockage = new HashMap<>(); 
+	private String noeud_bloque = "";
 	
+	private String mode = "explo";
 	
 	//private List<Couple<Location, List<Couple<Observation, String>>>> lastObs = new ArrayList<>();
 	//private List<String> objectif = new ArrayList<>();
@@ -281,6 +285,14 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 		return this.stockage;
 	}
 	
+	public String getNoeudBloque() {
+		return this.noeud_bloque;
+	}
+	
+	public String getMode() {
+		return this.mode;
+	}
+	
 	
 	
 	/*public List<Couple<Location, List<Couple<Observation, String>>>> getLastObservation(){
@@ -404,6 +416,14 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 	public void setStockage(Map<Observation,Integer> stockage) {
 		this.stockage = stockage;
 	}
+	
+	public void setNoeudBloque(String noeud) {
+		this.noeud_bloque = noeud;
+	}
+	
+	public void setMode(String mode) {
+		this.mode = mode;
+	}
 
 	
 	/*public void setLastObservation(List<Couple<Location, List<Couple<Observation, String>>>> lastObs) {
@@ -413,6 +433,45 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 	public void setObjectif(List<String> objectif) {
 		this.objectif = objectif;
 	}*/
+	
+	
+	
+	public boolean checkMessagesInterBlocage() {
+		// 1. Réception du Ping
+        MessageTemplate pingTemplate = MessageTemplate.and(
+            MessageTemplate.MatchProtocol("PING"),
+            MessageTemplate.MatchPerformative(ACLMessage.INFORM)
+        );
+
+        ACLMessage ping = this.receive(pingTemplate);
+        
+        if (ping == null) {
+            System.out.println(this.getLocalName() + " Pas de PING factice de " + receiverName + "retour : " + this.getMsgRetour());
+            return false;
+        }
+        
+        // on se dirige à la réception du partage adéquat
+        int val_ping = Integer.parseInt(ping.getContent());
+        
+        if(val_ping == 20) {
+	        this.setTypeMsg(val_ping);
+	        
+	    	System.out.println("pong factice : " + this.getLocalName() + " msg retour : " + this.getMsgRetour() + " msg autre : " + this.getTypeMsg());
+	        
+	        // 2. Envoi du Pong
+	        ACLMessage pong = ping.createReply();
+	        pong.setProtocol("PONG");
+	        pong.setSender(this.getAID());
+	        //pong.addReceiver(new AID(this.receiverName, AID.ISLOCALNAME));
+	        pong.setContent("Je suis bien dispo !");
+	        this.sendMessage(pong);
+	        System.out.println(this.getLocalName() + " → PONG factice envoyé à " + receiverName);
+	        return true;
+        } else {
+        	return false;
+        }
+	}
+	
 	
 	
 	/**
@@ -444,6 +503,10 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 
 	public void addCollectedTreasure(int amount) {
 	    this.collectedTreasureValue += amount;
+	}
+	
+	public void setCollectedTreasureValue() {
+		this.collectedTreasureValue = 0;
 	}
 	
 	private int equityCounter = 0;

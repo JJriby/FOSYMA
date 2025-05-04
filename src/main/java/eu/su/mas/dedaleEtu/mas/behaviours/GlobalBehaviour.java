@@ -20,6 +20,7 @@ import eu.su.mas.dedaleEtu.mas.behaviours.communication.ReceiveMapBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.communication.ReceiveObjectifsBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.communication.ShareExpertise;
 import eu.su.mas.dedaleEtu.mas.behaviours.communication.ShareFinExploBehaviour;
+import eu.su.mas.dedaleEtu.mas.behaviours.communication.ShareInfosInterBlocageBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.communication.ShareMapBehaviour3;
 import eu.su.mas.dedaleEtu.mas.behaviours.communication.ShareObjectifsBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.poubelle.ParoleBehaviour;
@@ -57,6 +58,8 @@ public class GlobalBehaviour extends FSMBehaviour {
 	
 	private static final String CollectSilo = "CollectSilo";
 	
+	private static final String ShareInfosInterBlocage = "ShareInfosInterBlocage";
+	
 	public GlobalBehaviour(final AbstractDedaleAgent myagent, MapRepresentation myMap) {
 		super(myagent);
 		
@@ -89,9 +92,11 @@ public class GlobalBehaviour extends FSMBehaviour {
         this.registerState(new ReceiveObjectifsBehaviour((ExploreCoopAgent2) this.myAgent), ReceiveObjectifs);
 
         this.registerState(new CollectSiloBehaviour((ExploreCoopAgent2) this.myAgent), CollectSilo);
+        
+        this.registerState(new ShareInfosInterBlocageBehaviour((ExploreCoopAgent2) this.myAgent), ShareInfosInterBlocage);
        
         // transitions
-        this.registerTransition(Explore, GoToRDV, 1);
+        this.registerTransition(Explore, ShareInfosInterBlocage, 1);
         this.registerTransition(GoToRDV, FinExplo, 2);
         this.registerTransition(FinExplo, PlanDAttaque, 2);
         
@@ -220,9 +225,22 @@ public class GlobalBehaviour extends FSMBehaviour {
         
         
         // pour l'interblocage lors du trajet jusqu'au point de rdv
-        this.registerTransition(GoToRDV, InterBlocage, 5);
+        //this.registerTransition(GoToRDV, Ping, 5);
+        this.registerTransition(Ping, ShareInfosInterBlocage, 20);
         
+        this.registerTransition(ShareInfosInterBlocage, InterBlocage, 17);
         
+        this.registerTransition(Ping, ShareInfosInterBlocage, 20);
+        
+        this.registerTransition(Collect, ShareInfosInterBlocage, 20);
+        this.registerTransition(CollectSilo, ShareInfosInterBlocage, 20);
+        this.registerTransition(GoToRDV, ShareInfosInterBlocage, 20);
+        
+        this.registerTransition(ShareInfosInterBlocage, Collect, 21);
+        this.registerTransition(ShareInfosInterBlocage, CollectSilo, 22);
+        this.registerTransition(ShareInfosInterBlocage, GoToRDV, 23);
+
+        this.registerTransition(ShareInfosInterBlocage, FinExplo, 24);
         
         // pour la collecte pdv agents
         this.registerTransition(Collect, GoToRDV, 15);

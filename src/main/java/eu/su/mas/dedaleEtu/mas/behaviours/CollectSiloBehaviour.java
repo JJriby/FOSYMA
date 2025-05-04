@@ -31,12 +31,21 @@ public class CollectSiloBehaviour extends Behaviour {
 
 	@Override
 	public void action() {
+		
+		// voir pour modifier et faire un pong en cas d'interblocage, à voir
 
-		/*this.finished = false;
+		this.finished = false;
 	    this.exitValue = -1;
 	    
 	    ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
 	    List<String> agentNames = myAgent.getAgentNames();
+	    
+	    if (myAgent.checkMessagesInterBlocage()) {
+	    	myAgent.setMsgRetour(22);
+		    this.exitValue = myAgent.getTypeMsg();
+		    this.finished = true;
+		    return;
+		}
 	    
 	    Map<Observation, Integer> stockage = myAgent.getStockage();
 
@@ -52,38 +61,35 @@ public class CollectSiloBehaviour extends Behaviour {
         if (returnBackPack != null) {
             try {
             	
+            	// réception et ajout des trésors supplémentaires
             	List<Couple<Observation, Integer>> back_pack = (List<Couple<Observation, Integer>>) returnBackPack.getContentObject();
             	    
             	for(Couple<Observation, Integer> bp : back_pack) {
             		int qte_avant = stockage.get(bp.getLeft());
             		stockage.put(bp.getLeft(), qte_avant + bp.getRight());
             	}
-        	    
+            	
+            	
+            	// envoi de l'accusé de réception
+            	ACLMessage reponse = returnBackPack.createReply();
+            	reponse.setSender(myAgent.getAID());
+            	reponse.setProtocol("ProtocolTanker");
+            	reponse.setPerformative(ACLMessage.AGREE);
+            	reponse.setContent("Bien reçu et ajouté !");
+            	
+            	myAgent.sendMessage(reponse);        	
+            	
+            	
+            	System.out.println(myAgent.getLocalName() + " possède désormais comme stockage : " + stockage + " grâce à l'ajout de " + returnBackPack.getSender().getLocalName());
             	
             } catch (UnreadableException e) {
                 e.printStackTrace();
             }           
-            
-            System.out.println(this.myAgent.getLocalName() + " échange terminé avec " + receiverName);
-    		System.out.println(this.myAgent.getLocalName() + " liste fin explo : " + myAgent.getListFinExplo());
-    		
-    		if(myAgent.getSent()) {
-            	myAgent.setSent(false);
-            	this.exitValue = myAgent.getMsgRetour();
-            } else {
-                myAgent.setReceived(true);
-            	this.exitValue = myAgent.getTypeMsg();
-            }
-            
+                    
         } else {
-            System.out.println(myAgent.getLocalName() + " n’a pas reçu de liste de validation en retour de " + receiverName);
-            myAgent.setSent(false);
-            myAgent.setReceived(false);
-            this.exitValue = myAgent.getMsgRetour();
+            System.out.println(myAgent.getLocalName() + " n’a pas reçu de back_pack");
         }
-        
-        this.finished = true;*/
-	    
+        	    
 	}
 
 	@Override

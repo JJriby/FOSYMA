@@ -43,6 +43,13 @@ public class CollectBehaviour extends Behaviour {
 
 		this.myMap = ((GlobalBehaviour) this.getParent()).getMyMap();
 		
+		if (myAgent.checkMessagesInterBlocage()) {
+			myAgent.setMsgRetour(21);
+		    this.exitValue = myAgent.getTypeMsg();
+		    this.finished = true;
+		    return;
+		}
+		
 		if(pour_debugger == 0) {
 			if(myAgent.getLocalName() != "Silo") {
 				System.out.println("Phase collecte : " + this.myAgent.getLocalName() + " ma localisation : " + ((AbstractDedaleAgent) myAgent).getCurrentPosition() + " mais but : " + myAgent.getListObjectifs().get(myAgent.getLocalName()));
@@ -85,7 +92,10 @@ public class CollectBehaviour extends Behaviour {
         	// si y a rien, faut voir comment faire pour avertir le silo que le coffre a disparu
         	if(qte == 0) {
         		System.out.println("il n'y a rien ici !");
-        	}        	
+        	} else {
+        		myAgent.addCollectedTreasure(qte);
+        		System.out.println("quantité récupérée : " + myAgent.getCollectedTreasureValue());
+        	}
         	
         }
         

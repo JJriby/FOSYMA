@@ -82,6 +82,28 @@ public class ExploCoopBehaviour2 extends Behaviour {
         }
         
         
+        
+     // Réception des listes fin d'explo envoyées par d'autres agents
+        MessageTemplate template = MessageTemplate.and(
+            MessageTemplate.MatchProtocol("SHARE-FIN-EXPLO"),
+            MessageTemplate.MatchPerformative(ACLMessage.INFORM)
+        );
+
+        ACLMessage msg = myAgent.receive(template);
+        if (msg != null) {
+            try {
+                @SuppressWarnings("unchecked")
+                Map<String, Boolean> receivedFinExplo = (Map<String, Boolean>) msg.getContentObject();
+                for (Map.Entry<String, Boolean> entry : receivedFinExplo.entrySet()) {
+                    if (entry.getValue()) {
+                        myAgent.getListFinExplo().put(entry.getKey(), true);
+                    }
+                }
+                System.out.println("[DEBUG] " + myAgent.getLocalName() + " a reçu une listFinExplo de " + msg.getSender().getLocalName());
+            } catch (UnreadableException e) {
+                e.printStackTrace();
+            }
+        }
 
         // 0) Récupérer la position actuelle de l'agent
         Location myPosition = ((AbstractDedaleAgent) myAgent).getCurrentPosition();
@@ -120,12 +142,13 @@ public class ExploCoopBehaviour2 extends Behaviour {
         // Détection si inter-blocage et si c'est le cas on part chercher une solution
         if(this.lastPos == myPosition.getLocationId()) {
         	this.cpt_block++;
+        	block(100);
         } else {
         	this.cpt_block = 0;
         }
         
         if(this.cpt_block == 5) { 
-        	myAgent.setTypeInterblocage(1);
+        	myAgent.setTypeMsg(1);
         	this.finished = true;
         	this.exitValue = 2;
         	return;
@@ -138,7 +161,12 @@ public class ExploCoopBehaviour2 extends Behaviour {
             Location accessibleNode = obs.getLeft();
             List<Couple<Observation, String>> details = obs.getRight();
 
-            boolean isNewNode = myMap.addNewNode(accessibleNode.getLocationId());
+            boolean isNewNode = false;
+            Node existing = myMap.getGraph().getNode(accessibleNode.getLocationId());
+            if (existing == null) {
+            	myMap.addNode(accessibleNode.getLocationId(), MapAttribute.open);
+            	isNewNode = true;
+            }
 
             // Vérifie que le nœud observé (accessibleNode) n'est pas la position actuelle (myPosition).
             if (!myPosition.getLocationId().equals(accessibleNode.getLocationId())) {
@@ -193,22 +221,26 @@ public class ExploCoopBehaviour2 extends Behaviour {
                         myAgent.setReceiverName(agentName);
                         
                         
-                        Node currentNode = myMap.getGraph().getNode(myPosition.getLocationId());
-                        if (currentNode != null && !currentNode.getAttribute("ui.class").equals(MapAttribute.closed.toString())) {
-                            //System.out.println("[DEBUG FIX] Forcing closure of current node: " + myPosition.getLocationId());
-                            myMap.addNode(myPosition.getLocationId(), MapAttribute.closed);
-                        }
+                     // Toujours forcer le nœud actuel à fermé juste avant envoi
+                        myMap.addNode(myPosition.getLocationId(), MapAttribute.closed);
 
 	                    SerializableSimpleGraph<String, MapAttribute> freshGraph = myMap.getSerializableGraph();
 	                    myAgent.setMapToSend(freshGraph);
 	
-	                    // Debug: print what you're sending
-	                    /*System.out.println("\n[DEBUG FIX] Agent " + myAgent.getLocalName() + " is now sending fresh map to " + agentName + ":");
-	                    for (SerializableNode<String, MapAttribute> node : freshGraph.getAllNodes()) {
-	                        System.out.println("[DEBUG FIX] Node " + node.getNodeId() + " state: " + node.getNodeContent());
+	                    Map<String, Boolean> finExplo = myAgent.getListFinExplo();
+	                    ACLMessage finExploMsg = new ACLMessage(ACLMessage.INFORM);
+	                    finExploMsg.setProtocol("SHARE-FIN-EXPLO");
+	                    finExploMsg.addReceiver(new AID(agentName, AID.ISLOCALNAME));
+	                    finExploMsg.setSender(myAgent.getAID());
+	                    try {
+	                        finExploMsg.setContentObject((java.io.Serializable) new HashMap<>(finExplo));
+	                        myAgent.sendMessage(finExploMsg);
+	                        System.out.println("[DEBUG] " + myAgent.getLocalName() + " a envoyé sa listFinExplo à " + agentName);
+	                    } catch (IOException e) {
+	                        e.printStackTrace();
 	                    }
-	                    System.out.println("[DEBUG FIX] --- END FRESH MAP ---\n");
-	                    */
+	                    
+	                    
                         myAgent.setMsgRetour(0);
                         if (myAgent.getLocalName().compareTo(agentName) < 0) {
                             myAgent.setTypeMsg(1);
@@ -248,35 +280,64 @@ public class ExploCoopBehaviour2 extends Behaviour {
         
         // 5) Vérifier si l'exploration est terminée
         if (!this.myMap.hasOpenNode()) {
-            System.out.println(this.myAgent.getLocalName() + " - Exploration terminée !");
+        	System.out.println("[DEBUG] " + myAgent.getLocalName() + " - listFinExplo = " + myAgent.getListFinExplo());
+            if (!myAgent.getListFinExplo().get(myAgent.getLocalName())) {
+                System.out.println(this.myAgent.getLocalName() + " - Exploration terminée !");
+                myAgent.getListFinExplo().put(myAgent.getLocalName(), true);
+                
+                
+                //SEND END EXPLO
+                ACLMessage msg1 = new ACLMessage(ACLMessage.INFORM);
+                msg1.setProtocol("SHARE-FIN-EXPLO");
+                msg1.setSender(myAgent.getAID());
+                for (String agent : myAgent.getAgentNames()) {
+                	msg1.addReceiver(new AID(agent, AID.ISLOCALNAME));
+                }
+                try {
+                	msg1.setContentObject((java.io.Serializable) new HashMap<>(myAgent.getListFinExplo()));
+                    myAgent.sendMessage(msg1);
+                    System.out.println("[DEBUG] " + myAgent.getLocalName() + " a envoyé sa listFinExplo");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                
+                
+                
+
+                Set<String> treasureNodes = new HashSet<>();
+                treasureNodes.addAll(list_gold.keySet());
+                treasureNodes.addAll(list_diamond.keySet());
+                String obj = myMap.calculBarycentre(treasureNodes);
+                System.out.println("RDV : "+ obj + " trésors : " + treasureNodes);
+
+                List<String> shortestPath = myMap.getShortestPath(myPosition.getLocationId(), obj);
+                myAgent.setShortestPath(shortestPath);
+
+                myAgent.setTypeMsg(2);  // fin d'exploration
+                alreadyExchanged.clear();
+            }
             
-            // Calcul du barycentre des trésors
-            Set<String> treasureNodes = new HashSet<>();
-            treasureNodes.addAll(list_gold.keySet());
-            treasureNodes.addAll(list_diamond.keySet());
-            String obj = myMap.calculBarycentre(treasureNodes);
-            System.out.println("RDV : "+ obj + " trésors : " + treasureNodes);
-            
-            // En avant toute pour le barycentre !
-            List<String> shortestPath = myMap.getShortestPath(myPosition.getLocationId(), obj);
-            myAgent.setShortestPath(shortestPath);
-            
-    	    // on se met à true dans la liste_validation car j'ai bien fini
-    	    myAgent.getListFinExplo().put(myAgent.getLocalName(), true);
-            
-            myAgent.setTypeMsg(2);
-            
-            alreadyExchanged.clear();
-            
-        	this.exitValue = 1;
-        	finished = true;
-        	return;
+            // Continuer tant qu’un autre n’a pas fini
+            if (myAgent.getListFinExplo().containsValue(false)) {
+                return; // attendre les autres
+            }
+
+            // Tous ont fini → terminer vraiment
+            this.exitValue = 1;
+            finished = true;
+            return;
         }
-        
+       
         // 6) Déterminer le prochain déplacement
         if (nextNodeId == null) {
             nextNodeId = myMap.getShortestPathToClosestOpenNode(myPosition.getLocationId()).get(0);
         }
+        
+        
+     
+        
+        
+        
         
 
         // 7) Se déplacer vers le prochain nœud
@@ -285,6 +346,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
         
         // on garde en mémoire la position actuelle
         this.lastPos = myPosition.getLocationId();
+        myAgent.setNoeudBloque(nextNodeId);
        
     }
     

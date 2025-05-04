@@ -43,6 +43,13 @@ public class GoToRdvBehaviour extends Behaviour {
 		ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
 		List<String> shortestPath = myAgent.getShortestPath(); 
 		
+		if (myAgent.checkMessagesInterBlocage()) {
+			myAgent.setMsgRetour(23);
+		    this.exitValue = myAgent.getTypeMsg();
+		    this.finished = true;
+		    return;
+		}
+		
         try { myAgent.doWait(1000); } catch (Exception e) { e.printStackTrace(); }
         
         
@@ -53,7 +60,6 @@ public class GoToRdvBehaviour extends Behaviour {
         		myAgent.setTypeMsgInit(myAgent.getTypeMsg());
         	}
         	
-        	System.out.println("on est dans gotordv alors qu'il faut pas : " + myAgent.getMsgRetour() + " fin explo moi : " + myAgent.getListFinExplo().get(myAgent.getLocalName()) + " posSilo : " + myAgent.getPosSilo());
         	
 	        // on guette si on croise un agent n'ayant pas fini sur le chemin et on lui envoie une map dans ce cas
 	        List<Couple<Location, List<Couple<Observation, String>>>> lobs = ((AbstractDedaleAgent) myAgent).observe();	
@@ -97,16 +103,27 @@ public class GoToRdvBehaviour extends Behaviour {
 				if(this.cpt_block < 5) {
 					this.cpt_block ++;
 				} else {
-					this.cpt = 0;
 					this.already_com.clear();
-					if(myAgent.getTypeMsgInit() != -1) {
+					/*if(myAgent.getTypeMsgInit() != -1) {
 		        		this.exitValue = myAgent.getTypeMsgInit();
 		        		myAgent.setTypeMsgInit(-1);
 		        	} else {
 		        		this.exitValue = myAgent.getTypeMsg();
-		        	}
+		        	}*/
+					
+					
+					/*if(myAgent.getMode().equals("CartePleine")) {
+						
+					}*/
+					
+					if (cpt + 1 < shortestPath.size()) {
+						myAgent.setNoeudBloque(shortestPath.get(cpt + 1));
+					}
+					
+					this.cpt = 0;
 					//myAgent.setTypeInterblocage(2);
-					//this.exitValue = 5;
+					myAgent.setTypeMsg(20);
+					this.exitValue = 3;
 					this.finished = true;
 					return;
 				}
@@ -116,6 +133,9 @@ public class GoToRdvBehaviour extends Behaviour {
 			}
 		}
 		else {
+			if(myAgent.getMode() == "cartePleine") {
+				myAgent.setMode("finExplo");
+			}
 			this.cpt_block = 0;
 			this.cpt = 0;
 			this.already_com.clear();

@@ -40,9 +40,12 @@ public class ShareJustCollectBehaviour extends Behaviour {
 	    
 
 	    
-	    ((AbstractDedaleAgent) myAgent).emptyMyBackPack(myAgent.getAgentSilo());
+	    boolean empty = ((AbstractDedaleAgent) myAgent).emptyMyBackPack(myAgent.getAgentSilo());
     	
-	    
+	    if(empty) {
+	    	myAgent.setCollectedTreasureValue();
+	    	System.out.println("après empty : " + myAgent.getCollectedTreasureValue());
+	    }
 	    
 	}
 

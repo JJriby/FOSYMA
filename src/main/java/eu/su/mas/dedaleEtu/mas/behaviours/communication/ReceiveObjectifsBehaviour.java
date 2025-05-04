@@ -56,6 +56,7 @@ public class ReceiveObjectifsBehaviour extends Behaviour {
             	    
             	String but = myAgent.getListObjectifs().get(myAgent.getLocalName());
             	myAgent.setShortestPath(myMap.getShortestPath(((AbstractDedaleAgent) myAgent).getCurrentPosition().getLocationId(), but));
+            	myAgent.setGoalNode(but);
             	
                 System.out.println(this.myAgent.getLocalName() + " échange terminé avec " + receiverName);
         		System.out.println(this.myAgent.getLocalName() + " liste objectifs : " + myAgent.getListObjectifs());

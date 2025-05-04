@@ -30,6 +30,8 @@ public class InterBlocageBehaviour extends Behaviour {
         this.exitValue = 0;
         ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
         this.myMap = ((GlobalBehaviour) this.getParent()).getMyMap();
+        
+        System.out.println(myAgent.getLocalName() + " en blocage ");
 
         Location myPosition = ((AbstractDedaleAgent) myAgent).getCurrentPosition();
         List<Couple<Location, List<Couple<Observation, String>>>> lobs = ((AbstractDedaleAgent) myAgent).observe();
@@ -48,7 +50,7 @@ public class InterBlocageBehaviour extends Behaviour {
         List<String> path = myMap.getShortestPathToClosestOpenNode2(myPosition.getLocationId(), nodesToAvoid);
         if (path != null && !path.isEmpty()) {
             myAgent.setShortestPath(path);
-            myAgent.setTypeMsg(1);
+            //myAgent.setTypeMsg(1);
             this.exitValue = 1;
             this.finished = true;
             return;
@@ -58,6 +60,8 @@ public class InterBlocageBehaviour extends Behaviour {
         // Compare with other agent's info (mocked logic for now)
         String otherAgent = myAgent.getBlockingAgent();
         if (otherAgent != null) {
+        	
+        	System.out.println("Tiramisu, moi : " + myAgent.getLocalName() + " le pb : " + otherAgent);
             int myTreasure = myAgent.getCollectedTreasureValue();
             int otherTreasure = myAgent.getKnownTreasureValue(otherAgent);
             int myCounter = myAgent.getEquityCounter();
@@ -72,6 +76,7 @@ public class InterBlocageBehaviour extends Behaviour {
 
             if (iHavePriority) {
                 myAgent.incrementEquityCounter();
+                System.out.println("Chemin inchangé : " + myAgent.getShortestPath());
                 // Keep my path
                 this.exitValue = 1;
                 this.finished = true;
@@ -84,7 +89,8 @@ public class InterBlocageBehaviour extends Behaviour {
 
                 if (newPath != null && !newPath.isEmpty()) {
                     myAgent.setShortestPath(newPath);
-                    myAgent.setTypeMsg(1);
+                    System.out.println("nouveau chemin court : " + myAgent.getShortestPath());
+                    //myAgent.setTypeMsg(1);
                     this.exitValue = 1;
                     this.finished = true;
                     return;
@@ -96,7 +102,8 @@ public class InterBlocageBehaviour extends Behaviour {
                         List<String> escape = myMap.getShortestPath(myPosition.getLocationId(), randomFar);
                         if (escape != null && !escape.isEmpty()) {
                             myAgent.setShortestPath(escape);
-                            myAgent.setTypeMsg(1);
+                            System.out.println("nouveau chemin alternative : " + myAgent.getShortestPath());
+                            //myAgent.setTypeMsg(1);
                             this.exitValue = 1;
                             this.finished = true;
                             return;
@@ -125,12 +132,12 @@ public class InterBlocageBehaviour extends Behaviour {
         if (!freeNeighbors.isEmpty()) {
             String randomMove = freeNeighbors.get(new Random().nextInt(freeNeighbors.size()));
             myAgent.setShortestPath(List.of(randomMove));
-            myAgent.setTypeMsg(1);
+            //myAgent.setTypeMsg(1);
             this.exitValue = 1;
             this.finished = true;
         } else {
             block(500);
-        }
+        }        
     }
 
     @Override
