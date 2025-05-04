@@ -142,13 +142,12 @@ public class ExploCoopBehaviour2 extends Behaviour {
         // Détection si inter-blocage et si c'est le cas on part chercher une solution
         if(this.lastPos == myPosition.getLocationId()) {
         	this.cpt_block++;
-        	block(100);
         } else {
         	this.cpt_block = 0;
         }
         
         if(this.cpt_block == 5) { 
-        	myAgent.setTypeMsg(1);
+        	myAgent.setTypeInterblocage(1);
         	this.finished = true;
         	this.exitValue = 2;
         	return;
@@ -346,7 +345,6 @@ public class ExploCoopBehaviour2 extends Behaviour {
         
         // on garde en mémoire la position actuelle
         this.lastPos = myPosition.getLocationId();
-        myAgent.setNoeudBloque(nextNodeId);
        
     }
     
