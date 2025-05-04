@@ -138,7 +138,12 @@ public class ExploCoopBehaviour2 extends Behaviour {
             Location accessibleNode = obs.getLeft();
             List<Couple<Observation, String>> details = obs.getRight();
 
-            boolean isNewNode = myMap.addNewNode(accessibleNode.getLocationId());
+            boolean isNewNode = false;
+            Node existing = myMap.getGraph().getNode(accessibleNode.getLocationId());
+            if (existing == null) {
+            	myMap.addNode(accessibleNode.getLocationId(), MapAttribute.open);
+            	isNewNode = true;
+            }
 
             // Vérifie que le nœud observé (accessibleNode) n'est pas la position actuelle (myPosition).
             if (!myPosition.getLocationId().equals(accessibleNode.getLocationId())) {
@@ -193,11 +198,8 @@ public class ExploCoopBehaviour2 extends Behaviour {
                         myAgent.setReceiverName(agentName);
                         
                         
-                        Node currentNode = myMap.getGraph().getNode(myPosition.getLocationId());
-                        if (currentNode != null && !currentNode.getAttribute("ui.class").equals(MapAttribute.closed.toString())) {
-                            //System.out.println("[DEBUG FIX] Forcing closure of current node: " + myPosition.getLocationId());
-                            myMap.addNode(myPosition.getLocationId(), MapAttribute.closed);
-                        }
+                     // Toujours forcer le nœud actuel à fermé juste avant envoi
+                        myMap.addNode(myPosition.getLocationId(), MapAttribute.closed);
 
 	                    SerializableSimpleGraph<String, MapAttribute> freshGraph = myMap.getSerializableGraph();
 	                    myAgent.setMapToSend(freshGraph);
@@ -248,31 +250,35 @@ public class ExploCoopBehaviour2 extends Behaviour {
         
         // 5) Vérifier si l'exploration est terminée
         if (!this.myMap.hasOpenNode()) {
-            System.out.println(this.myAgent.getLocalName() + " - Exploration terminée !");
+        	System.out.println("[DEBUG] " + myAgent.getLocalName() + " - listFinExplo = " + myAgent.getListFinExplo());
+            if (!myAgent.getListFinExplo().get(myAgent.getLocalName())) {
+                System.out.println(this.myAgent.getLocalName() + " - Exploration terminée !");
+                myAgent.getListFinExplo().put(myAgent.getLocalName(), true);
+
+                Set<String> treasureNodes = new HashSet<>();
+                treasureNodes.addAll(list_gold.keySet());
+                treasureNodes.addAll(list_diamond.keySet());
+                String obj = myMap.calculBarycentre(treasureNodes);
+                System.out.println("RDV : "+ obj + " trésors : " + treasureNodes);
+
+                List<String> shortestPath = myMap.getShortestPath(myPosition.getLocationId(), obj);
+                myAgent.setShortestPath(shortestPath);
+
+                myAgent.setTypeMsg(2);  // fin d'exploration
+                alreadyExchanged.clear();
+            }
             
-            // Calcul du barycentre des trésors
-            Set<String> treasureNodes = new HashSet<>();
-            treasureNodes.addAll(list_gold.keySet());
-            treasureNodes.addAll(list_diamond.keySet());
-            String obj = myMap.calculBarycentre(treasureNodes);
-            System.out.println("RDV : "+ obj + " trésors : " + treasureNodes);
-            
-            // En avant toute pour le barycentre !
-            List<String> shortestPath = myMap.getShortestPath(myPosition.getLocationId(), obj);
-            myAgent.setShortestPath(shortestPath);
-            
-    	    // on se met à true dans la liste_validation car j'ai bien fini
-    	    myAgent.getListFinExplo().put(myAgent.getLocalName(), true);
-            
-            myAgent.setTypeMsg(2);
-            
-            alreadyExchanged.clear();
-            
-        	this.exitValue = 1;
-        	finished = true;
-        	return;
+            // Continuer tant qu’un autre n’a pas fini
+            if (myAgent.getListFinExplo().containsValue(false)) {
+                return; // attendre les autres
+            }
+
+            // Tous ont fini → terminer vraiment
+            this.exitValue = 1;
+            finished = true;
+            return;
         }
-        
+       
         // 6) Déterminer le prochain déplacement
         if (nextNodeId == null) {
             nextNodeId = myMap.getShortestPathToClosestOpenNode(myPosition.getLocationId()).get(0);

@@ -19,11 +19,9 @@ import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.SingleGraph;
 import org.graphstream.ui.fx_viewer.FxViewer;
 import org.graphstream.ui.view.Viewer;
-import org.graphstream.ui.view.Viewer.CloseFramePolicy;
 
 import dataStructures.serializableGraph.*;
 import dataStructures.tuple.Couple;
-import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
 import javafx.application.Platform;
 
 /**
@@ -102,8 +100,9 @@ public class MapRepresentation implements Serializable {
 	 * @return true if added
 	 */
 	public synchronized boolean addNewNode(String id) {
-		if (this.g.getNode(id)==null){
-			addNode(id,MapAttribute.open);
+		Node existing = this.g.getNode(id);
+		if (existing == null){
+			addNode(id, MapAttribute.open);
 			return true;
 		}
 		return false;
@@ -213,7 +212,6 @@ public class MapRepresentation implements Serializable {
 		}	
 	}
 
-
 	public synchronized SerializableSimpleGraph<String,MapAttribute> getSerializableGraph(){
 		serializeGraphTopology();
 		return this.sg;
@@ -273,44 +271,36 @@ public class MapRepresentation implements Serializable {
 	}
 
 	public void mergeMap(SerializableSimpleGraph<String, MapAttribute> sgreceived) {
-		/*System.out.println("Merging received map:");
-	    for (SerializableNode<String, MapAttribute> n : sgreceived.getAllNodes()){
-	        System.out.println("  Received node " + n.getNodeId() + " as " + n.getNodeContent());
-	    }*/
+	    for (SerializableNode<String, MapAttribute> n : sgreceived.getAllNodes()) {
+	        boolean alreadyIn = false;
+	        Node newnode = null;
 
-		for (SerializableNode<String, MapAttribute> n: sgreceived.getAllNodes()){
-			//System.out.println(n);
-			boolean alreadyIn =false;
-			//1 Add the node
-			Node newnode=null;
-			try {
-				newnode=this.g.addNode(n.getNodeId());
-			}	catch(IdAlreadyInUseException e) {
-				alreadyIn=true;
-				//System.out.println("Already in"+n.getNodeId());
-			}
-			if (!alreadyIn) {
-			    newnode.setAttribute("ui.label", newnode.getId());
-			    newnode.setAttribute("ui.class", n.getNodeContent().toString());
-			} else {
-			    newnode = this.g.getNode(n.getNodeId());
-			    String receivedAttr = n.getNodeContent().toString();
-			    String currentAttr = (String)newnode.getAttribute("ui.class");
+	        try {
+	            newnode = this.g.addNode(n.getNodeId());
+	            newnode.setAttribute("ui.label", newnode.getId());
+	            newnode.setAttribute("ui.class", n.getNodeContent().toString());
+	        } catch (IdAlreadyInUseException e) {
+	            alreadyIn = true;
+	        }
 
-			    // ALWAYS prefer "closed" over "open"
-			    if (currentAttr.equals(MapAttribute.open.toString()) && receivedAttr.equals(MapAttribute.closed.toString())) {
-			        newnode.setAttribute("ui.class", MapAttribute.closed.toString());
-			    }
-			}
-		}
+	        if (alreadyIn) {
+	            newnode = this.g.getNode(n.getNodeId());
+	            String receivedAttr = n.getNodeContent().toString();
+	            String currentAttr = newnode.getAttribute("ui.class").toString();
 
-		//4 now that all nodes are added, we can add edges
-		for (SerializableNode<String, MapAttribute> n: sgreceived.getAllNodes()){
-			for(String s:sgreceived.getEdges(n.getNodeId())){
-				addEdge(n.getNodeId(),s);
-			}
-		}
-		//System.out.println("Merge done");
+	            // ALWAYS prefer "closed" over "open"
+	            if ("open".equals(currentAttr) && "closed".equals(receivedAttr)) {
+	                newnode.setAttribute("ui.class", "closed");
+	            }
+	        }
+	    }
+
+	    // Ajout des arêtes
+	    for (SerializableNode<String, MapAttribute> n : sgreceived.getAllNodes()) {
+	        for (String neighbor : sgreceived.getEdges(n.getNodeId())) {
+	            addEdge(n.getNodeId(), neighbor);
+	        }
+	    }
 	}
 
 	/**
