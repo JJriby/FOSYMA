@@ -43,12 +43,12 @@ public class GoToRdvBehaviour extends Behaviour {
 		ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
 		List<String> shortestPath = myAgent.getShortestPath(); 
 		
-		if (myAgent.checkMessagesInterBlocage()) {
+		/*if (myAgent.checkMessagesInterBlocage()) {
 			myAgent.setMsgRetour(23);
 		    this.exitValue = myAgent.getTypeMsg();
 		    this.finished = true;
 		    return;
-		}
+		}*/
 		
         try { myAgent.doWait(1000); } catch (Exception e) { e.printStackTrace(); }
         
@@ -102,28 +102,31 @@ public class GoToRdvBehaviour extends Behaviour {
 			if(!moved) {
 				if(this.cpt_block < 5) {
 					this.cpt_block ++;
+					myAgent.doWait(1000);
 				} else {
+					this.cpt_block = 0;
+					this.cpt = 0;
 					this.already_com.clear();
-					/*if(myAgent.getTypeMsgInit() != -1) {
+					if(myAgent.getTypeMsgInit() != -1) {
 		        		this.exitValue = myAgent.getTypeMsgInit();
 		        		myAgent.setTypeMsgInit(-1);
 		        	} else {
 		        		this.exitValue = myAgent.getTypeMsg();
-		        	}*/
+		        	}
 					
 					
 					/*if(myAgent.getMode().equals("CartePleine")) {
 						
 					}*/
 					
-					if (cpt + 1 < shortestPath.size()) {
+					/*if (cpt + 1 < shortestPath.size()) {
 						myAgent.setNoeudBloque(shortestPath.get(cpt + 1));
 					}
 					
 					this.cpt = 0;
 					//myAgent.setTypeInterblocage(2);
 					myAgent.setTypeMsg(20);
-					this.exitValue = 3;
+					this.exitValue = 3;*/
 					this.finished = true;
 					return;
 				}

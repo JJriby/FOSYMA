@@ -40,12 +40,12 @@ public class CollectSiloBehaviour extends Behaviour {
 	    ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
 	    List<String> agentNames = myAgent.getAgentNames();
 	    
-	    if (myAgent.checkMessagesInterBlocage()) {
+	    /*if (myAgent.checkMessagesInterBlocage()) {
 	    	myAgent.setMsgRetour(22);
 		    this.exitValue = myAgent.getTypeMsg();
 		    this.finished = true;
 		    return;
-		}
+		}*/
 	    
 	    Map<Observation, Integer> stockage = myAgent.getStockage();
 

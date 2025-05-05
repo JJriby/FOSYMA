@@ -47,6 +47,8 @@ public class AttenteBehaviour extends Behaviour {
 		// si le plan d'attaque est fini, on le transmet à tous nos voisins
 		if(myAgent.getPosSilo() != "") {
 			
+			System.out.println("chemin à parcourir par " + myAgent.getLocalName() + " : " + myAgent.getShortestPath());
+			
 			List<Couple<Location, List<Couple<Observation, String>>>> lobs = ((AbstractDedaleAgent) myAgent).observe();	
 	    	
 		    for (Couple<Location, List<Couple<Observation, String>>> obs : lobs) {

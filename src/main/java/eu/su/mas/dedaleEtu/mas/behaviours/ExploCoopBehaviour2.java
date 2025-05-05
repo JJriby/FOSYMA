@@ -84,7 +84,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
         
         
      // Réception des listes fin d'explo envoyées par d'autres agents
-        MessageTemplate template = MessageTemplate.and(
+        /*MessageTemplate template = MessageTemplate.and(
             MessageTemplate.MatchProtocol("SHARE-FIN-EXPLO"),
             MessageTemplate.MatchPerformative(ACLMessage.INFORM)
         );
@@ -103,7 +103,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
             } catch (UnreadableException e) {
                 e.printStackTrace();
             }
-        }
+        }*/
 
         // 0) Récupérer la position actuelle de l'agent
         Location myPosition = ((AbstractDedaleAgent) myAgent).getCurrentPosition();
@@ -142,7 +142,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
         // Détection si inter-blocage et si c'est le cas on part chercher une solution
         if(this.lastPos == myPosition.getLocationId()) {
         	this.cpt_block++;
-        	myAgent.doWait(500);
+        	myAgent.doWait(1000);
         } else {
         	this.cpt_block = 0;
         }
@@ -155,7 +155,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
         }
         
         
-     // 3) Explorer les nœuds accessibles et ajouter les nouvelles connexions
+        // 3) Explorer les nœuds accessibles et ajouter les nouvelles connexions
         String nextNodeId = null;
         for (Couple<Location, List<Couple<Observation, String>>> obs : lobs) {
             Location accessibleNode = obs.getLeft();
@@ -227,7 +227,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
 	                    SerializableSimpleGraph<String, MapAttribute> freshGraph = myMap.getSerializableGraph();
 	                    myAgent.setMapToSend(freshGraph);
 	
-	                    Map<String, Boolean> finExplo = myAgent.getListFinExplo();
+	                    /*Map<String, Boolean> finExplo = myAgent.getListFinExplo();
 	                    ACLMessage finExploMsg = new ACLMessage(ACLMessage.INFORM);
 	                    finExploMsg.setProtocol("SHARE-FIN-EXPLO");
 	                    finExploMsg.addReceiver(new AID(agentName, AID.ISLOCALNAME));
@@ -238,7 +238,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
 	                        System.out.println("[DEBUG] " + myAgent.getLocalName() + " a envoyé sa listFinExplo à " + agentName);
 	                    } catch (IOException e) {
 	                        e.printStackTrace();
-	                    }
+	                    }*/
 	                    
 	                    
                         myAgent.setMsgRetour(0);
@@ -280,8 +280,12 @@ public class ExploCoopBehaviour2 extends Behaviour {
         
         // 5) Vérifier si l'exploration est terminée
         if (!this.myMap.hasOpenNode()) {
-        	System.out.println("[DEBUG] " + myAgent.getLocalName() + " - listFinExplo = " + myAgent.getListFinExplo());
-            if (!myAgent.getListFinExplo().get(myAgent.getLocalName())) {
+        	
+            System.out.println(this.myAgent.getLocalName() + " - Exploration terminée !");
+            myAgent.getListFinExplo().put(myAgent.getLocalName(), true);
+        	
+        	/*System.out.println("[DEBUG] " + myAgent.getLocalName() + " - listFinExplo = " + myAgent.getListFinExplo());	
+        	if (!myAgent.getListFinExplo().get(myAgent.getLocalName())) {
                 System.out.println(this.myAgent.getLocalName() + " - Exploration terminée !");
                 myAgent.getListFinExplo().put(myAgent.getLocalName(), true);
                 
@@ -303,6 +307,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
                 
                 
                 
+                
 
                 Set<String> treasureNodes = new HashSet<>();
                 treasureNodes.addAll(list_gold.keySet());
@@ -320,8 +325,21 @@ public class ExploCoopBehaviour2 extends Behaviour {
             // Continuer tant qu’un autre n’a pas fini
             if (myAgent.getListFinExplo().containsValue(false)) {
                 return; // attendre les autres
-            }
+            }*/
+			
+            
+            Set<String> treasureNodes = new HashSet<>();
+            treasureNodes.addAll(list_gold.keySet());
+            treasureNodes.addAll(list_diamond.keySet());
+            String obj = myMap.calculBarycentre(treasureNodes);
+            System.out.println("RDV : "+ obj + " trésors : " + treasureNodes);
 
+            List<String> shortestPath = myMap.getShortestPath(myPosition.getLocationId(), obj);
+            myAgent.setShortestPath(shortestPath);
+
+            myAgent.setTypeMsg(2);  // fin d'exploration
+            alreadyExchanged.clear();
+        	
             // Tous ont fini → terminer vraiment
             this.exitValue = 1;
             finished = true;

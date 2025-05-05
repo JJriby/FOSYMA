@@ -43,12 +43,12 @@ public class CollectBehaviour extends Behaviour {
 
 		this.myMap = ((GlobalBehaviour) this.getParent()).getMyMap();
 		
-		if (myAgent.checkMessagesInterBlocage()) {
+		/*if (myAgent.checkMessagesInterBlocage()) {
 			myAgent.setMsgRetour(21);
 		    this.exitValue = myAgent.getTypeMsg();
 		    this.finished = true;
 		    return;
-		}
+		}*/
 		
 		if(pour_debugger == 0) {
 			if(myAgent.getLocalName() != "Silo") {
@@ -127,6 +127,7 @@ public class CollectBehaviour extends Behaviour {
   
         // on retourne au silo
         myAgent.setShortestPath(this.myMap.getShortestPath(myPosition.getLocationId(), myAgent.getPosSilo()));
+        myAgent.setTypeMsg(30);
         this.exitValue = 15;
         this.finished = true;
         

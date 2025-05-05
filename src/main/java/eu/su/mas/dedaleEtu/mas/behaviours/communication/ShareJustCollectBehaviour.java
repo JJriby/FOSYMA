@@ -19,6 +19,7 @@ public class ShareJustCollectBehaviour extends Behaviour {
 	private static final long serialVersionUID = 8591689931496787661L;
     private boolean finished = false;
     private int exitValue = -1;
+    private int pour_debugger = 0;
     
     private MapRepresentation myMap;
     
@@ -37,14 +38,23 @@ public class ShareJustCollectBehaviour extends Behaviour {
 	    List<String> agentNames = myAgent.getAgentNames();
 	    String receiverName = myAgent.getReceiverName();
 	    
-	    
+		if(pour_debugger == 0) {
+			if(myAgent.getLocalName() != "Silo") {
+				System.out.println("Phase collecte : " + this.myAgent.getLocalName() + " ma localisation : " + ((AbstractDedaleAgent) myAgent).getCurrentPosition() + " mais but : " + myAgent.getListObjectifs().get(myAgent.getLocalName()));
+			} else {
+				System.out.println("Phase collecte : " + this.myAgent.getLocalName() + " ma localisation : " + ((AbstractDedaleAgent) myAgent).getCurrentPosition() + " mais but : " + myAgent.getPosSilo());
+			}
+			pour_debugger++;
+		}
 
 	    
 	    boolean empty = ((AbstractDedaleAgent) myAgent).emptyMyBackPack(myAgent.getAgentSilo());
     	
 	    if(empty) {
 	    	myAgent.setCollectedTreasureValue();
-	    	System.out.println("après empty : " + myAgent.getCollectedTreasureValue());
+	    	System.out.println("après empty true : " + myAgent.getCollectedTreasureValue());
+	    } else {
+	    	System.out.println("après empty false : " + myAgent.getCollectedTreasureValue());
 	    }
 	    
 	}
