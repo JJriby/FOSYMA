@@ -23,6 +23,8 @@ public class CollectSiloBehaviour extends Behaviour {
     private int exitValue = -1;
     
     private MapRepresentation myMap;
+    
+    private int pour_debugger = 0;
         
     
     public CollectSiloBehaviour(final ExploreCoopAgent2 myagent) {
@@ -79,15 +81,18 @@ public class CollectSiloBehaviour extends Behaviour {
             	
             	myAgent.sendMessage(reponse);        	
             	
-            	
-            	System.out.println(myAgent.getLocalName() + " possède désormais comme stockage : " + stockage + " grâce à l'ajout de " + returnBackPack.getSender().getLocalName());
-            	
+            	if(pour_debugger == 0) {
+            		System.out.println(myAgent.getLocalName() + " possède désormais comme stockage : " + stockage + " grâce à l'ajout de " + returnBackPack.getSender().getLocalName());
+            		pour_debugger++;
+            	}
             } catch (UnreadableException e) {
                 e.printStackTrace();
             }           
                     
         } else {
-            System.out.println(myAgent.getLocalName() + " n’a pas reçu de back_pack");
+        	if(pour_debugger == 0) {
+        		System.out.println(myAgent.getLocalName() + " n’a pas reçu de back_pack");
+        	}
         }
         	    
 	}

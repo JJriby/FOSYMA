@@ -45,7 +45,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
         super(myagent);
         
         for(String n : ((ExploreCoopAgent2) this.myAgent).getAgentNames()) {
-        	this.historique_com.put(n, 0);
+        	((ExploreCoopAgent2) this.myAgent).getHistoriqueComMap().put(n, 0);
         }
                 
     }
@@ -64,6 +64,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
     	Map<String, Map<Observation, String>> list_gold = myAgent.getListGold();
     	Map<String, Map<Observation, String>> list_diamond = myAgent.getListDiamond();
     	Set<String> alreadyExchanged = myAgent.getAlreadyExchanged();
+    	this.historique_com = myAgent.getHistoriqueComMap();
     	//Set<String> currentlyExchanging = myAgent.getCurrentlyExchanging();
     	Map<String, SerializableSimpleGraph<String, MapAttribute>> nodesToTransmit = myAgent.getNodesToTransmit();
     	
@@ -84,7 +85,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
         
         
      // Réception des listes fin d'explo envoyées par d'autres agents
-        /*MessageTemplate template = MessageTemplate.and(
+        MessageTemplate template = MessageTemplate.and(
             MessageTemplate.MatchProtocol("SHARE-FIN-EXPLO"),
             MessageTemplate.MatchPerformative(ACLMessage.INFORM)
         );
@@ -103,7 +104,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
             } catch (UnreadableException e) {
                 e.printStackTrace();
             }
-        }*/
+        }
 
         // 0) Récupérer la position actuelle de l'agent
         Location myPosition = ((AbstractDedaleAgent) myAgent).getCurrentPosition();
@@ -216,8 +217,6 @@ public class ExploCoopBehaviour2 extends Behaviour {
 
                     if (this.historique_com.get(agentName) == 0) {
 
-                        this.historique_com.put(agentName, 10);
-
                         myAgent.setReceiverName(agentName);
                         
                         
@@ -227,7 +226,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
 	                    SerializableSimpleGraph<String, MapAttribute> freshGraph = myMap.getSerializableGraph();
 	                    myAgent.setMapToSend(freshGraph);
 	
-	                    /*Map<String, Boolean> finExplo = myAgent.getListFinExplo();
+	                    Map<String, Boolean> finExplo = myAgent.getListFinExplo();
 	                    ACLMessage finExploMsg = new ACLMessage(ACLMessage.INFORM);
 	                    finExploMsg.setProtocol("SHARE-FIN-EXPLO");
 	                    finExploMsg.addReceiver(new AID(agentName, AID.ISLOCALNAME));
@@ -238,7 +237,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
 	                        System.out.println("[DEBUG] " + myAgent.getLocalName() + " a envoyé sa listFinExplo à " + agentName);
 	                    } catch (IOException e) {
 	                        e.printStackTrace();
-	                    }*/
+	                    }
 	                    
 	                    
                         myAgent.setMsgRetour(0);
@@ -283,6 +282,23 @@ public class ExploCoopBehaviour2 extends Behaviour {
         	
             System.out.println(this.myAgent.getLocalName() + " - Exploration terminée !");
             myAgent.getListFinExplo().put(myAgent.getLocalName(), true);
+            
+            if (!myAgent.getListFinExplo().get(myAgent.getLocalName())) {
+	          //SEND END EXPLO
+	            ACLMessage msg1 = new ACLMessage(ACLMessage.INFORM);
+	            msg1.setProtocol("SHARE-FIN-EXPLO");
+	            msg1.setSender(myAgent.getAID());
+	            for (String agent : myAgent.getAgentNames()) {
+	            	msg1.addReceiver(new AID(agent, AID.ISLOCALNAME));
+	            }
+	            try {
+	            	msg1.setContentObject((java.io.Serializable) new HashMap<>(myAgent.getListFinExplo()));
+	                myAgent.sendMessage(msg1);
+	                System.out.println("[DEBUG] " + myAgent.getLocalName() + " a envoyé sa listFinExplo");
+	            } catch (IOException e) {
+	                e.printStackTrace();
+	            }
+            }
         	
         	/*System.out.println("[DEBUG] " + myAgent.getLocalName() + " - listFinExplo = " + myAgent.getListFinExplo());	
         	if (!myAgent.getListFinExplo().get(myAgent.getLocalName())) {
@@ -320,10 +336,10 @@ public class ExploCoopBehaviour2 extends Behaviour {
 
                 myAgent.setTypeMsg(2);  // fin d'exploration
                 alreadyExchanged.clear();
-            }
+            }*/
             
             // Continuer tant qu’un autre n’a pas fini
-            if (myAgent.getListFinExplo().containsValue(false)) {
+            /*if (myAgent.getListFinExplo().containsValue(false)) {
                 return; // attendre les autres
             }*/
 			
@@ -336,6 +352,8 @@ public class ExploCoopBehaviour2 extends Behaviour {
 
             List<String> shortestPath = myMap.getShortestPath(myPosition.getLocationId(), obj);
             myAgent.setShortestPath(shortestPath);
+            
+            myAgent.setMode("CartePleine");
 
             myAgent.setTypeMsg(2);  // fin d'exploration
             alreadyExchanged.clear();

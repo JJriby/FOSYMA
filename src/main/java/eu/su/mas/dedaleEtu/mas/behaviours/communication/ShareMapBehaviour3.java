@@ -73,6 +73,8 @@ public class ShareMapBehaviour3 extends Behaviour {
             e.printStackTrace();
         }
         
+        myAgent.getHistoriqueComMap().put(receiverName, 10);
+                
         
         if(myAgent.getReceived()) {
         	myAgent.setReceived(false);

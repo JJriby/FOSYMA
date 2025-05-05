@@ -225,7 +225,7 @@ public class GlobalBehaviour extends FSMBehaviour {
         this.registerTransition(ShareExpertise, GoToRDV, 6);
         this.registerTransition(ReceiveObjectifs, GoToRDV, 6);
         this.registerTransition(ReceiveFinExplo, Explore, 0);
-        
+        this.registerTransition(ReceiveExpertise, Attente, 13);        
         // une fois le partage des objectifs fini, chacun se dirige vers la destination attribuée pour la récolte
         this.registerTransition(GoToRDV, Collect, 14);
         this.registerTransition(GoToRDV, CollectSilo, 16);

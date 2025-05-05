@@ -54,7 +54,9 @@ public class GoToRdvBehaviour extends Behaviour {
         
         
         
-        if(myAgent.getListFinExplo().get(myAgent.getLocalName()) && myAgent.getPosSilo() == "") {
+        //if(myAgent.getListFinExplo().get(myAgent.getLocalName()) && myAgent.getPosSilo() == "") {
+        if(myAgent.getMode() == "CartePleine") {
+        
         	
         	if(myAgent.getTypeMsgInit() == -1) {
         		myAgent.setTypeMsgInit(myAgent.getTypeMsg());

@@ -88,6 +88,7 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 	private String noeud_bloque = "";
 	
 	private String mode = "explo";
+    private Map<String, Integer> historique_com_map = new HashMap<>();
 	
 	//private List<Couple<Location, List<Couple<Observation, String>>>> lastObs = new ArrayList<>();
 	//private List<String> objectif = new ArrayList<>();
@@ -293,6 +294,10 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 		return this.mode;
 	}
 	
+	public Map<String, Integer> getHistoriqueComMap(){
+		return this.historique_com_map;
+	}
+	
 	
 	
 	/*public List<Couple<Location, List<Couple<Observation, String>>>> getLastObservation(){
@@ -423,6 +428,10 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 	
 	public void setMode(String mode) {
 		this.mode = mode;
+	}
+	
+	public void setHistoriqueComMap(Map<String, Integer> history_map) {
+		this.historique_com_map = history_map;
 	}
 
 	
