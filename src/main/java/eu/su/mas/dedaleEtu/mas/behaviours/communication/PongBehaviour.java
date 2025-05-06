@@ -48,6 +48,8 @@ public class PongBehaviour extends Behaviour {
     
     @Override
     public void action() {
+    	
+    	// voir pour potentiellement modifier receiverName par plutôt le nom de l'envoyeur pour être sûr
     	    	    	    	    	
     	this.finished = false;
     	this.exitValue = -1;
@@ -73,8 +75,11 @@ public class PongBehaviour extends Behaviour {
         System.out.println(myAgent.getLocalName() + " PING reçu de " + receiverName);
         
         // on se dirige à la réception du partage adéquat
-        myAgent.setTypeMsg(Integer.parseInt(ping.getContent()));
+        int type_transmission = Integer.parseInt(ping.getContent());
         
+        int type_reception = ((GlobalBehaviour) this.getParent()).getTypeReception(type_transmission);
+        myAgent.setTypeMsg(type_reception);
+
         
     	System.out.println("pong : " + myAgent.getLocalName() + " msg retour : " + myAgent.getMsgRetour() + " msg autre : " + myAgent.getTypeMsg());
         
@@ -82,7 +87,7 @@ public class PongBehaviour extends Behaviour {
         ACLMessage pong = ping.createReply();
         pong.setProtocol("PONG");
         pong.setSender(myAgent.getAID());
-        //pong.addReceiver(new AID(this.receiverName, AID.ISLOCALNAME));
+        pong.addReceiver(new AID(this.receiverName, AID.ISLOCALNAME));
         pong.setContent("Je suis bien dispo !");
         myAgent.sendMessage(pong);
         System.out.println(myAgent.getLocalName() + " → PONG envoyé à " + receiverName);

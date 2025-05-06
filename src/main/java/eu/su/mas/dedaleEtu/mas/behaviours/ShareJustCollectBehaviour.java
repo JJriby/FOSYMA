@@ -1,4 +1,4 @@
-package eu.su.mas.dedaleEtu.mas.behaviours.communication;
+package eu.su.mas.dedaleEtu.mas.behaviours;
 
 import java.util.List;
 import java.util.Map;

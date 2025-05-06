@@ -58,6 +58,8 @@ public class ExploCoopBehaviour2 extends Behaviour {
     	
     	// variables récupérées de l'agent
     	ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
+    	
+    	myAgent.setMsgRetour(GlobalBehaviour.TO_EXPLORE);
 
     	//MapRepresentation myMap = myAgent.getMyMap();
     	List<String> agentNames = myAgent.getAgentNames();
@@ -83,7 +85,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
         }
         
         
-        
+      /*  
      // Réception des listes fin d'explo envoyées par d'autres agents
         MessageTemplate template = MessageTemplate.and(
             MessageTemplate.MatchProtocol("SHARE-FIN-EXPLO"),
@@ -104,7 +106,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
             } catch (UnreadableException e) {
                 e.printStackTrace();
             }
-        }
+        }*/
 
         // 0) Récupérer la position actuelle de l'agent
         Location myPosition = ((AbstractDedaleAgent) myAgent).getCurrentPosition();
@@ -117,41 +119,52 @@ public class ExploCoopBehaviour2 extends Behaviour {
         List<Couple<Location, List<Couple<Observation, String>>>> lobs = ((AbstractDedaleAgent) myAgent).observe();
 
         try { myAgent.doWait(1000); } catch (Exception e) { e.printStackTrace(); }
-
-        
-        // si le noeud où on se trouve était précédemment ouvert, on l'ajoute dans les noeuds à partager
-        for(String a : agentNames) {
-            nodesToTransmit.putIfAbsent(a, new SerializableSimpleGraph<>());
-            SerializableSimpleGraph<String, MapAttribute> g = nodesToTransmit.get(a);
-
-            Node currentNode = myMap.getGraph().getNode(myPosition.getLocationId());
-            MapAttribute currentAttribute = (currentNode != null && currentNode.getAttribute("ui.class").equals(MapAttribute.closed.toString())) 
-                ? MapAttribute.closed 
-                : MapAttribute.open;
-
-            SerializableNode<String, MapAttribute> node = g.getNode(myPosition.getLocationId());
-            if(node == null || node.getNodeContent() != currentAttribute) {
-                g.addNode(myPosition.getLocationId(), currentAttribute);
-            }
-        }
         
         
         // 2) Marquer le nœud actuel comme visité
         myMap.addNode(myPosition.getLocationId(), MapAttribute.closed);
         //System.out.println("[DEBUG] " + myAgent.getLocalName() + " marked current node " + myPosition.getLocationId() + " as CLOSED");
         
+        
+        // si le noeud où on se trouve était précédemment ouvert, on l'ajoute dans les noeuds à partager
+        for(String a : agentNames) {
+            nodesToTransmit.putIfAbsent(a, new SerializableSimpleGraph<>());
+            SerializableSimpleGraph<String, MapAttribute> g = nodesToTransmit.get(a);
+
+            
+            boolean trouve = false;
+            for(SerializableNode<String, MapAttribute> n : g.getAllNodes()) {
+            	if(n.getNodeId().equals(myPosition.getLocationId())) {
+            		trouve = true;
+            		n.setContent(MapAttribute.closed);
+                	break;
+            	}
+            }
+            
+            if(!trouve) {
+            	g.addNode(myPosition.getLocationId(), MapAttribute.closed);
+            	
+            	for(SerializableNode<String, MapAttribute> n : g.getAllNodes()) {
+                	if(n.getNodeId().equals(myPosition.getLocationId())) {
+                		n.setContent(MapAttribute.closed);
+                	}
+                }
+            }
+            
+        }
+        
+        
         // Détection si inter-blocage et si c'est le cas on part chercher une solution
         if(this.lastPos == myPosition.getLocationId()) {
         	this.cpt_block++;
-        	myAgent.doWait(1000);
         } else {
         	this.cpt_block = 0;
         }
         
         if(this.cpt_block == 5) { 
-        	myAgent.setTypeMsg(1);
+        	myAgent.setTypeMsg(GlobalBehaviour.TO_EXPLORE); // pas utile je crois
         	this.finished = true;
-        	this.exitValue = 2;
+        	this.exitValue = GlobalBehaviour.TO_INTERBLOCAGE;
         	return;
         }
         
@@ -179,16 +192,40 @@ public class ExploCoopBehaviour2 extends Behaviour {
                     ? MapAttribute.closed
                     : MapAttribute.open;
 
+                
                 // Mise à jour correcte des nodesToTransmit avec l'attribut réel
                 for (String agentName : agentNames) {
                     nodesToTransmit.putIfAbsent(agentName, new SerializableSimpleGraph<>());
                     SerializableSimpleGraph<String, MapAttribute> g = nodesToTransmit.get(agentName);
 
-                    SerializableNode<String, MapAttribute> existingNode = g.getNode(accessibleNode.getLocationId());
+                    
+                    boolean trouve = false;
+                    for(SerializableNode<String, MapAttribute> n : g.getAllNodes()) {
+                    	if(n.getNodeId().equals(accessibleNode.getLocationId())) {
+                    		trouve = true;
+                    		if(n.getNodeContent() != currentAttr) {
+                    			n.setContent(currentAttr);
+                    		}
+                        	break;
+                    	}
+                    }
+                    
+                    if(!trouve) {
+                    	g.addNode(accessibleNode.getLocationId(), MapAttribute.open);
+                    	
+                    	for(SerializableNode<String, MapAttribute> n : g.getAllNodes()) {
+                        	if(n.getNodeId().equals(accessibleNode.getLocationId())) {
+                        		n.setContent(currentAttr);
+                        	}
+                        }
+                    }
+                    
+                    
+                    /*SerializableNode<String, MapAttribute> existingNode = g.getNode(accessibleNode.getLocationId());
                     if (existingNode == null || existingNode.getNodeContent() != currentAttr) {
                         g.addNode(accessibleNode.getLocationId(), currentAttr);
-                    }
-
+                    }*/
+                    
                     // ajout des arcs
                     Set<String> neighbors = g.getEdges(myPosition.getLocationId());
                     if (neighbors == null || !neighbors.contains(accessibleNode.getLocationId())) {
@@ -213,19 +250,24 @@ public class ExploCoopBehaviour2 extends Behaviour {
                 if (detail.getLeft() == Observation.AGENTNAME) {
                     String agentName = detail.getRight();
 
-                    SerializableSimpleGraph<String, MapAttribute> partialGraph = nodesToTransmit.get(agentName);
-
                     if (this.historique_com.get(agentName) == 0) {
 
                         myAgent.setReceiverName(agentName);
                         
+                        /*SerializableSimpleGraph<String, MapAttribute> partialGraph = nodesToTransmit.get(agentName);
+                        myAgent.setMapToSend(partialGraph);
+                        */
+                        
+                        //System.out.println("nodes de " + myAgent.getLocalName() + " à transmettre à " + agentName + " : " + partialGraph);
                         
                      // Toujours forcer le nœud actuel à fermé juste avant envoi
-                        myMap.addNode(myPosition.getLocationId(), MapAttribute.closed);
+                        /*myMap.addNode(myPosition.getLocationId(), MapAttribute.closed);
 
 	                    SerializableSimpleGraph<String, MapAttribute> freshGraph = myMap.getSerializableGraph();
 	                    myAgent.setMapToSend(freshGraph);
-	
+						*/
+                        
+	                    /*
 	                    Map<String, Boolean> finExplo = myAgent.getListFinExplo();
 	                    ACLMessage finExploMsg = new ACLMessage(ACLMessage.INFORM);
 	                    finExploMsg.setProtocol("SHARE-FIN-EXPLO");
@@ -237,15 +279,14 @@ public class ExploCoopBehaviour2 extends Behaviour {
 	                        System.out.println("[DEBUG] " + myAgent.getLocalName() + " a envoyé sa listFinExplo à " + agentName);
 	                    } catch (IOException e) {
 	                        e.printStackTrace();
-	                    }
+	                    }*/
 	                    
 	                    
-                        myAgent.setMsgRetour(0);
                         if (myAgent.getLocalName().compareTo(agentName) < 0) {
-                            myAgent.setTypeMsg(1);
-                            this.exitValue = 3;
+                            myAgent.setTypeMsg(GlobalBehaviour.TO_SHARE_MAP);
+                            this.exitValue = GlobalBehaviour.TO_PING;
                         } else {
-                            this.exitValue = 4;
+                            this.exitValue = GlobalBehaviour.TO_PONG;
                         }
 
                         this.finished = true;
@@ -279,26 +320,7 @@ public class ExploCoopBehaviour2 extends Behaviour {
         
         // 5) Vérifier si l'exploration est terminée
         if (!this.myMap.hasOpenNode()) {
-        	
-            System.out.println(this.myAgent.getLocalName() + " - Exploration terminée !");
-            myAgent.getListFinExplo().put(myAgent.getLocalName(), true);
             
-            if (!myAgent.getListFinExplo().get(myAgent.getLocalName())) {
-	          //SEND END EXPLO
-	            ACLMessage msg1 = new ACLMessage(ACLMessage.INFORM);
-	            msg1.setProtocol("SHARE-FIN-EXPLO");
-	            msg1.setSender(myAgent.getAID());
-	            for (String agent : myAgent.getAgentNames()) {
-	            	msg1.addReceiver(new AID(agent, AID.ISLOCALNAME));
-	            }
-	            try {
-	            	msg1.setContentObject((java.io.Serializable) new HashMap<>(myAgent.getListFinExplo()));
-	                myAgent.sendMessage(msg1);
-	                System.out.println("[DEBUG] " + myAgent.getLocalName() + " a envoyé sa listFinExplo");
-	            } catch (IOException e) {
-	                e.printStackTrace();
-	            }
-            }
         	
         	/*System.out.println("[DEBUG] " + myAgent.getLocalName() + " - listFinExplo = " + myAgent.getListFinExplo());	
         	if (!myAgent.getListFinExplo().get(myAgent.getLocalName())) {
@@ -322,9 +344,6 @@ public class ExploCoopBehaviour2 extends Behaviour {
                 }
                 
                 
-                
-                
-
                 Set<String> treasureNodes = new HashSet<>();
                 treasureNodes.addAll(list_gold.keySet());
                 treasureNodes.addAll(list_diamond.keySet());
@@ -336,14 +355,18 @@ public class ExploCoopBehaviour2 extends Behaviour {
 
                 myAgent.setTypeMsg(2);  // fin d'exploration
                 alreadyExchanged.clear();
-            }*/
+            }
             
             // Continuer tant qu’un autre n’a pas fini
-            /*if (myAgent.getListFinExplo().containsValue(false)) {
+            if (myAgent.getListFinExplo().containsValue(false)) {
                 return; // attendre les autres
             }*/
 			
+        	System.out.println(myAgent.getLocalName() + " est à " + myAgent.getCurrentPosition() + " et a comme fin : " + nodesToTransmit);
             
+            System.out.println(this.myAgent.getLocalName() + " - Exploration terminée !");
+            myAgent.getListFinExplo().put(myAgent.getLocalName(), true);
+             
             Set<String> treasureNodes = new HashSet<>();
             treasureNodes.addAll(list_gold.keySet());
             treasureNodes.addAll(list_diamond.keySet());
@@ -355,11 +378,13 @@ public class ExploCoopBehaviour2 extends Behaviour {
             
             myAgent.setMode("CartePleine");
 
-            myAgent.setTypeMsg(2);  // fin d'exploration
+            myAgent.setTypeMsg(GlobalBehaviour.TO_FIN_EXPLO);  // fin d'exploration
             alreadyExchanged.clear();
+            
+            System.out.println("[OBJ] " + myAgent.getLocalName() + " est à " + myAgent.getCurrentPosition().getLocationId() + " et doit parcourir : " + myAgent.getShortestPath());
         	
             // Tous ont fini → terminer vraiment
-            this.exitValue = 1;
+            this.exitValue = GlobalBehaviour.TO_GO_TO_RDV;
             finished = true;
             return;
         }

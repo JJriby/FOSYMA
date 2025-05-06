@@ -41,6 +41,9 @@ public class GoToRdvBehaviour extends Behaviour {
 		
 		
 		ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
+		
+    	myAgent.setMsgRetour(GlobalBehaviour.TO_GO_TO_RDV);
+
 		List<String> shortestPath = myAgent.getShortestPath(); 
 		
 		/*if (myAgent.checkMessagesInterBlocage()) {
@@ -50,9 +53,12 @@ public class GoToRdvBehaviour extends Behaviour {
 		    return;
 		}*/
 		
+		
         try { myAgent.doWait(1000); } catch (Exception e) { e.printStackTrace(); }
         
-        
+        if(myAgent.getMode() == "collecte" && myAgent.getLocalName()=="Silo") {
+        	System.out.println("Chemin final : " + myAgent.getShortestPath());
+        }
         
         //if(myAgent.getListFinExplo().get(myAgent.getLocalName()) && myAgent.getPosSilo() == "") {
         if(myAgent.getMode() == "CartePleine") {
@@ -77,16 +83,15 @@ public class GoToRdvBehaviour extends Behaviour {
 	                    if(!this.already_com.contains(agentName)) {
 	                    	this.already_com.add(agentName);
 	                    	myAgent.setReceiverName(agentName);
-	                    	myAgent.setMsgRetour(6);
 	                    	
 	                    	if (myAgent.getLocalName().compareTo(agentName) < 0) {
 	                        	System.out.println(myAgent.getLocalName() + " doit aller dans ping goto");
-	                        	myAgent.setTypeMsg(5);
-	                        	this.exitValue = 3;     
+	                        	myAgent.setTypeMsg(GlobalBehaviour.TO_SHARE_FIN_EXPLO);
+	                        	this.exitValue = GlobalBehaviour.TO_PING;     
 	                        } else {
 	                        	System.out.println(myAgent.getLocalName() + " doit aller dans pong goto");
-	                            this.exitValue = 4;
-	                        }                    	
+	                            this.exitValue = GlobalBehaviour.TO_PONG;
+	                        }    
 			                this.finished = true;
 			                return;
 	                    }
@@ -102,6 +107,7 @@ public class GoToRdvBehaviour extends Behaviour {
 			// pour le rdv après exploration faudra faire une condition au cas où 
 			// y en a un qu'est coincé alors qu'il pense être au rdv
 			if(!moved) {
+								
 				if(this.cpt_block < 5) {
 					this.cpt_block ++;
 					myAgent.doWait(1000);
@@ -110,11 +116,11 @@ public class GoToRdvBehaviour extends Behaviour {
 					this.cpt = 0;
 					this.already_com.clear();
 					if(myAgent.getTypeMsgInit() != -1) {
-		        		this.exitValue = myAgent.getTypeMsgInit();
+						myAgent.setTypeMsg(myAgent.getTypeMsgInit());
 		        		myAgent.setTypeMsgInit(-1);
-		        	} else {
-		        		this.exitValue = myAgent.getTypeMsg();
-		        	}
+		        	} 
+					
+		        	this.exitValue = myAgent.getTypeMsg();
 					
 					
 					/*if(myAgent.getMode().equals("CartePleine")) {
@@ -146,11 +152,10 @@ public class GoToRdvBehaviour extends Behaviour {
 			this.already_com.clear();
 			myAgent.setShortestPath(new ArrayList<>());
 			if(myAgent.getTypeMsgInit() != -1) {
-        		this.exitValue = myAgent.getTypeMsgInit();
+				myAgent.setTypeMsg(myAgent.getTypeMsgInit());
         		myAgent.setTypeMsgInit(-1);
-        	} else {
-        		this.exitValue = myAgent.getTypeMsg();
         	}
+        	this.exitValue = myAgent.getTypeMsg();
 			this.finished = true;
 			return;
 		}

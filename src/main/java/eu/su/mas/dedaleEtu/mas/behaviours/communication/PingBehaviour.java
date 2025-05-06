@@ -35,7 +35,7 @@ public class PingBehaviour extends Behaviour {
 
 	private static final long serialVersionUID = 12L;
     private boolean finished = false;
-    private int exitValue;
+    private int exitValue = -1;
     
     private MapRepresentation myMap;
     
@@ -49,15 +49,17 @@ public class PingBehaviour extends Behaviour {
     @Override
     public void action() {
     	
-    	
-    	    	
+    	   	
     	this.finished = false;
         this.exitValue = -1;
     	
     	this.myMap = ((GlobalBehaviour) this.getParent()).getMyMap();
-    	this.currentlyExchanging = ((ExploreCoopAgent2) this.myAgent).getCurrentlyExchanging();
-    	this.receiverName = ((ExploreCoopAgent2) this.myAgent).getReceiverName();	
+    		
     	ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
+    	
+    	
+    	this.currentlyExchanging = myAgent.getCurrentlyExchanging();
+    	this.receiverName = myAgent.getReceiverName();
     	int type_msg = myAgent.getTypeMsg();
     	
     	System.out.println("ping : " + myAgent.getLocalName() + " msg retour : " + myAgent.getMsgRetour() + " msg autre : " + type_msg);
@@ -78,7 +80,7 @@ public class PingBehaviour extends Behaviour {
             MessageTemplate.MatchPerformative(ACLMessage.INFORM)
         );
 
-        ACLMessage pong = this.myAgent.blockingReceive(pongTemplate, 3000);
+        ACLMessage pong = myAgent.blockingReceive(pongTemplate, 3000);
         if (pong == null) {
             System.out.println(myAgent.getLocalName() + " Pas de PONG de " + receiverName);
             this.exitValue = myAgent.getMsgRetour();

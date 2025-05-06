@@ -38,6 +38,9 @@ public class CollectBehaviour extends Behaviour {
 		this.exitValue = -1;
 		
 	    ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
+	    
+	    myAgent.setMsgRetour(GlobalBehaviour.TO_COLLECT);
+	    
 	    List<String> agentNames = myAgent.getAgentNames();
 	    String receiverName = myAgent.getReceiverName();
 
@@ -127,8 +130,8 @@ public class CollectBehaviour extends Behaviour {
   
         // on retourne au silo
         myAgent.setShortestPath(this.myMap.getShortestPath(myPosition.getLocationId(), myAgent.getPosSilo()));
-        myAgent.setTypeMsg(30);
-        this.exitValue = 15;
+        myAgent.setTypeMsg(GlobalBehaviour.TO_SHARE_JUST_COLLECT);
+        this.exitValue = GlobalBehaviour.TO_GO_TO_RDV;
         this.finished = true;
         
 	}

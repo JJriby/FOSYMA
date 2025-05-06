@@ -44,11 +44,13 @@ public class AttenteBehaviour extends Behaviour {
 		
 	    ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
 	    
+	    myAgent.setMsgRetour(GlobalBehaviour.TO_ATTENTE);
+	    
 		// si le plan d'attaque est fini, on le transmet à tous nos voisins
 		if(myAgent.getPosSilo() != "") {
 			
 			System.out.println("chemin à parcourir par " + myAgent.getLocalName() + " : " + myAgent.getShortestPath());
-			
+			myAgent.setMode("collecte");			
 			List<Couple<Location, List<Couple<Observation, String>>>> lobs = ((AbstractDedaleAgent) myAgent).observe();	
 	    	
 		    for (Couple<Location, List<Couple<Observation, String>>> obs : lobs) {
@@ -62,11 +64,10 @@ public class AttenteBehaviour extends Behaviour {
 	                    if(!this.already_com.contains(agentName)) {
 	                    	this.already_com.add(agentName); // peut-être plutôt l'ajouter seulement une fois ShareObjectifs effectué
 	                    	myAgent.setReceiverName(agentName);
-	                    	myAgent.setMsgRetour(13);
 	                    	
 	                        System.out.println(myAgent.getLocalName() + " doit aller dans ping");
-	                       	myAgent.setTypeMsg(11);
-	                       	this.exitValue = 3;                               	
+	                       	myAgent.setTypeMsg(GlobalBehaviour.TO_SHARE_OBJECTIFS);
+	                       	this.exitValue = GlobalBehaviour.TO_PING;                               	
 			                this.finished = true;
 			                return;
 	                    }
@@ -74,15 +75,16 @@ public class AttenteBehaviour extends Behaviour {
 	        	}
 	        }
 		    this.already_com.clear();
-		    myAgent.setTypeMsg(14);
+		    myAgent.setTypeMsg(GlobalBehaviour.TO_COLLECT);
 		    this.finished = true;
-		    this.exitValue = 12;
+		    this.exitValue = GlobalBehaviour.TO_GO_TO_RDV;
 		    return;
 		}
 		
+		// peut-être plutôt faire uen attente passive directe plutôt qu'aller dans pong chaque fois ?
+		
 		// on va dans pong si on ne nous a rien transmis
-		myAgent.setMsgRetour(13);
-		this.exitValue = 4;
+		this.exitValue = GlobalBehaviour.TO_PONG;
 	    this.finished = true;
 	    
 	}

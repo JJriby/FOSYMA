@@ -3,6 +3,7 @@ package eu.su.mas.dedaleEtu.mas.behaviours.communication;
 import java.util.Map;
 
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent2;
+import eu.su.mas.dedaleEtu.mas.behaviours.GlobalBehaviour;
 import jade.core.behaviours.Behaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -54,7 +55,7 @@ public class ReceiveFinExploBehaviour extends Behaviour {
         	    	myAgent.setSent(false);
         	    	myAgent.setReceived(true); // comme ça on fera juste l'envoi de map et pas la réception
         	    	this.finished = true;
-        	    	this.exitValue = 7;
+        	    	this.exitValue = GlobalBehaviour.TO_SHARE_MAP;
         	    	return;
         	    }
         	    
@@ -70,7 +71,8 @@ public class ReceiveFinExploBehaviour extends Behaviour {
             	this.exitValue = myAgent.getMsgRetour();
             } else {
                 myAgent.setReceived(true);
-            	this.exitValue = myAgent.getTypeMsg();
+                //myAgent.setTypeMsg(GlobalBehaviour.TO_SHARE_FIN_EXPLO);
+            	this.exitValue = GlobalBehaviour.TO_SHARE_FIN_EXPLO;
             }
             
         } else {

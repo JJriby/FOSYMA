@@ -39,6 +39,9 @@ public class FinExploBehaviour extends Behaviour {
 	    this.exitValue = -1;
 	    
 	    ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
+	    
+	    myAgent.setMsgRetour(GlobalBehaviour.TO_FIN_EXPLO);
+	    
 	    List<String> agentNames = myAgent.getAgentNames();
 	    Map<String, Boolean> list_fin_explo = myAgent.getListFinExplo();
 	    		
@@ -70,15 +73,14 @@ public class FinExploBehaviour extends Behaviour {
 	                    	//this.voisins.add(agentName);
 	                    	myAgent.setReceiverName(agentName);
 	                    	//myAgent.getCurrentlyExchanging().add(agentName);
-	                    	myAgent.setMsgRetour(4);
 	                    	
 	                    	if (myAgent.getLocalName().compareTo(agentName) < 0) {
 	                        	System.out.println(myAgent.getLocalName() + " doit aller dans ping");
-	                        	myAgent.setTypeMsg(5);
-	                        	this.exitValue = 3;     
+	                        	myAgent.setTypeMsg(GlobalBehaviour.TO_SHARE_FIN_EXPLO);
+	                        	this.exitValue = GlobalBehaviour.TO_PING;     
 	                        } else {
 	                        	System.out.println(myAgent.getLocalName() + " doit aller dans pong");
-	                            this.exitValue = 4;
+	                            this.exitValue = GlobalBehaviour.TO_PONG;
 	                        }                    	
 			                this.finished = true;
 			                return;
@@ -104,15 +106,14 @@ public class FinExploBehaviour extends Behaviour {
 	                    	//this.voisins.add(agentName);
 	                    	myAgent.setReceiverName(agentName);
 	                    	//myAgent.getCurrentlyExchanging().add(agentName);
-	                    	myAgent.setMsgRetour(4);
 	                    	
 	                    	if (myAgent.getLocalName().compareTo(agentName) < 0) {
 	                        	System.out.println(myAgent.getLocalName() + " doit aller dans ping");
-	                        	myAgent.setTypeMsg(5);
-	                        	this.exitValue = 3;     
+	                        	myAgent.setTypeMsg(GlobalBehaviour.TO_SHARE_FIN_EXPLO);
+	                        	this.exitValue = GlobalBehaviour.TO_PING;     
 	                        } else {
 	                        	System.out.println(myAgent.getLocalName() + " doit aller dans pong");
-	                            this.exitValue = 4;
+	                            this.exitValue = GlobalBehaviour.TO_PONG;
 	                        }                    	
 			                this.finished = true;
 			                return;
@@ -124,7 +125,7 @@ public class FinExploBehaviour extends Behaviour {
 		    this.last_com.clear();
 	    	
 	    	this.finished = true;
-	    	this.exitValue = 2;
+	    	this.exitValue = GlobalBehaviour.TO_PLAN_D_ATTAQUE;
 	    }
 	}
 

@@ -98,7 +98,8 @@ public class ReceiveMapBehaviour extends Behaviour {
             	this.exitValue = myAgent.getMsgRetour();
             } else {
                 myAgent.setReceived(true);
-            	this.exitValue = myAgent.getTypeMsg();
+                //myAgent.setTypeMsg(GlobalBehaviour.TO_SHARE_MAP);
+            	this.exitValue = GlobalBehaviour.TO_SHARE_MAP;
             }
             
         } else {

@@ -10,6 +10,7 @@ import java.util.Set;
 import dataStructures.tuple.Couple;
 import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent2;
+import eu.su.mas.dedaleEtu.mas.behaviours.GlobalBehaviour;
 import jade.core.AID;
 import jade.core.behaviours.Behaviour;
 import jade.lang.acl.ACLMessage;
@@ -52,11 +53,12 @@ public class ShareFinExploBehaviour extends Behaviour {
 		
 		System.out.println(myAgent.getLocalName() + " envoie : " + list_fin_explo + " à " + receiverName);
 	    
+		// si j'ai pas fini l'explo, alors j'attends de recevoir une map
 		if(list_fin_explo.get(myAgent.getLocalName()) == false) {
 	    	myAgent.setSent(true); // comme ça on fera juste la réception de map et pas l'envoi
 	    	myAgent.setReceived(false); 
 	    	this.finished = true;
-	    	this.exitValue = 7;
+	    	this.exitValue = GlobalBehaviour.TO_RECEIVE_MAP;
 	    	return;
 	    }
 		
@@ -65,7 +67,8 @@ public class ShareFinExploBehaviour extends Behaviour {
 			this.exitValue = myAgent.getMsgRetour();
 		} else {
 			myAgent.setSent(true);
-			this.exitValue = myAgent.getTypeMsg();
+			//myAgent.setTypeMsg(GlobalBehaviour.TO_RECEIVE_FIN_EXPLO);
+			this.exitValue = GlobalBehaviour.TO_RECEIVE_FIN_EXPLO;
 		}
 		
         this.finished = true;

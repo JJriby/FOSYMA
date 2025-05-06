@@ -40,6 +40,9 @@ public class CollectSiloBehaviour extends Behaviour {
 	    this.exitValue = -1;
 	    
 	    ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
+	    
+	    myAgent.setMsgRetour(GlobalBehaviour.TO_COLLECT_SILO);
+	    
 	    List<String> agentNames = myAgent.getAgentNames();
 	    
 	    /*if (myAgent.checkMessagesInterBlocage()) {

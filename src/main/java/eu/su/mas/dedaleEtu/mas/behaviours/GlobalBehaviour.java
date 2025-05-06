@@ -21,7 +21,6 @@ import eu.su.mas.dedaleEtu.mas.behaviours.communication.ReceiveObjectifsBehaviou
 import eu.su.mas.dedaleEtu.mas.behaviours.communication.ShareExpertise;
 import eu.su.mas.dedaleEtu.mas.behaviours.communication.ShareFinExploBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.communication.ShareInfosInterBlocageBehaviour;
-import eu.su.mas.dedaleEtu.mas.behaviours.communication.ShareJustCollectBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.communication.ShareMapBehaviour3;
 import eu.su.mas.dedaleEtu.mas.behaviours.communication.ShareObjectifsBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.poubelle.ParoleBehaviour;
@@ -33,6 +32,36 @@ public class GlobalBehaviour extends FSMBehaviour {
 	
 	private static final long serialVersionUID = 1L;
 	private MapRepresentation myMap;
+	
+	
+	public static final int TO_EXPLORE = 0; // 
+	public static final int TO_FIN_EXPLO = 1; //
+	public static final int TO_PLAN_D_ATTAQUE = 2; //
+	public static final int TO_SUITE_PLAN_D_ATTAQUE = 3; //
+	public static final int TO_ATTENTE = 4; //
+	public static final int TO_COLLECT_SILO = 5; // ça dépend pour la suite
+	public static final int TO_COLLECT = 6; // ça dépend pour la suite, si coomunication avec les autres agents de la coalition ou autre
+	public static final int TO_SHARE_JUST_COLLECT = 7; // ça dépend same
+	
+	public static final int TO_GO_TO_RDV = 10; // j'ai un doute, potentiels pbs
+	
+	public static final int TO_INTERBLOCAGE = 11;
+	public static final int TO_SHARE_INFOS_INTERBLOCAGE = 12;
+	
+	public static final int TO_PING = 13;
+	public static final int TO_PONG = 14;
+	
+	public static final int TO_SHARE_MAP = 20;
+	public static final int TO_SHARE_EXPERTISE = 21;
+	public static final int TO_SHARE_FIN_EXPLO = 22;
+	public static final int TO_SHARE_OBJECTIFS = 23;
+
+	public static final int TO_RECEIVE_MAP = 30;
+	public static final int TO_RECEIVE_EXPERTISE = 31;
+	public static final int TO_RECEIVE_FIN_EXPLO = 32;
+	public static final int TO_RECEIVE_OBJECTIFS = 33;
+	
+	
 	
 	private static final String Explore = "Explore";
 	private static final String GoToRDV = "GoToRDV";
@@ -101,161 +130,164 @@ public class GlobalBehaviour extends FSMBehaviour {
         
         
         // transitions
-        this.registerTransition(Explore, GoToRDV, 1);
-        this.registerTransition(GoToRDV, FinExplo, 2);
-        this.registerTransition(FinExplo, PlanDAttaque, 2);
+        this.registerTransition(Explore, GoToRDV, TO_GO_TO_RDV);
+        this.registerTransition(GoToRDV, FinExplo, TO_FIN_EXPLO);
+        this.registerTransition(FinExplo, PlanDAttaque, TO_PLAN_D_ATTAQUE);
         
         //this.registerTransition(Explore, ShareInfosInterBlocage, 2);
-        this.registerTransition(Explore, InterBlocage, 2);
+        this.registerTransition(Explore, InterBlocage, TO_INTERBLOCAGE);
         
-        this.registerTransition(InterBlocage, GoToRDV, 1);
-        this.registerTransition(GoToRDV, Explore, 1);
+        this.registerTransition(InterBlocage, GoToRDV, TO_GO_TO_RDV);
+        this.registerTransition(GoToRDV, Explore, TO_EXPLORE);
         
         // partage de map
-        this.registerTransition(Explore, Ping, 3);
-        this.registerTransition(Explore, Pong, 4);
+        this.registerTransition(Explore, Ping, TO_PING);
+        this.registerTransition(Explore, Pong, TO_PONG);
         
-        this.registerTransition(Ping, Explore, 0);
-        this.registerTransition(Pong, Explore, 0);
+        this.registerTransition(Ping, Explore, TO_EXPLORE);
+        this.registerTransition(Pong, Explore, TO_EXPLORE);
         
-        this.registerTransition(Ping, ShareMap, 1);
-        this.registerTransition(Pong, ReceiveMap, 1);
+        this.registerTransition(Ping, ShareMap, TO_SHARE_MAP);
+        this.registerTransition(Pong, ReceiveMap, TO_RECEIVE_MAP);
         
-        this.registerTransition(ShareMap, Explore, 0);
-        this.registerTransition(ReceiveMap, Explore, 0);
+        this.registerTransition(ShareMap, Explore, TO_EXPLORE);
+        this.registerTransition(ReceiveMap, Explore, TO_EXPLORE);
         
-        this.registerTransition(ShareMap, ReceiveMap, 1);
-        this.registerTransition(ReceiveMap, ShareMap, 1);
+        this.registerTransition(ShareMap, ReceiveMap, TO_RECEIVE_MAP);
+        this.registerTransition(ReceiveMap, ShareMap, TO_SHARE_MAP);
         
         // partage de fins d'explo
-        this.registerTransition(FinExplo, Ping, 3);
-        this.registerTransition(FinExplo, Pong, 4);
+        this.registerTransition(FinExplo, Ping, TO_PING);
+        this.registerTransition(FinExplo, Pong, TO_PONG);
         
-        this.registerTransition(Ping, FinExplo, 4);
-        this.registerTransition(Pong, FinExplo, 4);
+        this.registerTransition(Ping, FinExplo, TO_FIN_EXPLO);
+        this.registerTransition(Pong, FinExplo, TO_FIN_EXPLO);
         
-        this.registerTransition(Ping, ShareFinExplo, 5);
-        this.registerTransition(Pong, ReceiveFinExplo, 5);
+        this.registerTransition(Ping, ShareFinExplo, TO_SHARE_FIN_EXPLO);
+        this.registerTransition(Pong, ReceiveFinExplo, TO_RECEIVE_FIN_EXPLO);
         
-        this.registerTransition(ShareFinExplo, FinExplo, 4);
-        this.registerTransition(ReceiveFinExplo, FinExplo, 4);
+        this.registerTransition(ShareFinExplo, FinExplo, TO_FIN_EXPLO);
+        this.registerTransition(ReceiveFinExplo, FinExplo, TO_FIN_EXPLO);
         
-        this.registerTransition(ShareFinExplo, ReceiveFinExplo, 5);
-        this.registerTransition(ReceiveFinExplo, ShareFinExplo, 5);
+        this.registerTransition(ShareFinExplo, ReceiveFinExplo, TO_RECEIVE_FIN_EXPLO);
+        this.registerTransition(ReceiveFinExplo, ShareFinExplo, TO_SHARE_FIN_EXPLO);
         
-        this.registerTransition(ShareFinExplo, ReceiveMap, 7);
-        this.registerTransition(ReceiveFinExplo, ShareMap, 7);
+        this.registerTransition(ShareFinExplo, ReceiveMap, TO_RECEIVE_MAP);
+        this.registerTransition(ReceiveFinExplo, ShareMap, TO_SHARE_MAP);
         
-        this.registerTransition(ShareMap, FinExplo, 4);
-        this.registerTransition(ReceiveMap, FinExplo, 4);
+        this.registerTransition(ShareMap, FinExplo, TO_FIN_EXPLO);
+        this.registerTransition(ReceiveMap, FinExplo, TO_FIN_EXPLO);
         
         // partage de fins d'explo et de map pendant le chemin jusqu'au rdv
-        this.registerTransition(GoToRDV, Ping, 3);
-        this.registerTransition(GoToRDV, Pong, 4);
+        this.registerTransition(GoToRDV, Ping, TO_PING);
+        this.registerTransition(GoToRDV, Pong, TO_PONG);
         
-        this.registerTransition(Ping, GoToRDV, 6);
-        this.registerTransition(Pong, GoToRDV, 6);
+        this.registerTransition(Ping, GoToRDV, TO_GO_TO_RDV);
+        this.registerTransition(Pong, GoToRDV, TO_GO_TO_RDV);
         
-        this.registerTransition(ShareFinExplo, GoToRDV, 6);
-        this.registerTransition(ReceiveFinExplo, GoToRDV, 6);
+        this.registerTransition(ShareFinExplo, GoToRDV, TO_GO_TO_RDV);
+        this.registerTransition(ReceiveFinExplo, GoToRDV, TO_GO_TO_RDV);
         
-        this.registerTransition(ShareMap, GoToRDV, 6);
-        this.registerTransition(ReceiveMap, GoToRDV, 6);
+        this.registerTransition(ShareMap, GoToRDV, TO_GO_TO_RDV);
+        this.registerTransition(ReceiveMap, GoToRDV, TO_GO_TO_RDV);
                 
         // partage d'expertises
-        this.registerTransition(PlanDAttaque, Ping, 3);
-        this.registerTransition(PlanDAttaque, Pong, 4);
+        this.registerTransition(PlanDAttaque, Ping, TO_PING);
+        this.registerTransition(PlanDAttaque, Pong, TO_PONG);
         
-        this.registerTransition(Ping, PlanDAttaque, 2);
-        this.registerTransition(Pong, PlanDAttaque, 2);
+        this.registerTransition(Ping, PlanDAttaque, TO_PLAN_D_ATTAQUE);
+        this.registerTransition(Pong, PlanDAttaque, TO_PLAN_D_ATTAQUE);
         
-        this.registerTransition(Ping, ShareExpertise, 3);
-        this.registerTransition(Pong, ReceiveExpertise, 3);
+        this.registerTransition(Ping, ShareExpertise, TO_SHARE_EXPERTISE);
+        this.registerTransition(Pong, ReceiveExpertise, TO_RECEIVE_EXPERTISE);
         
-        this.registerTransition(ShareExpertise, PlanDAttaque, 2);
-        this.registerTransition(ReceiveExpertise, PlanDAttaque, 2);
+        this.registerTransition(ShareExpertise, PlanDAttaque, TO_PLAN_D_ATTAQUE);
+        this.registerTransition(ReceiveExpertise, PlanDAttaque, TO_PLAN_D_ATTAQUE);
         
-        this.registerTransition(ShareExpertise, ReceiveExpertise, 3);
-        this.registerTransition(ReceiveExpertise, ShareExpertise, 3);
+        this.registerTransition(ShareExpertise, ReceiveExpertise, TO_RECEIVE_EXPERTISE);
+        this.registerTransition(ReceiveExpertise, ShareExpertise, TO_SHARE_EXPERTISE);
         
         // au cas où y a encore transmission des listes de fin d'explo
-        this.registerTransition(ShareFinExplo, PlanDAttaque, 2);
-        this.registerTransition(ReceiveFinExplo, PlanDAttaque, 2);
+        this.registerTransition(ShareFinExplo, PlanDAttaque, TO_PLAN_D_ATTAQUE);
+        this.registerTransition(ReceiveFinExplo, PlanDAttaque, TO_PLAN_D_ATTAQUE);
         
         // plan d'attaque vers la suite du plan d'attaque si Silo sinon direction salle d'attente
-        this.registerTransition(PlanDAttaque, SuitePlanDAttaque, 8);
-        this.registerTransition(PlanDAttaque, Attente, 9);
+        this.registerTransition(PlanDAttaque, SuitePlanDAttaque, TO_SUITE_PLAN_D_ATTAQUE);
+        this.registerTransition(PlanDAttaque, Attente, TO_ATTENTE);
         
         
         // partage des listes des objectifs (pdv Silo)
-        this.registerTransition(SuitePlanDAttaque, Ping, 3);
-        this.registerTransition(Ping, SuitePlanDAttaque, 10);
+        this.registerTransition(SuitePlanDAttaque, Ping, TO_PING);
+        this.registerTransition(Ping, SuitePlanDAttaque, TO_SUITE_PLAN_D_ATTAQUE);
         
-        this.registerTransition(Ping, ShareObjectifs, 11);
-        this.registerTransition(ShareObjectifs, SuitePlanDAttaque, 10);
+        this.registerTransition(Ping, ShareObjectifs, TO_SHARE_OBJECTIFS);
+        this.registerTransition(ShareObjectifs, SuitePlanDAttaque, TO_SUITE_PLAN_D_ATTAQUE);
         
-        this.registerTransition(SuitePlanDAttaque, GoToRDV, 12);
+        this.registerTransition(SuitePlanDAttaque, GoToRDV, TO_GO_TO_RDV);
         
         
         // partage des listes des objectifs (pdv autres agents)
-        this.registerTransition(Attente, Ping, 3);
-        this.registerTransition(Attente, Pong, 4);
+        this.registerTransition(Attente, Ping, TO_PING);
+        this.registerTransition(Attente, Pong, TO_PONG);
         
-        this.registerTransition(Ping, Attente, 13);
-        this.registerTransition(Pong, Attente, 13);
+        this.registerTransition(Ping, Attente, TO_ATTENTE);
+        this.registerTransition(Pong, Attente, TO_ATTENTE);
         
-        this.registerTransition(Pong, ReceiveObjectifs, 11);
+        this.registerTransition(Pong, ReceiveObjectifs, TO_RECEIVE_OBJECTIFS);
         
-        this.registerTransition(ShareObjectifs, Attente, 13);
-        this.registerTransition(ReceiveObjectifs, Attente, 13);
+        this.registerTransition(ShareObjectifs, Attente, TO_ATTENTE);
+        this.registerTransition(ReceiveObjectifs, Attente, TO_ATTENTE);
         
-        this.registerTransition(Attente, GoToRDV, 12);
+        this.registerTransition(Attente, GoToRDV, TO_GO_TO_RDV);
         
         
         // faire des temps d'attente quand on change de phase de comportements
         
         // au cas où qlq n'a pas fini de demander les expertises
-        this.registerTransition(ShareExpertise, Attente, 13);  
+        this.registerTransition(ShareExpertise, Attente, TO_ATTENTE);  
         
         // au cas où qlq tjrs dans PlanDAttaque continue de partager ses expertises
-        this.registerTransition(ReceiveObjectifs, PlanDAttaque, 2);
+        this.registerTransition(ReceiveObjectifs, PlanDAttaque, TO_PLAN_D_ATTAQUE);
         
         // je ne sais plus à ce niveau là
-        this.registerTransition(ShareExpertise, FinExplo, 4);
-        this.registerTransition(ShareExpertise, GoToRDV, 6);
-        this.registerTransition(ReceiveObjectifs, GoToRDV, 6);
-        this.registerTransition(ReceiveFinExplo, Explore, 0);
-        this.registerTransition(ReceiveExpertise, Attente, 13);        
+        this.registerTransition(ShareExpertise, FinExplo, TO_FIN_EXPLO);
+        this.registerTransition(ShareExpertise, GoToRDV, TO_GO_TO_RDV);
+        this.registerTransition(ReceiveObjectifs, GoToRDV, TO_GO_TO_RDV);
+        this.registerTransition(ReceiveFinExplo, Explore, TO_EXPLORE);
+        this.registerTransition(ReceiveExpertise, Attente, TO_ATTENTE); 
+        this.registerTransition(ShareFinExplo, Explore, TO_EXPLORE);  
+        this.registerTransition(ShareMap, PlanDAttaque, TO_PLAN_D_ATTAQUE);
+
         // une fois le partage des objectifs fini, chacun se dirige vers la destination attribuée pour la récolte
-        this.registerTransition(GoToRDV, Collect, 14);
-        this.registerTransition(GoToRDV, CollectSilo, 16);
+        this.registerTransition(GoToRDV, Collect, TO_COLLECT);
+        this.registerTransition(GoToRDV, CollectSilo, TO_COLLECT_SILO);
         
         
         // pour l'interblocage lors du trajet jusqu'au point de rdv
-        //this.registerTransition(GoToRDV, Ping, 5);
+        //this.registerTransition(GoToRDV, Ping, TO_PING);
         
         
-        /*this.registerTransition(Ping, ShareInfosInterBlocage, 20);
+        /*this.registerTransition(Ping, ShareInfosInterBlocage, TO_SHARE_INFOS_INTERBLOCAGE);
         
-        this.registerTransition(ShareInfosInterBlocage, InterBlocage, 17);
+        this.registerTransition(ShareInfosInterBlocage, InterBlocage, TO_SHARE_INTERBLOCAGE);
         
-        this.registerTransition(Ping, ShareInfosInterBlocage, 20);
-        this.registerTransition(Pong, ShareInfosInterBlocage, 20); 
+        this.registerTransition(Ping, ShareInfosInterBlocage, TO_SHARE_INFOS_INTERBLOCAGE);
+        this.registerTransition(Pong, ShareInfosInterBlocage, TO_SHARE_INFOS_INTERBLOCAGE); 
         
-        this.registerTransition(Collect, ShareInfosInterBlocage, 20);
-        this.registerTransition(CollectSilo, ShareInfosInterBlocage, 20);
-        this.registerTransition(GoToRDV, ShareInfosInterBlocage, 20);
+        this.registerTransition(Collect, ShareInfosInterBlocage, TO_SHARE_INFOS_INTERBLOCAGE);
+        this.registerTransition(CollectSilo, ShareInfosInterBlocage, TO_SHARE_INFOS_INTERBLOCAGE);
+        this.registerTransition(GoToRDV, ShareInfosInterBlocage, TO_SHARE_INFOS_INTERBLOCAGE);
         
-        this.registerTransition(ShareInfosInterBlocage, Collect, 21);
-        this.registerTransition(ShareInfosInterBlocage, CollectSilo, 22);
-        this.registerTransition(ShareInfosInterBlocage, GoToRDV, 23);
+        this.registerTransition(ShareInfosInterBlocage, Collect, TO_COLLECT);
+        this.registerTransition(ShareInfosInterBlocage, CollectSilo, TO_COLLECT_SILO);
+        this.registerTransition(ShareInfosInterBlocage, GoToRDV, TO_GO_TO_RDV);
 
-        this.registerTransition(ShareInfosInterBlocage, FinExplo, 24);
+        this.registerTransition(ShareInfosInterBlocage, FinExplo, TO_FIN_EXPLO);
         */
         
         // pour la collecte
-        this.registerTransition(Collect, GoToRDV, 15);
-        this.registerTransition(GoToRDV, ShareJustCollect, 30);
+        this.registerTransition(Collect, GoToRDV, TO_GO_TO_RDV);
+        this.registerTransition(GoToRDV, ShareJustCollect, TO_SHARE_JUST_COLLECT);
                 
         
         
@@ -273,5 +305,37 @@ public class GlobalBehaviour extends FSMBehaviour {
 	public void setMyMap(MapRepresentation myMap) {
         this.myMap = myMap;
     }
+	
+	
+	public int getTypeReception(int val) {
+		switch (val) {
+	        case GlobalBehaviour.TO_SHARE_MAP :
+	        	return GlobalBehaviour.TO_RECEIVE_MAP;
+	        case GlobalBehaviour.TO_SHARE_EXPERTISE :
+	        	return GlobalBehaviour.TO_RECEIVE_EXPERTISE;
+	        case GlobalBehaviour.TO_SHARE_FIN_EXPLO :
+	        	return GlobalBehaviour.TO_RECEIVE_FIN_EXPLO;
+	        case GlobalBehaviour.TO_SHARE_OBJECTIFS :
+	        	return GlobalBehaviour.TO_RECEIVE_OBJECTIFS;
+		}
+		
+		return -1;
+	}
+	
+	
+	public int getTypeTransmission(int val) {
+		switch (val) {
+	        case GlobalBehaviour.TO_RECEIVE_MAP :
+	        	return GlobalBehaviour.TO_SHARE_MAP;
+	        case GlobalBehaviour.TO_RECEIVE_EXPERTISE :
+	        	return GlobalBehaviour.TO_SHARE_EXPERTISE;
+	        case GlobalBehaviour.TO_RECEIVE_FIN_EXPLO :
+	        	return GlobalBehaviour.TO_SHARE_FIN_EXPLO;
+	        case GlobalBehaviour.TO_RECEIVE_OBJECTIFS :
+	        	return GlobalBehaviour.TO_SHARE_OBJECTIFS;
+		}
+		
+		return -1;
+	}
 	
 }

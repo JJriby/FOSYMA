@@ -15,7 +15,7 @@ public class InterBlocageBehaviour extends Behaviour {
 
     private static final long serialVersionUID = 1L;
     private boolean finished = false;
-    private int exitValue = 0;
+    private int exitValue = -1;
     private List<String> nodesToAvoid = new ArrayList<>();
 
     private MapRepresentation myMap;
@@ -27,7 +27,7 @@ public class InterBlocageBehaviour extends Behaviour {
     @Override
     public void action() {
         this.finished = false;
-        this.exitValue = 0;
+        this.exitValue = -1;
         ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
         this.myMap = ((GlobalBehaviour) this.getParent()).getMyMap();
         
@@ -51,7 +51,7 @@ public class InterBlocageBehaviour extends Behaviour {
         if (path != null && !path.isEmpty()) {
             myAgent.setShortestPath(path);
             //myAgent.setTypeMsg(1);
-            this.exitValue = 1;
+            this.exitValue = GlobalBehaviour.TO_GO_TO_RDV;
             this.finished = true;
             return;
         }
@@ -78,7 +78,7 @@ public class InterBlocageBehaviour extends Behaviour {
                 myAgent.incrementEquityCounter();
                 System.out.println("Chemin inchangé : " + myAgent.getShortestPath());
                 // Keep my path
-                this.exitValue = 1;
+                this.exitValue = GlobalBehaviour.TO_GO_TO_RDV;
                 this.finished = true;
                 return;
             } else {
@@ -91,7 +91,7 @@ public class InterBlocageBehaviour extends Behaviour {
                     myAgent.setShortestPath(newPath);
                     System.out.println("nouveau chemin court : " + myAgent.getShortestPath());
                     //myAgent.setTypeMsg(1);
-                    this.exitValue = 1;
+                    this.exitValue = GlobalBehaviour.TO_GO_TO_RDV;
                     this.finished = true;
                     return;
                 } else {
@@ -104,7 +104,7 @@ public class InterBlocageBehaviour extends Behaviour {
                             myAgent.setShortestPath(escape);
                             System.out.println("nouveau chemin alternative : " + myAgent.getShortestPath());
                             //myAgent.setTypeMsg(1);
-                            this.exitValue = 1;
+                            this.exitValue = GlobalBehaviour.TO_GO_TO_RDV;
                             this.finished = true;
                             return;
                         }
@@ -133,7 +133,7 @@ public class InterBlocageBehaviour extends Behaviour {
             String randomMove = freeNeighbors.get(new Random().nextInt(freeNeighbors.size()));
             myAgent.setShortestPath(List.of(randomMove));
             //myAgent.setTypeMsg(1);
-            this.exitValue = 1;
+            this.exitValue = GlobalBehaviour.TO_GO_TO_RDV;
             this.finished = true;
         } else {
             block(500);

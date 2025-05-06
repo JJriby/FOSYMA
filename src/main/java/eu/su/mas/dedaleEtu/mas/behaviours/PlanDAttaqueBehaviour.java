@@ -47,6 +47,9 @@ public class PlanDAttaqueBehaviour extends Behaviour {
 	    this.exitValue = -1;
 	    
 	    ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
+	    
+	    myAgent.setMsgRetour(GlobalBehaviour.TO_PLAN_D_ATTAQUE);
+	    
 	    List<String> agentNames = myAgent.getAgentNames();
 	    Map<String, Observation> list_treasure_type = myAgent.getListTreasureType();
 	    Map<String, Set<Couple<Observation,Integer>>> list_expertise = myAgent.getListExpertise();
@@ -94,15 +97,14 @@ public class PlanDAttaqueBehaviour extends Behaviour {
 	                    	//this.voisins.add(agentName);
 	                    	myAgent.setReceiverName(agentName);
 	                    	//myAgent.getCurrentlyExchanging().add(agentName);
-	                    	myAgent.setMsgRetour(2);
 	                    	
 	                    	if (myAgent.getLocalName().compareTo(agentName) < 0) {
-	                        	myAgent.setTypeMsg(3);
-	                        	this.exitValue = 3;
+	                        	myAgent.setTypeMsg(GlobalBehaviour.TO_SHARE_EXPERTISE);
+	                        	this.exitValue = GlobalBehaviour.TO_PING;
 	                            
 	                        } else {
 	                        	System.out.println(myAgent.getLocalName() + " doit aller dans pong");
-	                            this.exitValue = 4;
+	                            this.exitValue = GlobalBehaviour.TO_PONG;
 	                        }
 	                    	
 			                this.finished = true;
@@ -132,16 +134,14 @@ public class PlanDAttaqueBehaviour extends Behaviour {
 	                    	//this.voisins.add(agentName);
 	                    	myAgent.setReceiverName(agentName);
 	                    	//myAgent.getCurrentlyExchanging().add(agentName);
-	                    	myAgent.setMsgRetour(2);
 	                    	
 	                    	if (myAgent.getLocalName().compareTo(agentName) < 0) {
-	                        	System.out.println(myAgent.getLocalName() + " doit aller dans ping");
-	                        	myAgent.setTypeMsg(3);
-	                        	this.exitValue = 3;     
+	                        	myAgent.setTypeMsg(GlobalBehaviour.TO_SHARE_EXPERTISE);
+	                        	this.exitValue = GlobalBehaviour.TO_PING; 
 	                        } else {
 	                        	System.out.println(myAgent.getLocalName() + " doit aller dans pong");
-	                            this.exitValue = 4;
-	                        }                    	
+	                            this.exitValue = GlobalBehaviour.TO_PONG;
+	                        }                   	
 			                this.finished = true;
 			                return;
 	                    }
@@ -175,9 +175,9 @@ public class PlanDAttaqueBehaviour extends Behaviour {
 	    	
 	    	
 	    	if(stratege.equals(myAgent.getLocalName())){
-	    		this.exitValue = 8;
+	    		this.exitValue = GlobalBehaviour.TO_SUITE_PLAN_D_ATTAQUE;
 	    	} else {
-	    		this.exitValue = 9;
+	    		this.exitValue = GlobalBehaviour.TO_ATTENTE;
 	    	}
 	    	
 	    	this.finished = true;

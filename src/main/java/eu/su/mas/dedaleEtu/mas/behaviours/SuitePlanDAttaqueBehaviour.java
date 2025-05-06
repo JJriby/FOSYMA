@@ -53,6 +53,9 @@ public class SuitePlanDAttaqueBehaviour extends Behaviour {
 	    this.exitValue = -1;
 	    
 	    ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
+	    
+	    myAgent.setMsgRetour(GlobalBehaviour.TO_SUITE_PLAN_D_ATTAQUE);
+	    
 	    List<String> agentNames = myAgent.getAgentNames();
 	    Map<String, Observation> list_treasure_type = myAgent.getListTreasureType();
 	    Map<String, Set<Couple<Observation,Integer>>> list_expertise = myAgent.getListExpertise();
@@ -84,21 +87,23 @@ public class SuitePlanDAttaqueBehaviour extends Behaviour {
 	                    if(!this.already_com.contains(agentName)) {
 	                    	this.already_com.add(agentName); // peut-être plutôt l'ajouter seulement une fois ShareObjectifs effectué
 	                    	myAgent.setReceiverName(agentName);
-	                    	myAgent.setMsgRetour(10);
 	                    	
 	                        System.out.println(myAgent.getLocalName() + " doit aller dans ping");
-	                       	myAgent.setTypeMsg(11);
-	                       	this.exitValue = 3;                               	
+	                       	myAgent.setTypeMsg(GlobalBehaviour.TO_SHARE_OBJECTIFS);
+	                       	this.exitValue = GlobalBehaviour.TO_PING;                               	
 			                this.finished = true;
 			                return;
 	                    }
 	            	}    
 	        	}
 	        }
+		    
+		    myAgent.setMode("collecte");
 		    this.already_com.clear();
-		    myAgent.setTypeMsg(16);
+		    
+		    myAgent.setTypeMsg(GlobalBehaviour.TO_COLLECT_SILO);
 		    this.finished = true;
-		    this.exitValue = 12;
+		    this.exitValue = GlobalBehaviour.TO_GO_TO_RDV;
 		    return;
 		}
 		

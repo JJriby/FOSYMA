@@ -44,23 +44,35 @@ public class ShareMapBehaviour3 extends Behaviour {
     	
     	ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
     	
-    	this.receiverName = myAgent.getReceiverName();
+        Map<String, SerializableSimpleGraph<String, MapAttribute>> nodesToTransmit = myAgent.getNodesToTransmit();
+        this.receiverName = myAgent.getReceiverName();
+        
+    	
         SerializableSimpleGraph<String, MapAttribute> mapToSend = myAgent.getMapToSend();
         //MapRepresentation myMap = myAgent.getMyMap();
-        Map<String, SerializableSimpleGraph<String, MapAttribute>> nodesToTransmit = myAgent.getNodesToTransmit();
         Set<String> alreadyExchanged = myAgent.getAlreadyExchanged();
         this.currentlyExchanging = myAgent.getCurrentlyExchanging();
         Map<String, Map<Observation, String>> list_gold = myAgent.getListGold();
         Map<String, Map<Observation, String>> list_diamond = myAgent.getListDiamond();
         
         this.myMap = ((GlobalBehaviour) this.getParent()).getMyMap();
-    	    	
         
+        if(myAgent.getMode() != "finExplo") {
+	        SerializableSimpleGraph<String, MapAttribute> partialGraph = nodesToTransmit.get(receiverName);
+	        myAgent.setMapToSend(partialGraph);
+	        
+	        System.out.println(myAgent.getLocalName() + " nodes : "+ nodesToTransmit + " pour " + receiverName);	
+        } else {
+        	SerializableSimpleGraph<String, MapAttribute> freshGraph = myMap.getSerializableGraph();
+            myAgent.setMapToSend(freshGraph);
+        }
     	// Envoi de la carte        
         try {
         	
         	Couple<Map<String, Map<Observation, String>>,Map<String, Map<Observation, String>>> tresors = new Couple<>(list_gold, list_diamond); 
         	Couple<SerializableSimpleGraph<String, MapAttribute>,Couple<Map<String, Map<Observation, String>>,Map<String, Map<Observation, String>>>> a_envoyer = new Couple<>(mapToSend, tresors);
+        	
+        	System.out.println("a envoyer : " + a_envoyer);
         	
             ACLMessage mapMsg = new ACLMessage(ACLMessage.INFORM);
             mapMsg.setProtocol("SHARE-MAP");
@@ -74,14 +86,16 @@ public class ShareMapBehaviour3 extends Behaviour {
         }
         
         myAgent.getHistoriqueComMap().put(receiverName, 10);
-                
+        nodesToTransmit.put(receiverName, new SerializableSimpleGraph<>());     
         
+        // s'il a déjà reçu une map, alors il sort, sinon il va réceptionner la map
         if(myAgent.getReceived()) {
         	myAgent.setReceived(false);
         	this.exitValue = myAgent.getMsgRetour();
         } else {
             myAgent.setSent(true);
-        	this.exitValue = myAgent.getTypeMsg();
+            //myAgent.setTypeMsg(GlobalBehaviour.TO_RECEIVE_MAP);
+        	this.exitValue = GlobalBehaviour.TO_RECEIVE_MAP;
         }
         
         this.finished = true;

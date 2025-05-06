@@ -7,6 +7,7 @@ import java.util.Set;
 import dataStructures.tuple.Couple;
 import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent2;
+import eu.su.mas.dedaleEtu.mas.behaviours.GlobalBehaviour;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import jade.core.behaviours.Behaviour;
 import jade.lang.acl.ACLMessage;
@@ -104,7 +105,8 @@ public class ReceiveExpertiseBehaviour extends Behaviour {
             	this.exitValue = myAgent.getMsgRetour();
             } else {
                 myAgent.setReceived(true);
-            	this.exitValue = myAgent.getTypeMsg();
+                //myAgent.setTypeMsg(GlobalBehaviour.TO_SHARE_EXPERTISE);
+            	this.exitValue = GlobalBehaviour.TO_SHARE_EXPERTISE;
             }
     		
         } else {
