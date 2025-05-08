@@ -46,7 +46,8 @@ public class ShareObjectifsBehaviour extends Behaviour {
 	    // envoi de la liste des objectifs et de la future position du silo
 		try {
         	
-			Couple<Map<String,String>,String> a_envoyer = new Couple<>(list_obj, pos_silo);
+			Couple<String,String> silo = new Couple<>(myAgent.getAgentSilo(), myAgent.getPosSilo());
+			Couple<Map<String,String>,Couple<String,String>> a_envoyer = new Couple<>(list_obj, silo);
 			
             ACLMessage objMsg = new ACLMessage(ACLMessage.INFORM);
             objMsg.setProtocol("SHARE-OBJECTIFS");

@@ -272,7 +272,6 @@ public class Principal {
 
 		}
 
-
 		/************************************************************************************************
 		 * The main container (now) exist, we deploy the agent(s) on  their local containers
 		 *They will have to find the gatekeeper's container to deploy themselves in the environment. 
@@ -344,7 +343,7 @@ public class Principal {
 		agentName="Elsa";
 
 		//3) If you want to give specific parameters to your agent, add them here
-		Object [] entityParametersExplo1={"Tim","Silo"};
+		Object [] entityParametersExplo1={"agentExplore", "Tim","Silo"};
 
 		//4) Give the class name of your agent to let the system instantiate it
 		//ag=createNewDedaleAgent(c, agentName,DummyMovingAgent.class.getName(), entityParametersExplo1);
@@ -362,7 +361,7 @@ public class Principal {
 				agentName="Tim";
 		
 				//3) If you want to give specific parameters to your agent, add them here
-				Object [] entityParametersExplo2={"Elsa","Silo"};
+				Object [] entityParametersExplo2={"agentExplore", "Elsa","Silo"};
 		
 				//4) Give the class name of your agent to let the system instantiate it
 				ag=createNewDedaleAgent(c, agentName, ExploreCoopAgent2.class.getName(), entityParametersExplo2);//ExploreSoloAgent
@@ -382,12 +381,13 @@ public class Principal {
 						agentName="Silo";
 				
 						//3) If you want to give specific parameters to your agent, add them here
-						Object [] entityParametersSilo={"Elsa","Tim"}; // le nom des agents
+						Object [] entityParametersSilo={"agentTanker", "Elsa","Tim"}; // le nom des agents
 				
 						//4) Give the class name of your agent to let the system instantiate it
 						ag=createNewDedaleAgent(c, agentName, ExploreCoopAgent2.class.getName(), entityParametersSilo);//ExploreSoloAgent
 						agentList.add(ag);
 
+						
 				//
 		// FIN MODIFICATION
 				

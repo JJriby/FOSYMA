@@ -9,6 +9,7 @@ import java.util.Set;
 
 import dataStructures.tuple.Couple;
 import eu.su.mas.dedale.env.Observation;
+import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent2;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import jade.core.behaviours.Behaviour;
@@ -25,6 +26,7 @@ public class CollectSiloBehaviour extends Behaviour {
     private MapRepresentation myMap;
     
     private int pour_debugger = 0;
+    private String node_priority = "";
         
     
     public CollectSiloBehaviour(final ExploreCoopAgent2 myagent) {
@@ -45,12 +47,13 @@ public class CollectSiloBehaviour extends Behaviour {
 	    
 	    List<String> agentNames = myAgent.getAgentNames();
 	    
-	    /*if (myAgent.checkMessagesInterBlocage()) {
-	    	myAgent.setMsgRetour(22);
-		    this.exitValue = myAgent.getTypeMsg();
+	    if (myAgent.checkMessagesInterBlocage()) {
+			System.out.println("pong provient de collect silo");
+			//myAgent.setMsgRetour(GlobalBehaviour.TO_GO_TO_RDV);
+		    this.exitValue = GlobalBehaviour.TO_SHARE_INFOS_INTERBLOCAGE;
 		    this.finished = true;
 		    return;
-		}*/
+		}
 	    
 	    Map<Observation, Integer> stockage = myAgent.getStockage();
 
@@ -93,12 +96,94 @@ public class CollectSiloBehaviour extends Behaviour {
             }           
                     
         } else {
-        	if(pour_debugger == 0) {
-        		System.out.println(myAgent.getLocalName() + " n’a pas reçu de back_pack");
-        	}
+        	System.out.println(myAgent.getLocalName() + " n’a pas reçu de back_pack");
         }
+        
+        /* en travaux (pas fini)
+        // Réception de la possible disparition du coffre
+        MessageTemplate returnInfosCoffreTemp = MessageTemplate.and(
+                MessageTemplate.MatchProtocol("SHARE-INFOS-COFFRE"),
+                MessageTemplate.MatchPerformative(ACLMessage.INFORM)
+            );
+           
+            ACLMessage returnInfosCoffre = myAgent.blockingReceive(returnInfosCoffreTemp, 3000);
+            
+            if (returnInfosCoffre != null) {
+            	try {
+                	
+            	Couple<String,String> infos_coffre_received =
+            			(Couple<String,String>) returnInfosCoffre.getContentObject();
+            	
+            	String dest = infos_coffre_received.getLeft();
+            	String info_coffre = infos_coffre_received.getRight();
+            	// phase de calcul
+                Couple<List<Map.Entry<String, Map<Observation, String>>>, List<Map.Entry<String, Map<Observation, String>>>> list_theorique = myAgent.getListTheorique();
+                Observation obs = null;
+                String transmetteur = returnInfosCoffre.getSender().getLocalName();
+                
+                List<Map.Entry<String, Map<Observation, String>>> liste_tresor = null;
+                if(myAgent.getListGold().containsKey(dest)) {
+                	liste_tresor = list_theorique.getLeft();
+                	obs = Observation.GOLD;
+                } else {
+                	liste_tresor = list_theorique.getRight();
+                	obs = Observation.DIAMOND;
+                }
+                
+                // on récupère le trésor maximal
+                String bestNode = null;
+                int max_tresor = -1;
+                for(Map.Entry<String, Map<Observation, String>> l : liste_tresor) {
+                	String nodeId = l.getKey();
+                    Map<Observation, String> caracteristiques = l.getValue();
+
+                    int qte = Integer.parseInt(caracteristiques.get(obs));
+
+                    // Comparaison
+                    if (qte > max_tresor) {
+                        max_tresor = qte;
+                        bestNode = nodeId;
+                    }
+                }
+                
+                if(bestNode != null) {
+                	List<Couple<Observation, Integer>> back_pack = myAgent.getListBackFreeSpace().get(transmetteur);
+                	Set<Couple<Observation,Integer>> expertises = myAgent.getListExpertise().get(transmetteur);
+                	
+                    
+                    int tresor_capacite = 0;
+                    int strength = 0;
+                    int lockpicking = 0;
+
+                    for (Couple<Observation, Integer> o : back_pack) {
+                        if (o.getLeft() == obs) {
+                            tresor_capacite = o.getRight();
+                        }
+                    }
+
+                    for (Couple<Observation, Integer> exp : expertises) {
+                        if (exp.getLeft() == Observation.STRENGH)
+                            strength = exp.getRight();
+                        else if (exp.getLeft() == Observation.LOCKPICKING)
+                            lockpicking = exp.getRight();
+                    }
+                    
+                    
+                	
+                }
+                
+                
+                
+	            } catch (UnreadableException e) {
+	                e.printStackTrace();
+	            }    
+                          
+            }                
+            
+        */
         	    
 	}
+	
 
 	@Override
 	public boolean done() {

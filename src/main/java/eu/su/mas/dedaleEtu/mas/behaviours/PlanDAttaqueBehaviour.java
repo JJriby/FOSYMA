@@ -116,7 +116,6 @@ public class PlanDAttaqueBehaviour extends Behaviour {
 		    this.already_com.clear();
 	    } else {
 	    	// pourquoi pas faire juste des ping pour envoyer à ceux qui le veulent ? plutôt que rester en mode ping-pong
-	    	System.out.println("liste contactés : " + last_com);
 	    	List<Couple<Location, List<Couple<Observation, String>>>> lobs = ((AbstractDedaleAgent) myAgent).observe();	
 	    	
 		    for (Couple<Location, List<Couple<Observation, String>>> obs : lobs) {
@@ -152,7 +151,7 @@ public class PlanDAttaqueBehaviour extends Behaviour {
 		    this.last_com.clear();
 	    	
 		    // si l'agent est le silo, alors il établit la stratégie
-	    	String stratege = "";
+	    	/*String stratege = "";
 	    	
 	    	for (Map.Entry<String, Set<Couple<Observation, Integer>>> elt : list_expertise.entrySet()) {
 	    	    String nom_agent = elt.getKey();
@@ -172,9 +171,10 @@ public class PlanDAttaqueBehaviour extends Behaviour {
 	    	
 	    	// on le garde en mémoire pour la récolte
 	    	myAgent.setAgentSilo(stratege);
+	    	*/
 	    	
-	    	
-	    	if(stratege.equals(myAgent.getLocalName())){
+		    if(myAgent.getTypeAgent().equals("agentTanker")){
+		    	myAgent.setAgentSilo(myAgent.getLocalName());
 	    		this.exitValue = GlobalBehaviour.TO_SUITE_PLAN_D_ATTAQUE;
 	    	} else {
 	    		this.exitValue = GlobalBehaviour.TO_ATTENTE;

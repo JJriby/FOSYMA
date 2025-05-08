@@ -3,6 +3,7 @@ package eu.su.mas.dedaleEtu.mas.behaviours;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,6 +33,7 @@ public class SuitePlanDAttaqueBehaviour extends Behaviour {
     private Set<String> last_com = new HashSet<>();
     
     Map<String, String> list_objectifs;
+    Couple<List<Map.Entry<String, Map<Observation, String>>>, List<Map.Entry<String, Map<Observation, String>>>> list_theorique;
     Map<String, Integer> list_lock_agents = new HashMap<>();
     Map<String, Integer> list_strength_agents = new HashMap<>();
         
@@ -124,6 +126,10 @@ public class SuitePlanDAttaqueBehaviour extends Behaviour {
 			    int val2 = Integer.parseInt(elt2.getValue().getOrDefault(Observation.DIAMOND, "0"));
 			    return Integer.compare(val2, val1);
 		});
+		
+		
+		myAgent.setListTheorique(new Couple<>(tri_tresors_gold, tri_tresors_diamond));
+		this.list_theorique = myAgent.getListTheorique();
 		
 		
 		// On trie la liste des capacités libres des sac à dos en or
@@ -312,6 +318,7 @@ public class SuitePlanDAttaqueBehaviour extends Behaviour {
 				// on choisit quelle coalition prendre (évite le plus la perte des 10%)
 				int comparaison = Integer.MAX_VALUE;
 				List<String> coalition_finale = new ArrayList<>();
+				int back_pack_final = 0;
 				for(List<String> l : list_coalitions_agent) {
 					int back_pack_tot = 0;
 					for(String a : l) {
@@ -336,6 +343,7 @@ public class SuitePlanDAttaqueBehaviour extends Behaviour {
 					if(comparaison_coalition < comparaison) {
 						comparaison = comparaison_coalition;
 						coalition_finale = l;
+						back_pack_final = back_pack_tot;
 					}
 					
 				}
@@ -345,10 +353,32 @@ public class SuitePlanDAttaqueBehaviour extends Behaviour {
     				for(String a : coalition_finale) {
     					this.list_objectifs.put(a, localisation);
     				}	
+    				
+    				// on met à jour la liste théorique
+    			    List<Map.Entry<String, Map<Observation, String>>> liste_tresors_voulu =
+    			        obs == Observation.GOLD ? list_theorique.getLeft() : list_theorique.getRight();
+
+    			    Iterator<Map.Entry<String, Map<Observation, String>>> iterator = liste_tresors_voulu.iterator();
+    			    while (iterator.hasNext()) {
+    			        Map.Entry<String, Map<Observation, String>> t = iterator.next();
+    			        if (t.getKey().equals(localisation)) {
+    			            Map<Observation, String> details2 = t.getValue();
+    			            int quantite_actuelle = Integer.parseInt(details2.get(obs));
+    			            int quantite_theorique = Math.max(0, (int) Math.round((quantite_actuelle - back_pack_final) * 0.9));
+
+    			            if (quantite_theorique == 0) {
+    			                iterator.remove();
+    			            } else {
+    			                details2.put(obs, String.valueOf(quantite_theorique));
+    			            }
+    			            break;
+    			        }
+    			    }
     				break;
 				}
 			}
 		}
+		
 	}
 
 	@Override

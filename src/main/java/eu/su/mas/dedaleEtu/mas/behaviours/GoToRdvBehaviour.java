@@ -35,10 +35,6 @@ public class GoToRdvBehaviour extends Behaviour {
 		this.finished = false;
 		this.exitValue = -1;
 		
-		// traiter un cas d'erreur où shortestPath serait égal à null ?
-		
-		// vérifier si lors de ce chemin aussi y a pas interblocage ?
-		
 		
 		ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
 		
@@ -46,12 +42,17 @@ public class GoToRdvBehaviour extends Behaviour {
 
 		List<String> shortestPath = myAgent.getShortestPath(); 
 		
-		/*if (myAgent.checkMessagesInterBlocage()) {
-			myAgent.setMsgRetour(23);
-		    this.exitValue = myAgent.getTypeMsg();
+		if (myAgent.checkMessagesInterBlocage()) {
+			//myAgent.setMsgRetour(GlobalBehaviour.TO_GO_TO_RDV);
+			this.cpt_block = 0;
+			this.cpt = 0;
+			this.already_com.clear();
+			
+			System.out.println("pong provient de goto");
+		    this.exitValue = GlobalBehaviour.TO_SHARE_INFOS_INTERBLOCAGE;
 		    this.finished = true;
 		    return;
-		}*/
+		}
 		
 		
         try { myAgent.doWait(1000); } catch (Exception e) { e.printStackTrace(); }
@@ -60,8 +61,7 @@ public class GoToRdvBehaviour extends Behaviour {
         	System.out.println("Chemin final : " + myAgent.getShortestPath());
         }
         
-        //if(myAgent.getListFinExplo().get(myAgent.getLocalName()) && myAgent.getPosSilo() == "") {
-        if(myAgent.getMode() == "CartePleine") {
+        if(myAgent.getMode().equals("CartePleine")) {
         
         	
         	if(myAgent.getTypeMsgInit() == -1) {
@@ -112,29 +112,32 @@ public class GoToRdvBehaviour extends Behaviour {
 					this.cpt_block ++;
 					myAgent.doWait(1000);
 				} else {
+					
+					System.out.println(myAgent.getLocalName() + " bloqué depuis 10 tours. Mode = " + myAgent.getMode());
+					if(myAgent.getMode().equals("collecte")) {
+						myAgent.setNoeudBloque(shortestPath.get(cpt));
+						this.exitValue = GlobalBehaviour.TO_INTERBLOCAGE;
+					} else {
+						if(myAgent.getTypeMsgInit() != -1) {
+							myAgent.setTypeMsg(myAgent.getTypeMsgInit());
+			        		myAgent.setTypeMsgInit(-1);
+			        	} 
+						
+			        	this.exitValue = myAgent.getTypeMsg();
+					}
+					
 					this.cpt_block = 0;
 					this.cpt = 0;
 					this.already_com.clear();
-					if(myAgent.getTypeMsgInit() != -1) {
+					
+					/*if(myAgent.getTypeMsgInit() != -1) {
 						myAgent.setTypeMsg(myAgent.getTypeMsgInit());
 		        		myAgent.setTypeMsgInit(-1);
 		        	} 
 					
 		        	this.exitValue = myAgent.getTypeMsg();
+					*/
 					
-					
-					/*if(myAgent.getMode().equals("CartePleine")) {
-						
-					}*/
-					
-					/*if (cpt + 1 < shortestPath.size()) {
-						myAgent.setNoeudBloque(shortestPath.get(cpt + 1));
-					}
-					
-					this.cpt = 0;
-					//myAgent.setTypeInterblocage(2);
-					myAgent.setTypeMsg(20);
-					this.exitValue = 3;*/
 					this.finished = true;
 					return;
 				}
@@ -144,9 +147,17 @@ public class GoToRdvBehaviour extends Behaviour {
 			}
 		}
 		else {
+			
+			if(myAgent.getMode()=="blocking") {
+				this.exitValue = GlobalBehaviour.TO_BLOCAGE;
+				this.finished = true;
+				return;
+			}
+			
 			if(myAgent.getMode() == "cartePleine") {
 				myAgent.setMode("finExplo");
 			}
+			
 			this.cpt_block = 0;
 			this.cpt = 0;
 			this.already_com.clear();
@@ -160,6 +171,7 @@ public class GoToRdvBehaviour extends Behaviour {
 			return;
 		}
 	}
+	
 	
 
 	@Override

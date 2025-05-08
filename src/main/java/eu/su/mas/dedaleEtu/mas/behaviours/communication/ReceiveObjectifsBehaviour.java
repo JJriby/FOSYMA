@@ -48,11 +48,12 @@ public class ReceiveObjectifsBehaviour extends Behaviour {
         if (returnObj != null) {
             try {
             	
-            	Couple<Map<String, String>,String> objectifs_received =
-            			(Couple<Map<String, String>,String>) returnObj.getContentObject();
+            	Couple<Map<String, String>,Couple<String,String>> objectifs_received =
+            			(Couple<Map<String, String>,Couple<String,String>>) returnObj.getContentObject();
             	
             	myAgent.setListObjectifs(objectifs_received.getLeft());
-            	myAgent.setPosSilo(objectifs_received.getRight());
+            	myAgent.setAgentSilo(objectifs_received.getRight().getLeft());
+            	myAgent.setPosSilo(objectifs_received.getRight().getRight());
             	    
             	String but = myAgent.getListObjectifs().get(myAgent.getLocalName());
             	myAgent.setShortestPath(myMap.getShortestPath(((AbstractDedaleAgent) myAgent).getCurrentPosition().getLocationId(), but));
@@ -60,7 +61,7 @@ public class ReceiveObjectifsBehaviour extends Behaviour {
             	
                 System.out.println(this.myAgent.getLocalName() + " échange terminé avec " + receiverName);
         		System.out.println(this.myAgent.getLocalName() + " liste objectifs : " + myAgent.getListObjectifs());
-        		System.out.println(this.myAgent.getLocalName() + " a pour objectif : " + but + " et devra déposer en : " + myAgent.getPosSilo());
+        		System.out.println(this.myAgent.getLocalName() + " a pour objectif : " + but + ", donné par " + myAgent.getAgentSilo() + " et devra déposer en : " + myAgent.getPosSilo());
         	    
             } catch (UnreadableException e) {
                 e.printStackTrace();

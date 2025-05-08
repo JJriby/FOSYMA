@@ -34,16 +34,17 @@ public class GlobalBehaviour extends FSMBehaviour {
 	private MapRepresentation myMap;
 	
 	
-	public static final int TO_EXPLORE = 0; // 
-	public static final int TO_FIN_EXPLO = 1; //
-	public static final int TO_PLAN_D_ATTAQUE = 2; //
-	public static final int TO_SUITE_PLAN_D_ATTAQUE = 3; //
-	public static final int TO_ATTENTE = 4; //
-	public static final int TO_COLLECT_SILO = 5; // ça dépend pour la suite
-	public static final int TO_COLLECT = 6; // ça dépend pour la suite, si coomunication avec les autres agents de la coalition ou autre
-	public static final int TO_SHARE_JUST_COLLECT = 7; // ça dépend same
+	public static final int TO_EXPLORE = 0;  
+	public static final int TO_FIN_EXPLO = 1; 
+	public static final int TO_PLAN_D_ATTAQUE = 2; 
+	public static final int TO_SUITE_PLAN_D_ATTAQUE = 3;
+	public static final int TO_ATTENTE = 4;
+	public static final int TO_COLLECT_SILO = 5;
+	public static final int TO_COLLECT = 6; 
+	public static final int TO_SHARE_JUST_COLLECT = 7; 
+	public static final int TO_BLOCAGE = 8;
 	
-	public static final int TO_GO_TO_RDV = 10; // j'ai un doute, potentiels pbs
+	public static final int TO_GO_TO_RDV = 10;
 	
 	public static final int TO_INTERBLOCAGE = 11;
 	public static final int TO_SHARE_INFOS_INTERBLOCAGE = 12;
@@ -91,6 +92,8 @@ public class GlobalBehaviour extends FSMBehaviour {
 	
 	private static final String ShareInfosInterBlocage = "ShareInfosInterBlocage";
 	
+	private static final String Blocage = "Blocage";
+	
 	public GlobalBehaviour(final AbstractDedaleAgent myagent, MapRepresentation myMap) {
 		super(myagent);
 		
@@ -127,6 +130,7 @@ public class GlobalBehaviour extends FSMBehaviour {
         
         this.registerState(new ShareInfosInterBlocageBehaviour((ExploreCoopAgent2) this.myAgent), ShareInfosInterBlocage);
        
+        this.registerState(new BlocageBehaviour((ExploreCoopAgent2) this.myAgent), Blocage);
         
         
         // transitions
@@ -240,16 +244,15 @@ public class GlobalBehaviour extends FSMBehaviour {
         
         this.registerTransition(Attente, GoToRDV, TO_GO_TO_RDV);
         
-        
-        // faire des temps d'attente quand on change de phase de comportements
-        
+                
         // au cas où qlq n'a pas fini de demander les expertises
         this.registerTransition(ShareExpertise, Attente, TO_ATTENTE);  
         
         // au cas où qlq tjrs dans PlanDAttaque continue de partager ses expertises
         this.registerTransition(ReceiveObjectifs, PlanDAttaque, TO_PLAN_D_ATTAQUE);
         
-        // je ne sais plus à ce niveau là
+        
+        // dans d'autres cas
         this.registerTransition(ShareExpertise, FinExplo, TO_FIN_EXPLO);
         this.registerTransition(ShareExpertise, GoToRDV, TO_GO_TO_RDV);
         this.registerTransition(ReceiveObjectifs, GoToRDV, TO_GO_TO_RDV);
@@ -257,15 +260,28 @@ public class GlobalBehaviour extends FSMBehaviour {
         this.registerTransition(ReceiveExpertise, Attente, TO_ATTENTE); 
         this.registerTransition(ShareFinExplo, Explore, TO_EXPLORE);  
         this.registerTransition(ShareMap, PlanDAttaque, TO_PLAN_D_ATTAQUE);
-
+		
+        
         // une fois le partage des objectifs fini, chacun se dirige vers la destination attribuée pour la récolte
         this.registerTransition(GoToRDV, Collect, TO_COLLECT);
         this.registerTransition(GoToRDV, CollectSilo, TO_COLLECT_SILO);
         
         
         // pour l'interblocage lors du trajet jusqu'au point de rdv
+        this.registerTransition(InterBlocage, ShareInfosInterBlocage, TO_SHARE_INFOS_INTERBLOCAGE);
+        this.registerTransition(ShareInfosInterBlocage, InterBlocage, TO_INTERBLOCAGE);
+        
+        this.registerTransition(GoToRDV, ShareInfosInterBlocage, TO_SHARE_INFOS_INTERBLOCAGE);
+        this.registerTransition(InterBlocage, GoToRDV, TO_GO_TO_RDV);
+        
+        this.registerTransition(GoToRDV, InterBlocage, TO_INTERBLOCAGE);
+        
+        this.registerTransition(CollectSilo, ShareInfosInterBlocage, TO_SHARE_INFOS_INTERBLOCAGE);
         //this.registerTransition(GoToRDV, Ping, TO_PING);
         
+        this.registerTransition(GoToRDV, Blocage, TO_BLOCAGE);
+        this.registerTransition(Blocage, GoToRDV, TO_GO_TO_RDV);
+        this.registerTransition(Blocage, InterBlocage, TO_INTERBLOCAGE);
         
         /*this.registerTransition(Ping, ShareInfosInterBlocage, TO_SHARE_INFOS_INTERBLOCAGE);
         
@@ -289,7 +305,7 @@ public class GlobalBehaviour extends FSMBehaviour {
         this.registerTransition(Collect, GoToRDV, TO_GO_TO_RDV);
         this.registerTransition(GoToRDV, ShareJustCollect, TO_SHARE_JUST_COLLECT);
                 
-        
+        this.registerTransition(ShareJustCollect, GoToRDV, TO_GO_TO_RDV);
         
         // autre
        

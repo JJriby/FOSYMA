@@ -400,7 +400,7 @@ public class MapRepresentation implements Serializable {
 		Optional<Couple<String,Integer>> closest=lc.stream().min(Comparator.comparing(Couple::getRight));
 		
 		if (closest.isEmpty() || closest.get().getRight() == Integer.MAX_VALUE) {
-	        System.out.println("Aucun chemin atteignable depuis " + myPosition);
+	        //System.out.println("Aucun chemin atteignable depuis " + myPosition);
 	        return null;
 	    }
 		

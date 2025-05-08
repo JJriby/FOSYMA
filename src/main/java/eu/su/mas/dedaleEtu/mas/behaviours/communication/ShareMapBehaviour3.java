@@ -57,7 +57,12 @@ public class ShareMapBehaviour3 extends Behaviour {
         
         this.myMap = ((GlobalBehaviour) this.getParent()).getMyMap();
         
-        if(myAgent.getMode() != "finExplo") {
+        
+        // à revoir
+        SerializableSimpleGraph<String, MapAttribute> freshGraph = myMap.getSerializableGraph();
+        myAgent.setMapToSend(freshGraph);
+        
+        /*if(myAgent.getMode() != "finExplo") {
 	        SerializableSimpleGraph<String, MapAttribute> partialGraph = nodesToTransmit.get(receiverName);
 	        myAgent.setMapToSend(partialGraph);
 	        
@@ -65,22 +70,20 @@ public class ShareMapBehaviour3 extends Behaviour {
         } else {
         	SerializableSimpleGraph<String, MapAttribute> freshGraph = myMap.getSerializableGraph();
             myAgent.setMapToSend(freshGraph);
-        }
+        }*/
     	// Envoi de la carte        
         try {
         	
         	Couple<Map<String, Map<Observation, String>>,Map<String, Map<Observation, String>>> tresors = new Couple<>(list_gold, list_diamond); 
         	Couple<SerializableSimpleGraph<String, MapAttribute>,Couple<Map<String, Map<Observation, String>>,Map<String, Map<Observation, String>>>> a_envoyer = new Couple<>(mapToSend, tresors);
-        	
-        	System.out.println("a envoyer : " + a_envoyer);
-        	
+        	        	
             ACLMessage mapMsg = new ACLMessage(ACLMessage.INFORM);
             mapMsg.setProtocol("SHARE-MAP");
             mapMsg.setSender(myAgent.getAID());
             mapMsg.addReceiver(new AID(receiverName, AID.ISLOCALNAME));
             mapMsg.setContentObject(a_envoyer);
             myAgent.sendMessage(mapMsg);
-            System.out.println(myAgent.getLocalName() + " carte et trésors envoyés à " + receiverName + " envoi : " + mapToSend);
+            System.out.println(myAgent.getLocalName() + " carte et trésors envoyés à " + receiverName);
         } catch (IOException e) {
             e.printStackTrace();
         }

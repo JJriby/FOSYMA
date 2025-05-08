@@ -41,6 +41,14 @@ public class CollectBehaviour extends Behaviour {
 	    
 	    myAgent.setMsgRetour(GlobalBehaviour.TO_COLLECT);
 	    
+	    if (myAgent.checkMessagesInterBlocage()) {
+			System.out.println("pong provient de collect silo");
+			//myAgent.setMsgRetour(GlobalBehaviour.TO_GO_TO_RDV);
+		    this.exitValue = GlobalBehaviour.TO_SHARE_INFOS_INTERBLOCAGE;
+		    this.finished = true;
+		    return;
+		}
+	    
 	    List<String> agentNames = myAgent.getAgentNames();
 	    String receiverName = myAgent.getReceiverName();
 
@@ -95,6 +103,7 @@ public class CollectBehaviour extends Behaviour {
         	// si y a rien, faut voir comment faire pour avertir le silo que le coffre a disparu
         	if(qte == 0) {
         		System.out.println("il n'y a rien ici !");
+        		myAgent.setCoffreDisparu("true");
         	} else {
         		myAgent.addCollectedTreasure(qte);
         		System.out.println("quantité récupérée : " + myAgent.getCollectedTreasureValue());
@@ -104,7 +113,7 @@ public class CollectBehaviour extends Behaviour {
         
         
         // on regarde si on a récupéré tout le coffre
-        List<Couple<Location, List<Couple<Observation, String>>>> lobs = ((AbstractDedaleAgent) myAgent).observe();
+        /*List<Couple<Location, List<Couple<Observation, String>>>> lobs = ((AbstractDedaleAgent) myAgent).observe();
 
         for (Couple<Location, List<Couple<Observation, String>>> obs : lobs) {
 	        Location pos = obs.getLeft();
@@ -125,14 +134,18 @@ public class CollectBehaviour extends Behaviour {
 		            }
 		        }  
 			}
-        }
+        }*/
 
   
         // on retourne au silo
-        myAgent.setShortestPath(this.myMap.getShortestPath(myPosition.getLocationId(), myAgent.getPosSilo()));
-        myAgent.setTypeMsg(GlobalBehaviour.TO_SHARE_JUST_COLLECT);
-        this.exitValue = GlobalBehaviour.TO_GO_TO_RDV;
-        this.finished = true;
+        List<String> path = this.myMap.getShortestPath(myPosition.getLocationId(), myAgent.getPosSilo());
+        if(path != null && !path.isEmpty()) {
+        	path.remove(path.size()-1);
+        	myAgent.setShortestPath(path);
+        	myAgent.setTypeMsg(GlobalBehaviour.TO_SHARE_JUST_COLLECT);
+            this.exitValue = GlobalBehaviour.TO_GO_TO_RDV;
+            this.finished = true;
+        }
         
 	}
 

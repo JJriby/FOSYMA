@@ -10,6 +10,7 @@ import java.util.Set;
 
 import dataStructures.serializableGraph.SerializableSimpleGraph;
 import dataStructures.tuple.Couple;
+import eu.su.mas.dedale.env.EntityCharacteristics;
 import eu.su.mas.dedale.env.Location;
 import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
@@ -19,6 +20,7 @@ import eu.su.mas.dedaleEtu.mas.behaviours.ExploCoopBehaviour2;
 import eu.su.mas.dedaleEtu.mas.behaviours.GlobalBehaviour;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
+import jade.core.AID;
 import jade.core.behaviours.Behaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -89,7 +91,19 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 	
 	private String mode = "explo";
     private Map<String, Integer> historique_com_map = new HashMap<>();
-	
+    
+    private boolean transmission_interblocage = false;
+    private boolean decalage = false;
+    private boolean priority_now = false;
+    private boolean reception_interblocage = false;
+    private String has_new_path = "hasNotNewPath";
+    
+    private Couple<List<Map.Entry<String, Map<Observation, String>>>, List<Map.Entry<String, Map<Observation, String>>>> list_theorique = new Couple<>(null,null);
+    
+    private String type_agent = "";
+    private String coffre_disparu = "false";
+
+    
 	//private List<Couple<Location, List<Couple<Observation, String>>>> lastObs = new ArrayList<>();
 	//private List<String> objectif = new ArrayList<>();
 	
@@ -109,12 +123,16 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 		final Object[] args = getArguments();
 		
 		//list_agentNames=new ArrayList<String>();
+	
 		
 		if(args.length==0){
 			System.err.println("Error while creating the agent, names of agent to contact expected");
 			System.exit(-1);
 		}else{
-			int i=2;// WARNING YOU SHOULD ALWAYS START AT 2. This will be corrected in the next release.
+			
+			this.type_agent = (String)args[2];
+			
+			int i=3;// WARNING YOU SHOULD ALWAYS START AT 2. This will be corrected in the next release.
 			while (i<args.length) {
 				this.list_agentNames.add((String)args[i]);
 				i++;
@@ -298,6 +316,37 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 		return this.historique_com_map;
 	}
 	
+	public boolean getTransmissionInterblocage() {
+		return this.transmission_interblocage;
+	}
+	
+	public boolean getDecalage() {
+		return this.decalage;
+	}
+	
+	public boolean getPriorityNow() {
+		return this.priority_now;
+	}
+	
+	public boolean getReceptionInterblocage() {
+		return this.reception_interblocage;
+	}
+	
+	public String getHasNewPath() {
+		return this.has_new_path;
+	}
+	
+	public Couple<List<Map.Entry<String, Map<Observation, String>>>, List<Map.Entry<String, Map<Observation, String>>>> getListTheorique(){
+		return this.list_theorique;
+	}
+	
+	public String getTypeAgent() {
+		return this.type_agent;
+	}
+	
+	public String getCoffreDisparu() {
+		return this.coffre_disparu;
+	}
 	
 	
 	/*public List<Couple<Location, List<Couple<Observation, String>>>> getLastObservation(){
@@ -433,7 +482,34 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 	public void setHistoriqueComMap(Map<String, Integer> history_map) {
 		this.historique_com_map = history_map;
 	}
+	
+	public void setTransmissionInterblocage(boolean interblock) {
+		this.transmission_interblocage = interblock;
+	}
+	
+	public void setDecalage(boolean decalage) {
+		this.decalage = decalage;
+	}
+	
+	public void setPriorityNow(boolean prio) {
+		this.priority_now = prio;
+	}
 
+	public void setReceptionInterblocage(boolean recep) {
+		this.reception_interblocage = recep;
+	}
+	
+	public void setHasNewPath(String new_path) {
+		this.has_new_path = new_path;
+	}
+	
+	public void setListTheorique(Couple<List<Map.Entry<String, Map<Observation, String>>>, List<Map.Entry<String, Map<Observation, String>>>> list) {
+		this.list_theorique = list;
+	}
+	
+	public void setCoffreDisparu(String update_coffre) {
+		this.coffre_disparu = update_coffre;
+	}
 	
 	/*public void setLastObservation(List<Couple<Location, List<Couple<Observation, String>>>> lastObs) {
 		this.lastObs = lastObs;
@@ -446,39 +522,57 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 	
 	
 	public boolean checkMessagesInterBlocage() {
-		// 1. Réception du Ping
+		
+		// 1. Réception du Ping InterBlocage
         MessageTemplate pingTemplate = MessageTemplate.and(
-            MessageTemplate.MatchProtocol("PING"),
+            MessageTemplate.MatchProtocol("PING-INTERBLOCAGE"),
             MessageTemplate.MatchPerformative(ACLMessage.INFORM)
         );
 
         ACLMessage ping = this.receive(pingTemplate);
         
         if (ping == null) {
-            System.out.println(this.getLocalName() + " Pas de PING factice de " + receiverName + "retour : " + this.getMsgRetour());
             return false;
         }
         
-        // on se dirige à la réception du partage adéquat
-        int val_ping = Integer.parseInt(ping.getContent());
+        System.out.println(this.getLocalName() + " a reçu un PING inter de " + ping.getSender().getLocalName());
+                
+        // 2. Envoi du Pong InterBlocage
+        ACLMessage pong = new ACLMessage(ACLMessage.INFORM);
+        pong.setProtocol("PONG-INTERBLOCAGE");
+        pong.addReceiver(new AID(ping.getSender().getLocalName(), AID.ISLOCALNAME));
+        pong.setContent("moved : true");
+        pong.setSender(this.getAID());
         
-        if(val_ping == 20) {
-	        this.setTypeMsg(val_ping);
-	        
-	    	System.out.println("pong factice : " + this.getLocalName() + " msg retour : " + this.getMsgRetour() + " msg autre : " + this.getTypeMsg());
-	        
-	        // 2. Envoi du Pong
-	        ACLMessage pong = ping.createReply();
-	        pong.setProtocol("PONG");
-	        pong.setSender(this.getAID());
-	        //pong.addReceiver(new AID(this.receiverName, AID.ISLOCALNAME));
-	        pong.setContent("Je suis bien dispo !");
-	        this.sendMessage(pong);
-	        System.out.println(this.getLocalName() + " → PONG factice envoyé à " + receiverName);
-	        return true;
-        } else {
-        	return false;
-        }
+        System.out.println(this.getLocalName() + " → PONG faux envoyé à " + ping.getSender().getLocalName());
+        this.sendMessage(pong);
+        //System.out.println(this.getLocalName() + " → PONG factice envoyé à " + receiverName);
+       
+        
+        this.setBlockingAgent(ping.getSender().getLocalName());
+        this.setReceptionInterblocage(true);
+        
+        System.out.println("blocant pong : " + this.getBlockingAgent());
+        
+        // on met cette variable à true pour éviter de relancer le ping interblocage en allant dans le comportement InterBlocage
+        //this.setTransmissionInterblocage(true);
+        return true;
+	}
+	
+	public boolean checkDemandeDecalage() {
+		
+		MessageTemplate template = MessageTemplate.and(
+    	    MessageTemplate.MatchProtocol("DEMANDE-DECALAGE"),
+    	    MessageTemplate.MatchPerformative(ACLMessage.INFORM)
+    	);
+
+    	ACLMessage msg = this.receive(template);
+    	if (msg != null && msg.getContent().equals("hasNewPath")) {
+    	    System.out.println(this.getLocalName() + " a reçu une affirmation de nouveau chemin de la part de " + msg.getSender().getLocalName());
+    	    this.setDecalage(true);  // méthode à toi à créer si besoin
+    	    return true;
+    	}
+    	return false;
 	}
 	
 	

@@ -10,6 +10,8 @@ import eu.su.mas.dedale.env.Location;
 import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent2;
+import eu.su.mas.dedaleEtu.mas.behaviours.GlobalBehaviour;
+import jade.core.AID;
 import jade.core.behaviours.Behaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -34,6 +36,8 @@ public class ShareInfosInterBlocageBehaviour extends Behaviour {
 		
 		ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
 		List<String> shortestPath = myAgent.getShortestPath(); 
+		
+		System.out.println(myAgent.getLocalName() + " est dans shareInfos");
 		
 		// envoi des infos du parcours de l'agent
 		
@@ -68,6 +72,7 @@ public class ShareInfosInterBlocageBehaviour extends Behaviour {
 	                	ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 	                	msg.setSender(myAgent.getAID());
 	                	msg.setProtocol("SHARE-INFOS-INTERBLOCAGE");
+	                	msg.addReceiver(new AID(agentName, AID.ISLOCALNAME));
 	                	
 	                	try {
 	                		msg.setContentObject(a_envoyer);
@@ -116,7 +121,7 @@ public class ShareInfosInterBlocageBehaviour extends Behaviour {
             System.out.println(myAgent.getLocalName() + " n’a pas reçu d'infos de l'agent " + myAgent.getBlockingAgent());
         }
         
-        this.exitValue = 17;
+        this.exitValue = GlobalBehaviour.TO_INTERBLOCAGE;
         this.finished = true;
 		
 	}

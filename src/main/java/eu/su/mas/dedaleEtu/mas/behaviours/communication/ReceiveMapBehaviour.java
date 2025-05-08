@@ -1,11 +1,14 @@
 package eu.su.mas.dedaleEtu.mas.behaviours.communication;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import dataStructures.serializableGraph.SerializableSimpleGraph;
 import dataStructures.tuple.Couple;
 import eu.su.mas.dedale.env.Observation;
+import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent2;
 import eu.su.mas.dedaleEtu.mas.behaviours.GlobalBehaviour;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
@@ -63,7 +66,7 @@ public class ReceiveMapBehaviour extends Behaviour {
                 SerializableSimpleGraph<String, MapAttribute> receivedMap = received.getLeft();
 
                 myMap.mergeMap(receivedMap);
-                System.out.println(myAgent.getLocalName() + " a reçu et fusionné la carte en retour de " + receiverName + " réception : " + receivedMap);
+                System.out.println(myAgent.getLocalName() + " a reçu et fusionné la carte de " + receiverName);
                 
                 nodesToTransmit.put(receiverName, new SerializableSimpleGraph<>());
                 
@@ -96,6 +99,33 @@ public class ReceiveMapBehaviour extends Behaviour {
             if(myAgent.getSent()) {
             	myAgent.setSent(false);
             	this.exitValue = myAgent.getMsgRetour();
+            	
+            	if (!this.myMap.hasOpenNode() && myAgent.getMode().equals("explo")) {
+        	    	System.out.println(myAgent.getLocalName() + " est à " + myAgent.getCurrentPosition() + " et a comme fin : " + nodesToTransmit);
+        	        
+        	        System.out.println(this.myAgent.getLocalName() + " - Exploration terminée !");
+        	        myAgent.getListFinExplo().put(myAgent.getLocalName(), true);
+        	         
+        	        Set<String> treasureNodes = new HashSet<>();
+        	        treasureNodes.addAll(list_gold.keySet());
+        	        treasureNodes.addAll(list_diamond.keySet());
+        	        String obj = myMap.calculBarycentre(treasureNodes);
+        	        System.out.println("RDV : "+ obj + " trésors : " + treasureNodes);
+        	
+        	        List<String> shortestPath = myMap.getShortestPath(((AbstractDedaleAgent) myAgent).getCurrentPosition().getLocationId(), obj);
+        	        myAgent.setShortestPath(shortestPath);
+        	        
+        	        myAgent.setMode("CartePleine");
+        	
+        	        myAgent.setTypeMsg(GlobalBehaviour.TO_FIN_EXPLO);  // fin d'exploration
+        	        alreadyExchanged.clear();
+        	        
+        	        System.out.println("[OBJ] " + myAgent.getLocalName() + " est à " + myAgent.getCurrentPosition().getLocationId() + " et doit parcourir : " + myAgent.getShortestPath());
+        	    	
+        	        this.exitValue = GlobalBehaviour.TO_GO_TO_RDV;
+
+                }
+            	
             } else {
                 myAgent.setReceived(true);
                 //myAgent.setTypeMsg(GlobalBehaviour.TO_SHARE_MAP);
