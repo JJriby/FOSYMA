@@ -38,6 +38,8 @@ public class GoToRdvBehaviour extends Behaviour {
 		
 		ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
 		
+		//System.out.println(myAgent.getLocalName() + " est en blocage avec le mode : " + myAgent.getMode());
+		
     	myAgent.setMsgRetour(GlobalBehaviour.TO_GO_TO_RDV);
 
 		List<String> shortestPath = myAgent.getShortestPath(); 
@@ -48,7 +50,7 @@ public class GoToRdvBehaviour extends Behaviour {
 			this.cpt = 0;
 			this.already_com.clear();
 			
-			System.out.println("pong provient de goto");
+			//System.out.println("pong provient de goto");
 		    this.exitValue = GlobalBehaviour.TO_SHARE_INFOS_INTERBLOCAGE;
 		    this.finished = true;
 		    return;
@@ -76,7 +78,7 @@ public class GoToRdvBehaviour extends Behaviour {
 	            List<Couple<Observation, String>> details = obs.getRight();
 			
 	            for (Couple<Observation, String> detail : details) {
-	            	if (detail.getLeft() == Observation.AGENTNAME) {
+	            	if (detail.getLeft() == Observation.AGENTNAME && myAgent.getAgentNames().contains(detail.getRight())) {
 	            		
 	                    String agentName = detail.getRight();	                    
 	                    
@@ -85,11 +87,9 @@ public class GoToRdvBehaviour extends Behaviour {
 	                    	myAgent.setReceiverName(agentName);
 	                    	
 	                    	if (myAgent.getLocalName().compareTo(agentName) < 0) {
-	                        	System.out.println(myAgent.getLocalName() + " doit aller dans ping goto");
 	                        	myAgent.setTypeMsg(GlobalBehaviour.TO_SHARE_FIN_EXPLO);
 	                        	this.exitValue = GlobalBehaviour.TO_PING;     
 	                        } else {
-	                        	System.out.println(myAgent.getLocalName() + " doit aller dans pong goto");
 	                            this.exitValue = GlobalBehaviour.TO_PONG;
 	                        }    
 			                this.finished = true;
@@ -113,30 +113,40 @@ public class GoToRdvBehaviour extends Behaviour {
 					myAgent.doWait(1000);
 				} else {
 					
-					System.out.println(myAgent.getLocalName() + " bloqué depuis 10 tours. Mode = " + myAgent.getMode());
+					//System.out.println(myAgent.getLocalName() + " bloqué depuis 10 tours. Mode = " + myAgent.getMode());
 					if(myAgent.getMode().equals("collecte")) {
 						myAgent.setNoeudBloque(shortestPath.get(cpt));
+						this.cpt_block = 0;
+						this.cpt = 0;
+						this.already_com.clear();
 						this.exitValue = GlobalBehaviour.TO_INTERBLOCAGE;
-					} else {
-						if(myAgent.getTypeMsgInit() != -1) {
+						this.finished = true;
+						return;
+					}
+					
+					if(myAgent.getMode().equals("CartePleine")) {
+						myAgent.setNoeudBloque(shortestPath.get(cpt));
+						this.exitValue = GlobalBehaviour.TO_INTERBLOCAGE;
+						
+						/*if(myAgent.getTypeMsgInit() != -1) {
 							myAgent.setTypeMsg(myAgent.getTypeMsgInit());
 			        		myAgent.setTypeMsgInit(-1);
 			        	} 
 						
 			        	this.exitValue = myAgent.getTypeMsg();
+			        	*/
 					}
 					
 					this.cpt_block = 0;
 					this.cpt = 0;
 					this.already_com.clear();
 					
-					/*if(myAgent.getTypeMsgInit() != -1) {
+					if(myAgent.getTypeMsgInit() != -1) {
 						myAgent.setTypeMsg(myAgent.getTypeMsgInit());
 		        		myAgent.setTypeMsgInit(-1);
-		        	} 
+		        	}
 					
 		        	this.exitValue = myAgent.getTypeMsg();
-					*/
 					
 					this.finished = true;
 					return;
@@ -149,6 +159,9 @@ public class GoToRdvBehaviour extends Behaviour {
 		else {
 			
 			if(myAgent.getMode()=="blocking") {
+				this.cpt_block = 0;
+				this.cpt = 0;
+				this.already_com.clear();
 				this.exitValue = GlobalBehaviour.TO_BLOCAGE;
 				this.finished = true;
 				return;

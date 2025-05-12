@@ -83,7 +83,7 @@ public class ShareMapBehaviour3 extends Behaviour {
             mapMsg.addReceiver(new AID(receiverName, AID.ISLOCALNAME));
             mapMsg.setContentObject(a_envoyer);
             myAgent.sendMessage(mapMsg);
-            System.out.println(myAgent.getLocalName() + " carte et trésors envoyés à " + receiverName);
+            //System.out.println(myAgent.getLocalName() + " carte et trésors envoyés à " + receiverName);
         } catch (IOException e) {
             e.printStackTrace();
         }

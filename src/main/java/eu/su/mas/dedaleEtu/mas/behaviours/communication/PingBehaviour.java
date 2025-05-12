@@ -62,7 +62,7 @@ public class PingBehaviour extends Behaviour {
     	this.receiverName = myAgent.getReceiverName();
     	int type_msg = myAgent.getTypeMsg();
     	
-    	System.out.println("ping : " + myAgent.getLocalName() + " msg retour : " + myAgent.getMsgRetour() + " msg autre : " + type_msg);
+    	//System.out.println("ping : " + myAgent.getLocalName() + " msg retour : " + myAgent.getMsgRetour() + " msg autre : " + type_msg);
     	
         // 1. Envoi du PING
         ACLMessage ping = new ACLMessage(ACLMessage.INFORM);
@@ -71,7 +71,7 @@ public class PingBehaviour extends Behaviour {
         ping.setContent(Integer.toString(type_msg));
         ping.setSender(myAgent.getAID());
         myAgent.sendMessage(ping);
-        System.out.println(myAgent.getLocalName() + " → PING envoyé à " + receiverName);
+        //System.out.println(myAgent.getLocalName() + " → PING envoyé à " + receiverName);
         
        
         // 2. Attente du PONG
@@ -82,10 +82,10 @@ public class PingBehaviour extends Behaviour {
 
         ACLMessage pong = myAgent.blockingReceive(pongTemplate, 3000);
         if (pong == null) {
-            System.out.println(myAgent.getLocalName() + " Pas de PONG de " + receiverName);
+            //System.out.println(myAgent.getLocalName() + " Pas de PONG de " + receiverName);
             this.exitValue = myAgent.getMsgRetour();
         } else {
-	        System.out.println(myAgent.getLocalName() + " PONG reçu de " + receiverName);
+	        //System.out.println(myAgent.getLocalName() + " PONG reçu de " + receiverName);
 	        this.exitValue = type_msg;
         }
         

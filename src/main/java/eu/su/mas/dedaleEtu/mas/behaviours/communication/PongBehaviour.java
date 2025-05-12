@@ -67,12 +67,12 @@ public class PongBehaviour extends Behaviour {
         ACLMessage ping = this.myAgent.blockingReceive(pingTemplate, 3000);
         
         if (ping == null) {
-            System.out.println(myAgent.getLocalName() + " Pas de PING de " + receiverName + "retour : " + myAgent.getMsgRetour());
+            //System.out.println(myAgent.getLocalName() + " Pas de PING de " + receiverName + "retour : " + myAgent.getMsgRetour());
             this.exitValue = myAgent.getMsgRetour();
             this.finished = true;
             return;
         }
-        System.out.println(myAgent.getLocalName() + " PING reçu de " + receiverName);
+        //System.out.println(myAgent.getLocalName() + " PING reçu de " + receiverName);
         
         // on se dirige à la réception du partage adéquat
         int type_transmission = Integer.parseInt(ping.getContent());
@@ -81,7 +81,7 @@ public class PongBehaviour extends Behaviour {
         myAgent.setTypeMsg(type_reception);
 
         
-    	System.out.println("pong : " + myAgent.getLocalName() + " msg retour : " + myAgent.getMsgRetour() + " msg autre : " + myAgent.getTypeMsg());
+    	//System.out.println("pong : " + myAgent.getLocalName() + " msg retour : " + myAgent.getMsgRetour() + " msg autre : " + myAgent.getTypeMsg());
         
         // 2. Envoi du Pong
         ACLMessage pong = ping.createReply();
@@ -90,7 +90,7 @@ public class PongBehaviour extends Behaviour {
         pong.addReceiver(new AID(this.receiverName, AID.ISLOCALNAME));
         pong.setContent("Je suis bien dispo !");
         myAgent.sendMessage(pong);
-        System.out.println(myAgent.getLocalName() + " → PONG envoyé à " + receiverName);
+        //System.out.println(myAgent.getLocalName() + " → PONG envoyé à " + receiverName);
 
         this.exitValue = myAgent.getTypeMsg();
 	    this.finished = true;   

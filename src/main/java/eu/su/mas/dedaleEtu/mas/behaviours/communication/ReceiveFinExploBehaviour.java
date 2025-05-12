@@ -63,8 +63,8 @@ public class ReceiveFinExploBehaviour extends Behaviour {
                 e.printStackTrace();
             }           
             
-            System.out.println(this.myAgent.getLocalName() + " échange terminé avec " + receiverName);
-    		System.out.println(this.myAgent.getLocalName() + " liste fin explo : " + myAgent.getListFinExplo());
+            //System.out.println(this.myAgent.getLocalName() + " échange terminé avec " + receiverName);
+    		//System.out.println(this.myAgent.getLocalName() + " liste fin explo : " + myAgent.getListFinExplo());
     		
     		if(myAgent.getSent()) {
             	myAgent.setSent(false);
@@ -76,7 +76,7 @@ public class ReceiveFinExploBehaviour extends Behaviour {
             }
             
         } else {
-            System.out.println(myAgent.getLocalName() + " n’a pas reçu de liste de validation en retour de " + receiverName);
+            //System.out.println(myAgent.getLocalName() + " n’a pas reçu de liste de validation en retour de " + receiverName);
             myAgent.setSent(false);
             myAgent.setReceived(false);
             this.exitValue = myAgent.getMsgRetour();

@@ -102,7 +102,10 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
     
     private String type_agent = "";
     private String coffre_disparu = "false";
-
+    private Set<String> explorateurs = new HashSet<>();
+    private Map<String, String> list_reperage = new HashMap<>();
+    private String previous_mode = "";
+    
     
 	//private List<Couple<Location, List<Couple<Observation, String>>>> lastObs = new ArrayList<>();
 	//private List<String> objectif = new ArrayList<>();
@@ -134,7 +137,8 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 			
 			int i=3;// WARNING YOU SHOULD ALWAYS START AT 2. This will be corrected in the next release.
 			while (i<args.length) {
-				this.list_agentNames.add((String)args[i]);
+				String nom = (String)args[i];
+				this.list_agentNames.add(nom);
 				i++;
 			}
 		}
@@ -348,6 +352,19 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 		return this.coffre_disparu;
 	}
 	
+	public Set<String> getExplorateurs(){
+		return this.explorateurs;
+	}
+	
+	public Map<String, String> getListReperage(){
+		return this.list_reperage;
+	}
+	
+	public String getPreviousMode() {
+		return this.previous_mode;
+	}
+
+	
 	
 	/*public List<Couple<Location, List<Couple<Observation, String>>>> getLastObservation(){
 		return this.lastObs;
@@ -511,6 +528,19 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
 		this.coffre_disparu = update_coffre;
 	}
 	
+	public void setExplorateurs(Set<String> explo) {
+		this.explorateurs = explo;
+	}
+	
+	public void setReperage(Map<String, String> reperage) {
+		this.list_reperage = reperage;
+	}
+	
+	public void setPreviousMode(String mode) {
+		this.previous_mode = mode;
+	}
+
+	
 	/*public void setLastObservation(List<Couple<Location, List<Couple<Observation, String>>>> lastObs) {
 		this.lastObs = lastObs;
 	}
@@ -544,7 +574,7 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
         pong.setContent("moved : true");
         pong.setSender(this.getAID());
         
-        System.out.println(this.getLocalName() + " → PONG faux envoyé à " + ping.getSender().getLocalName());
+        //System.out.println(this.getLocalName() + " → PONG faux envoyé à " + ping.getSender().getLocalName());
         this.sendMessage(pong);
         //System.out.println(this.getLocalName() + " → PONG factice envoyé à " + receiverName);
        
@@ -552,10 +582,10 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
         this.setBlockingAgent(ping.getSender().getLocalName());
         this.setReceptionInterblocage(true);
         
-        System.out.println("blocant pong : " + this.getBlockingAgent());
+        //System.out.println("blocant pong : " + this.getBlockingAgent());
         
         // on met cette variable à true pour éviter de relancer le ping interblocage en allant dans le comportement InterBlocage
-        //this.setTransmissionInterblocage(true);
+        this.setTransmissionInterblocage(true);
         return true;
 	}
 	
@@ -567,12 +597,55 @@ public class ExploreCoopAgent2 extends AbstractDedaleAgent {
     	);
 
     	ACLMessage msg = this.receive(template);
+    	if (msg != null && msg.getContent().equals("hasNotNewPath")) {
+    	    //System.out.println(this.getLocalName() + " a reçu une affirmation de nouveau chemin de la part de " + msg.getSender().getLocalName());
+    	    this.setDecalage(true);
+    	    return true;
+    	}
     	if (msg != null && msg.getContent().equals("hasNewPath")) {
-    	    System.out.println(this.getLocalName() + " a reçu une affirmation de nouveau chemin de la part de " + msg.getSender().getLocalName());
-    	    this.setDecalage(true);  // méthode à toi à créer si besoin
+    	    //System.out.println(this.getLocalName() + " a reçu une affirmation de nouveau chemin de la part de " + msg.getSender().getLocalName());
+    	    this.setDecalage(false);
     	    return true;
     	}
     	return false;
+	}
+	
+	
+	public boolean checkMessagesFinExploInterBlocage() {
+		
+		// 1. Réception du Ping InterBlocage
+        MessageTemplate demandeRdvTemplate = MessageTemplate.and(
+            MessageTemplate.MatchProtocol("SHARE-DEMANDE-LIEU-RDV"),
+            MessageTemplate.MatchPerformative(ACLMessage.INFORM)
+        );
+
+        ACLMessage demandeRdv = this.receive(demandeRdvTemplate);
+        
+        if (demandeRdv == null) {
+            return false;
+        }
+        
+        //System.out.println(this.getLocalName() + " a reçu un PING inter de " + ping.getSender().getLocalName());
+                
+        // 2. Envoi du Pong InterBlocage
+        ACLMessage retourRdvPong = new ACLMessage(ACLMessage.INFORM);
+        retourRdvPong.setProtocol("SHARE-RETOUR-LIEU-RDV");
+        retourRdvPong.addReceiver(new AID(demandeRdv.getSender().getLocalName(), AID.ISLOCALNAME));
+        retourRdvPong.setSender(this.getAID());
+        
+        if(this.getMode().equals("finExplo")) {
+            retourRdvPong.setContent("true");
+        } else {
+            retourRdvPong.setContent("false");
+        }
+        
+        //System.out.println(this.getLocalName() + " → PONG faux envoyé à " + ping.getSender().getLocalName());
+        this.sendMessage(retourRdvPong);
+        //System.out.println(this.getLocalName() + " → PONG factice envoyé à " + receiverName);
+       
+        //System.out.println("blocant pong : " + this.getBlockingAgent());
+
+        return true;
 	}
 	
 	

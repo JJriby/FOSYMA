@@ -100,7 +100,14 @@ public class CollectSiloBehaviour extends Behaviour {
         }
         
         /* en travaux (pas fini)
-        // Réception de la possible disparition du coffre
+        // Réception de la possible disparition du coffre et dans ce cas faudra le retirer de la liste théorique 
+        /// pour la redistribution des trésors. S'il reste des agents ne pouvant pas faire parti de coalitions,
+        /// on les envoie en repérage sur les prochains coffres non attribués pour vérifier qu'il sont toujours là
+        /// et avertir le tanker s'ils ont disparu pour éviter d'envoyer les coalitions sur des trésors qui ne sont plus présents.
+        /// S'il ne reste plus de coffres, ils partent au hasard sur la map pour fouiller et voir s'ils repèrent des coffres.
+        /// Et ainsi de suite.
+        ///
+   
         MessageTemplate returnInfosCoffreTemp = MessageTemplate.and(
                 MessageTemplate.MatchProtocol("SHARE-INFOS-COFFRE"),
                 MessageTemplate.MatchPerformative(ACLMessage.INFORM)
@@ -169,6 +176,7 @@ public class CollectSiloBehaviour extends Behaviour {
                     }
                     
                     
+                    // on rappelle la fonction pour former les coalitions et on repartage la nouvelle liste des objectifs obtenue
                 	
                 }
                 

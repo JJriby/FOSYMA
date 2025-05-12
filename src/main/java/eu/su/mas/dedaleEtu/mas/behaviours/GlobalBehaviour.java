@@ -277,12 +277,14 @@ public class GlobalBehaviour extends FSMBehaviour {
         this.registerTransition(GoToRDV, InterBlocage, TO_INTERBLOCAGE);
         
         this.registerTransition(CollectSilo, ShareInfosInterBlocage, TO_SHARE_INFOS_INTERBLOCAGE);
+        this.registerTransition(Collect, ShareInfosInterBlocage, TO_SHARE_INFOS_INTERBLOCAGE);
         //this.registerTransition(GoToRDV, Ping, TO_PING);
         
         this.registerTransition(GoToRDV, Blocage, TO_BLOCAGE);
         this.registerTransition(Blocage, GoToRDV, TO_GO_TO_RDV);
         this.registerTransition(Blocage, InterBlocage, TO_INTERBLOCAGE);
         
+        this.registerTransition(ReceiveFinExplo, Attente, TO_ATTENTE);
         /*this.registerTransition(Ping, ShareInfosInterBlocage, TO_SHARE_INFOS_INTERBLOCAGE);
         
         this.registerTransition(ShareInfosInterBlocage, InterBlocage, TO_SHARE_INTERBLOCAGE);

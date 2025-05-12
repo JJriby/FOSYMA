@@ -62,7 +62,7 @@ public class ShareExpertise extends Behaviour {
             expMsg.addReceiver(new AID(receiverName, AID.ISLOCALNAME));
             expMsg.setContentObject(a_envoyer);
             myAgent.sendMessage(expMsg);
-            System.out.println(myAgent.getLocalName() + " exp envoyés à " + receiverName);
+            //System.out.println(myAgent.getLocalName() + " exp envoyés à " + receiverName);
         } catch (IOException e) {
             e.printStackTrace();
         }

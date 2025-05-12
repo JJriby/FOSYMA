@@ -48,7 +48,7 @@ public class ReceiveMapBehaviour extends Behaviour {
         
         this.myMap = ((GlobalBehaviour) this.getParent()).getMyMap();
         
-        System.out.println(myAgent.getLocalName() + " est envoyé dans receive map par " + this.receiverName + " avec en retour : " + myAgent.getMsgRetour() + " et en maj : " + myAgent.getTypeMsg());
+        //System.out.println(myAgent.getLocalName() + " est envoyé dans receive map par " + this.receiverName + " avec en retour : " + myAgent.getMsgRetour() + " et en maj : " + myAgent.getTypeMsg());
 		
 		// Réception de la carte et des trésors
         MessageTemplate returnMapTemp = MessageTemplate.and(
@@ -66,7 +66,7 @@ public class ReceiveMapBehaviour extends Behaviour {
                 SerializableSimpleGraph<String, MapAttribute> receivedMap = received.getLeft();
 
                 myMap.mergeMap(receivedMap);
-                System.out.println(myAgent.getLocalName() + " a reçu et fusionné la carte de " + receiverName);
+                //System.out.println(myAgent.getLocalName() + " a reçu et fusionné la carte de " + receiverName);
                 
                 nodesToTransmit.put(receiverName, new SerializableSimpleGraph<>());
                 
@@ -101,7 +101,7 @@ public class ReceiveMapBehaviour extends Behaviour {
             	this.exitValue = myAgent.getMsgRetour();
             	
             	if (!this.myMap.hasOpenNode() && myAgent.getMode().equals("explo")) {
-        	    	System.out.println(myAgent.getLocalName() + " est à " + myAgent.getCurrentPosition() + " et a comme fin : " + nodesToTransmit);
+        	    	//System.out.println(myAgent.getLocalName() + " est à " + myAgent.getCurrentPosition() + " et a comme fin : " + nodesToTransmit);
         	        
         	        System.out.println(this.myAgent.getLocalName() + " - Exploration terminée !");
         	        myAgent.getListFinExplo().put(myAgent.getLocalName(), true);
@@ -120,7 +120,7 @@ public class ReceiveMapBehaviour extends Behaviour {
         	        myAgent.setTypeMsg(GlobalBehaviour.TO_FIN_EXPLO);  // fin d'exploration
         	        alreadyExchanged.clear();
         	        
-        	        System.out.println("[OBJ] " + myAgent.getLocalName() + " est à " + myAgent.getCurrentPosition().getLocationId() + " et doit parcourir : " + myAgent.getShortestPath());
+        	        //System.out.println("[OBJ] " + myAgent.getLocalName() + " est à " + myAgent.getCurrentPosition().getLocationId() + " et doit parcourir : " + myAgent.getShortestPath());
         	    	
         	        this.exitValue = GlobalBehaviour.TO_GO_TO_RDV;
 
@@ -133,7 +133,7 @@ public class ReceiveMapBehaviour extends Behaviour {
             }
             
         } else {
-            System.out.println(myAgent.getLocalName() + " n’a pas reçu de carte et de trésors de " + receiverName);
+            //System.out.println(myAgent.getLocalName() + " n’a pas reçu de carte et de trésors de " + receiverName);
             myAgent.setSent(false);
             myAgent.setReceived(false);
             this.exitValue = myAgent.getMsgRetour();

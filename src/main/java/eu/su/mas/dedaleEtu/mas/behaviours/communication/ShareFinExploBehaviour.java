@@ -46,12 +46,12 @@ public class ShareFinExploBehaviour extends Behaviour {
             finExploMsg.addReceiver(new AID(receiverName, AID.ISLOCALNAME));
             finExploMsg.setContentObject((Serializable)list_fin_explo);
             myAgent.sendMessage(finExploMsg);
-            System.out.println(myAgent.getLocalName() + " fin explo envoyée à " + receiverName);
+            //System.out.println(myAgent.getLocalName() + " fin explo envoyée à " + receiverName);
         } catch (IOException e) {
             e.printStackTrace();
         }
 		
-		System.out.println(myAgent.getLocalName() + " envoie : " + list_fin_explo + " à " + receiverName);
+		//System.out.println(myAgent.getLocalName() + " envoie : " + list_fin_explo + " à " + receiverName);
 	    
 		// si j'ai pas fini l'explo, alors j'attends de recevoir une map
 		if(list_fin_explo.get(myAgent.getLocalName()) == false) {

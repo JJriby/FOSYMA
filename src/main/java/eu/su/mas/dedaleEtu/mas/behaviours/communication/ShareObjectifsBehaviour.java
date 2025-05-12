@@ -55,7 +55,7 @@ public class ShareObjectifsBehaviour extends Behaviour {
             objMsg.addReceiver(new AID(receiverName, AID.ISLOCALNAME));
             objMsg.setContentObject(a_envoyer);
             myAgent.sendMessage(objMsg);
-            System.out.println(myAgent.getLocalName() + " objectifs envoyés à " + receiverName);
+            //System.out.println(myAgent.getLocalName() + " objectifs envoyés à " + receiverName);
         } catch (IOException e) {
             e.printStackTrace();
         }

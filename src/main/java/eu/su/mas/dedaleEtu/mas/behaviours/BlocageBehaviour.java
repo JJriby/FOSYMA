@@ -32,6 +32,30 @@ public class BlocageBehaviour extends Behaviour {
         ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
         this.myMap = ((GlobalBehaviour) this.getParent()).getMyMap();
         
+        if(myAgent.getPreviousMode().equals("CartePleine")) {
+        	System.out.println(myAgent.getLocalName() + " est bloqué et a pour obj " + myAgent.getGoalNode());
+        	List<String> chemin = myMap.getShortestPath(myAgent.getCurrentPosition().getLocationId(), myAgent.getGoalNode());
+        	myAgent.setShortestPath(chemin);
+        	System.out.println("nouveau chemin : " + myAgent.getShortestPath());
+        	myAgent.setMode("CartePleine");
+        	myAgent.setPreviousMode("");
+        	this.exitValue = GlobalBehaviour.TO_GO_TO_RDV;
+	    	this.finished = true;
+	    	return;
+        }
+        
+        if(myAgent.getPreviousMode().equals("collecte")) {
+        	System.out.println(myAgent.getLocalName() + " est bloqué et a pour obj " + myAgent.getGoalNode());
+        	List<String> chemin = myMap.getShortestPath(myAgent.getCurrentPosition().getLocationId(), myAgent.getGoalNode());
+        	myAgent.setShortestPath(chemin);
+        	System.out.println("nouveau chemin : " + myAgent.getShortestPath());
+        	myAgent.setMode("collecte");
+        	myAgent.setPreviousMode("");
+        	this.exitValue = GlobalBehaviour.TO_GO_TO_RDV;
+	    	this.finished = true;
+	    	return;
+        }
+        
         // une fois qu'on a croisé l'agent qu'on devait laisser passer, et qu'on ne le voit désormais plus, on récupère notre chemin vers la destination initiale
         List<Couple<Location, List<Couple<Observation, String>>>> lobs = ((AbstractDedaleAgent) myAgent).observe();	
     	

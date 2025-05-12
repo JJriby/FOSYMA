@@ -3,6 +3,7 @@ package eu.su.mas.dedaleEtu.mas.behaviours;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.graphstream.graph.Node;
 
@@ -62,11 +63,11 @@ public class CollectBehaviour extends Behaviour {
 		}*/
 		
 		if(pour_debugger == 0) {
-			if(myAgent.getLocalName() != "Silo") {
+			/*if(myAgent.getLocalName() != "Silo") {
 				System.out.println("Phase collecte : " + this.myAgent.getLocalName() + " ma localisation : " + ((AbstractDedaleAgent) myAgent).getCurrentPosition() + " mais but : " + myAgent.getListObjectifs().get(myAgent.getLocalName()));
 			} else {
 				System.out.println("Phase collecte : " + this.myAgent.getLocalName() + " ma localisation : " + ((AbstractDedaleAgent) myAgent).getCurrentPosition() + " mais but : " + myAgent.getPosSilo());
-			}
+			}*/
 			pour_debugger++;
 		}
 		
@@ -76,11 +77,16 @@ public class CollectBehaviour extends Behaviour {
         
         // on ouvre le trésor adéquat si nécessaire
         boolean ouvert = false;
+        Observation obs = null;
+        int capacite = 0;
         
         if(myAgent.getListGold().containsKey(myPosition.getLocationId())) {
         	String statut_lock = myAgent.getListGold().get(myPosition.getLocationId()).get(Observation.LOCKSTATUS);
+        	capacite += Integer.parseInt(myAgent.getListGold().get(myPosition.getLocationId()).get(Observation.GOLD));
+        	obs = Observation.GOLD;
         	if(statut_lock.equals("0")) {
         		ouvert = ((AbstractDedaleAgent) myAgent).openLock(Observation.GOLD);
+        		System.out.println("OUVERTURE REUSSIE : " + ouvert);
         	} else {
         		ouvert = true;
         	}
@@ -88,6 +94,8 @@ public class CollectBehaviour extends Behaviour {
         
         if(myAgent.getListDiamond().containsKey(myPosition.getLocationId())) {
         	String statut_lock = myAgent.getListDiamond().get(myPosition.getLocationId()).get(Observation.LOCKSTATUS);
+        	capacite += Integer.parseInt(myAgent.getListDiamond().get(myPosition.getLocationId()).get(Observation.DIAMOND));
+        	obs = Observation.DIAMOND;
         	if(statut_lock.equals("0")) {
         		ouvert = ((AbstractDedaleAgent) myAgent).openLock(Observation.DIAMOND);
         	} else {
@@ -97,46 +105,54 @@ public class CollectBehaviour extends Behaviour {
         
         
         // si le coffre est bien ouvert, on le récolte
-        if(ouvert) {
-        	int qte = ((AbstractDedaleAgent) myAgent).pick();
-        	
-        	// si y a rien, faut voir comment faire pour avertir le silo que le coffre a disparu
-        	if(qte == 0) {
-        		System.out.println("il n'y a rien ici !");
-        		myAgent.setCoffreDisparu("true");
-        	} else {
-        		myAgent.addCollectedTreasure(qte);
-        		System.out.println("quantité récupérée : " + myAgent.getCollectedTreasureValue());
+        if (capacite > 0 && ouvert) {
+        	boolean coffreTrouve = false;
+
+        	if (obs == Observation.GOLD) {
+        		for (Entry<String, Map<Observation, String>> o : myAgent.getListGold().entrySet()) {
+        			if (o.getKey().equals(myPosition.getLocationId())) {
+        				coffreTrouve = true;
+        				break;
+        			}
+        		}
+        	} else if (obs == Observation.DIAMOND) {
+        		for (Entry<String, Map<Observation, String>> o : myAgent.getListDiamond().entrySet()) {
+        			if (o.getKey().equals(myPosition.getLocationId())) {
+        				coffreTrouve = true;
+        				break;
+        			}
+        		}
         	}
-        	
+
+        	if (coffreTrouve) {
+        		int qte = ((AbstractDedaleAgent) myAgent).pick();
+
+        		if (qte == 0) {
+        			System.out.println("il n'y a rien ici !");
+        			myAgent.setCoffreDisparu("true");
+        		} else {
+        			myAgent.addCollectedTreasure(qte);
+        			System.out.println("quantité récupérée : " + myAgent.getCollectedTreasureValue());
+        		}
+          	} else {
+        		// Sinon, on explore autour pour chercher le coffre
+        		List<Couple<Location, List<Couple<Observation, String>>>> lobs = ((AbstractDedaleAgent) myAgent).observe();
+
+        		for (Couple<Location, List<Couple<Observation, String>>> obsLoc : lobs) {
+        			String locId = obsLoc.getLeft().getLocationId();
+        			for (Couple<Observation, String> o : obsLoc.getRight()) {
+        				if (o.getLeft().equals(obs)) {
+        					myAgent.setGoalNode(locId);
+        					((AbstractDedaleAgent) myAgent).moveTo(obsLoc.getLeft());
+        					return;
+        				}
+        			}
+        		}
+
+        	}
         }
-        
-        
-        // on regarde si on a récupéré tout le coffre
-        /*List<Couple<Location, List<Couple<Observation, String>>>> lobs = ((AbstractDedaleAgent) myAgent).observe();
 
-        for (Couple<Location, List<Couple<Observation, String>>> obs : lobs) {
-	        Location pos = obs.getLeft();
-	        List<Couple<Observation, String>> details = obs.getRight();
-	    	
-	        // si on observe le noeud où on se trouve
-			if(pos.getLocationId().equals(myPosition.getLocationId())) {
-				
-		        for (Couple<Observation, String> detail : details) {
-		        	
-		            if (detail.getLeft() == Observation.GOLD || detail.getLeft() == Observation.DIAMOND) {
-		                String qte_restante = detail.getRight();
-		                
-		                if(qte_restante.equals("0")) {
-		                	System.out.println("On a récolté tout le trésor !");
-		                }
-		                
-		            }
-		        }  
-			}
-        }*/
-
-  
+        
         // on retourne au silo
         List<String> path = this.myMap.getShortestPath(myPosition.getLocationId(), myAgent.getPosSilo());
         if(path != null && !path.isEmpty()) {

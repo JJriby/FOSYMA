@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import org.graphstream.graph.Node;
@@ -145,10 +146,32 @@ public class SuitePlanDAttaqueBehaviour extends Behaviour {
 		List<Map.Entry<String, List<Couple<Observation, Integer>>>> tri_capacite_diamond = new ArrayList<>(list_back_free_space.entrySet());
 
 		tri_capacite_diamond.sort((elt1, elt2) -> {
-			    int val1 = getObservationBackPackAgent(elt1.getValue(), Observation.GOLD);
-			    int val2 = getObservationBackPackAgent(elt2.getValue(), Observation.GOLD);
+			    int val1 = getObservationBackPackAgent(elt1.getValue(), Observation.DIAMOND);
+			    int val2 = getObservationBackPackAgent(elt2.getValue(), Observation.DIAMOND);
 			    return Integer.compare(val2, val1);
 		});
+		
+	
+		// on récupère la liste des explorateurs et on retire les agents aux backpacks vides selon les trésors
+		/*for(Map.Entry<String, List<Couple<Observation, Integer>>> bp : list_back_free_space.entrySet()) {
+			String agentName = bp.getKey();
+			boolean no_gold = false;
+			boolean no_diamond = false;
+			for(Couple<Observation, Integer> details : bp.getValue()) {
+				if(details.getLeft() == Observation.GOLD && details.getRight() <= 0) {
+					tri_capacite_gold.removeIf(entry -> entry.getKey().equals(agentName));
+					no_gold = true;
+				}
+				if(details.getLeft() == Observation.DIAMOND && details.getRight() <= 0) {
+					tri_capacite_diamond.removeIf(entry -> entry.getKey().equals(agentName));
+					no_diamond = true;
+				}
+			}
+			if(no_gold && no_diamond) {
+				myAgent.getExplorateurs().add(agentName);
+			}
+		}*/
+		
 		
 		// on retire les caractéristiques du Silo (il part pas en expédition lui)
 		tri_capacite_gold.removeIf(elt -> elt.getKey().equals(myAgent.getLocalName()));
@@ -194,6 +217,56 @@ public class SuitePlanDAttaqueBehaviour extends Behaviour {
 		
 		myAgent.setPosSilo(this.myMap.calculBarycentre(pos_tresors));	
 		myAgent.setShortestPath(this.myMap.getShortestPath(((AbstractDedaleAgent) myAgent).getCurrentPosition().getLocationId(), myAgent.getPosSilo()));
+		
+		
+		// on attribue des objectifs aussi pour les agents n'ayant pas de coalitions pour le repérage
+		List<String> sans_obj = new ArrayList<>(agentNames);
+		sans_obj.removeAll(list_objectifs.keySet());
+		
+		if(!sans_obj.isEmpty()) {
+			// on fusionne les types de trésors
+			List<Map.Entry<String, Map<Observation, String>>> total_tresors = new ArrayList<>();
+			total_tresors.addAll(list_theorique.getLeft());
+			total_tresors.addAll(list_theorique.getRight());
+			
+			// on le trie du meilleur au pire
+			total_tresors.sort((x, y) -> {
+				int max1 = Math.max(
+				    Integer.parseInt(x.getValue().getOrDefault(Observation.GOLD, "0")),
+				    Integer.parseInt(x.getValue().getOrDefault(Observation.DIAMOND, "0"))
+				);
+				int max2 = Math.max(
+				    Integer.parseInt(y.getValue().getOrDefault(Observation.GOLD, "0")),
+				    Integer.parseInt(y.getValue().getOrDefault(Observation.DIAMOND, "0"))
+				);
+			    return Integer.compare(max2, max1);
+			});
+			
+			// attribution des coffres à repérer
+			List<Map.Entry<String, Map<Observation, String>>> tresors_dispos = new ArrayList<>(total_tresors);
+			int cpt = 0;
+
+			for (String a : sans_obj) {
+			    if (cpt < tresors_dispos.size()) {
+			        Map.Entry<String, Map<Observation, String>> t = tresors_dispos.get(cpt);
+			        String localisation = t.getKey();
+			        list_objectifs.put(a, localisation);
+			        cpt++;
+			    } else {
+			    	List<String> all_nodes = new ArrayList<>();
+			    	for (Node node : myMap.getGraph()) {
+			    	    all_nodes.add(node.getId());
+			    	}
+			        if (!all_nodes.isEmpty()) {
+			            String randomGoal = all_nodes.get(new Random().nextInt(all_nodes.size()));
+			            list_objectifs.put(a, randomGoal);
+			        }
+			    }
+			}
+			
+		}
+		
+		
 		
 		System.out.println("attribution des objectifs : " + myAgent.getListObjectifs());
 		System.out.println("position du silo : " + myAgent.getPosSilo());
@@ -267,7 +340,9 @@ public class SuitePlanDAttaqueBehaviour extends Behaviour {
     				int lock_tresor = Integer.parseInt(details.get(Observation.LOCKPICKING));
 					
     				// on parcourt toutes les coalitions
-    				for(List<String> l : list_coalitions_agent) {
+    				Iterator<List<String>> i = list_coalitions_agent.iterator();
+    				while(i.hasNext()) {
+    					List<String> l = i.next();
     					
 						int strength_tot = 0;
 						int lock_tot = 0;
@@ -285,35 +360,36 @@ public class SuitePlanDAttaqueBehaviour extends Behaviour {
 	    					
     					// si la coalition ne respecte pas les conditions, on la supprime
     					if(lock_tot < lock_tresor || strength_tot < strength_tresor) {
-    						list_coalitions_agent.remove(l);
+    						i.remove();
     					}
 
 					}
-				} else { // si le trésor est déjà ouvert, on se préoccupe que de la force
+				} 
+				/*else { // si le trésor est déjà ouvert, on se préoccupe que de la force
 					// on récupère les caractéristiques du trésor en question
     				int strength_tresor = Integer.parseInt(details.get(Observation.STRENGH));
 					
     				// on parcourt toutes les coalitions
-    				for(List<String> l : list_coalitions_agent) {
+    				Iterator<List<String>> i = list_coalitions_agent.iterator();
+    				while(i.hasNext()) {
+    					List<String> l = i.next();
 
 						int strength_tot = 0;
     					
 						// on parcourt tous les agents de la coalition
     					for(String a : l) {
-    						
 	    					// on récupère les caractériqtiques de l'agent adéquat
 	    					int strength_agent = this.list_strength_agents.get(a);
-	    					
 	    					strength_tot += strength_agent;
     					}
 	    					
     					// si la coalition ne respecte pas les conditions, on la supprime
     					if(strength_tot < strength_tresor) {
-    						list_coalitions_agent.remove(l);
+    						i.remove();
     					}
 
 					}
-				}
+				}*/
 				
 				// on choisit quelle coalition prendre (évite le plus la perte des 10%)
 				int comparaison = Integer.MAX_VALUE;
@@ -349,10 +425,15 @@ public class SuitePlanDAttaqueBehaviour extends Behaviour {
 				}
 				
 				if(!coalition_finale.isEmpty()) {
+					List<String> voisins_tresor = new ArrayList<>();
+					voisins_tresor.add(localisation);
+					voisins_tresor.addAll(this.myMap.getNeighbors(localisation, null));
     				// on met à jour les objectifs des membres de la coalition
-    				for(String a : coalition_finale) {
-    					this.list_objectifs.put(a, localisation);
-    				}	
+					for (int i = 0; i < coalition_finale.size(); i++) {
+					    String agent = coalition_finale.get(i);
+					    String position = voisins_tresor.get(i);
+					    this.list_objectifs.put(agent, position);
+					}	
     				
     				// on met à jour la liste théorique
     			    List<Map.Entry<String, Map<Observation, String>>> liste_tresors_voulu =

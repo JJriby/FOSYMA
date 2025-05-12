@@ -3,9 +3,12 @@ package eu.su.mas.dedaleEtu.mas.knowledge;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -498,6 +501,55 @@ public class MapRepresentation implements Serializable {
 
 	    return path.isEmpty() ? null : path;
 	}
+	
+	
+    public List<String> getNeighbors(String nodeId, Set<String> nodesToAvoid) {
+        List<String> neighbors = new ArrayList<>();
+        Graph graph = this.getGraph();
+        Node node = graph.getNode(nodeId);
+        if (node != null) {
+        	node.neighborNodes().forEach(n -> {
+                if (nodesToAvoid == null || !nodesToAvoid.contains(n.getId())) {
+                    neighbors.add(n.getId());
+                }
+            });
+        }
+        return neighbors;
+    }
+    
+    
+    
+    public List<String> findSafeNodeToMove(String fromNodeId, List<String> avoidPath, Set<String> nodesToAvoid) {
+        Set<String> visited = new HashSet<>();
+        Queue<String> queue = new LinkedList<>();
+
+        visited.add(fromNodeId);
+        queue.add(fromNodeId);
+
+        while (!queue.isEmpty()) {
+            String current = queue.poll();
+            List<String> neighbors = this.getNeighbors(current, nodesToAvoid);
+
+            for (String neighbor : neighbors) {
+                if (!visited.contains(neighbor)) {
+                    visited.add(neighbor);
+                    queue.add(neighbor);
+
+                    // Si ce voisin est un nœud sûr et différent de notre position actuelle
+                    if (!avoidPath.contains(neighbor) && !neighbor.equals(fromNodeId)) {
+                        List<String> path = this.getShortestPath(fromNodeId, neighbor);
+                        if (path != null && path.size() > 1) { // on veut au moins un déplacement réel
+                            return path;
+                        }
+                    }
+
+                }
+            }
+        }
+
+        return null;
+    }
+    
 
 
 }

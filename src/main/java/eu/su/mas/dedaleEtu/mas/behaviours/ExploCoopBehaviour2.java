@@ -135,14 +135,16 @@ public void action() {
         this.cpt_block++; 
     } else { 
         this.cpt_block = 0; 
-    } 
+    } */
      
-    if(this.cpt_block == 10) {  
+    if(this.cpt_block == 5) { 
+    	cpt_block = 0;
+    	//System.out.println("interblocage en explocoop par " + myAgent.getLocalName());
         myAgent.setTypeMsg(GlobalBehaviour.TO_EXPLORE); // pas utile je crois 
         this.finished = true; 
         this.exitValue = GlobalBehaviour.TO_INTERBLOCAGE; 
         return; 
-    }*/
+    }
      
      
     // 3) Explorer les nœuds accessibles et ajouter les nouvelles connexions 
@@ -223,10 +225,10 @@ public void action() {
         for (Couple<Observation, String> detail : details) { 
              
             // Détecter les agents voisins et leur envoyer les nouveaux nœuds 
-            if (detail.getLeft() == Observation.AGENTNAME) { 
+            if (detail.getLeft() == Observation.AGENTNAME && myAgent.getAgentNames().contains(detail.getRight())) { 
                 String agentName = detail.getRight(); 
  
-                if (this.historique_com.get(agentName) == 0) { 
+                if (this.historique_com.getOrDefault(agentName, 0) == 0) { 
  
                     myAgent.setReceiverName(agentName); 
                      
@@ -338,7 +340,7 @@ public void action() {
             return; // attendre les autres 
         }*/ 
          
-        System.out.println(myAgent.getLocalName() + " est à " + myAgent.getCurrentPosition() + " et a comme fin : " + nodesToTransmit); 
+        //System.out.println(myAgent.getLocalName() + " est à " + myAgent.getCurrentPosition() + " et a comme fin : " + nodesToTransmit); 
          
         System.out.println(this.myAgent.getLocalName() + " - Exploration terminée !"); 
         myAgent.getListFinExplo().put(myAgent.getLocalName(), true); 
@@ -357,8 +359,8 @@ public void action() {
         myAgent.setTypeMsg(GlobalBehaviour.TO_FIN_EXPLO);  // fin d'exploration 
         alreadyExchanged.clear(); 
          
-        System.out.println("[OBJ] " + myAgent.getLocalName() + " est à " + myAgent.getCurrentPosition().getLocationId() + " et doit parcourir : " + myAgent.getShortestPath()); 
-         
+        //System.out.println("[OBJ] " + myAgent.getLocalName() + " est à " + myAgent.getCurrentPosition().getLocationId() + " et doit parcourir : " + myAgent.getShortestPath()); 
+         System.out.println("pos : " + myAgent.getCurrentPosition().getLocationId() + " chemin : " + myAgent.getShortestPath());
         // Tous ont fini → terminer vraiment 
         this.exitValue = GlobalBehaviour.TO_GO_TO_RDV; 
         finished = true; 
@@ -378,11 +380,17 @@ public void action() {
      
  
     // 7) Se déplacer vers le prochain nœud 
-       ((AbstractDedaleAgent) myAgent).moveTo(new GsLocation(nextNodeId)); 
+    boolean move = ((AbstractDedaleAgent) myAgent).moveTo(new GsLocation(nextNodeId)); 
      
+    if (move) {
+        this.lastPos = nextNodeId;
+        this.cpt_block = 0;
+    } else {
+        this.cpt_block++;
+    }
      
     // on garde en mémoire la position actuelle 
-    this.lastPos = myPosition.getLocationId(); 
+    //this.lastPos = myPosition.getLocationId(); 
     //myAgent.setNoeudBloque(nextNodeId); 
     
 } 

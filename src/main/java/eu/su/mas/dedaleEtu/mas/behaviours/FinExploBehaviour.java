@@ -34,11 +34,16 @@ public class FinExploBehaviour extends Behaviour {
 			System.out.println(myAgent.getLocalName() + " est dans fin d'explo");
 			pour_debugger++;
 		}
+		
+		
 				
 		this.finished = false;
 	    this.exitValue = -1;
 	    
 	    ExploreCoopAgent2 myAgent = (ExploreCoopAgent2) this.myAgent;
+	    myAgent.setMode("finExplo");
+	    
+	    myAgent.checkMessagesFinExploInterBlocage();
 	    
 	    myAgent.setMsgRetour(GlobalBehaviour.TO_FIN_EXPLO);
 	    
@@ -63,7 +68,7 @@ public class FinExploBehaviour extends Behaviour {
 	            List<Couple<Observation, String>> details = obs.getRight();
 			
 	            for (Couple<Observation, String> detail : details) {
-	            	if (detail.getLeft() == Observation.AGENTNAME) {
+	            	if (detail.getLeft() == Observation.AGENTNAME && myAgent.getAgentNames().contains(detail.getRight())) {
 	            		
 	                    String agentName = detail.getRight();	                    
 	                    
@@ -75,11 +80,11 @@ public class FinExploBehaviour extends Behaviour {
 	                    	//myAgent.getCurrentlyExchanging().add(agentName);
 	                    	
 	                    	if (myAgent.getLocalName().compareTo(agentName) < 0) {
-	                        	System.out.println(myAgent.getLocalName() + " doit aller dans ping");
+	                        	//System.out.println(myAgent.getLocalName() + " doit aller dans ping");
 	                        	myAgent.setTypeMsg(GlobalBehaviour.TO_SHARE_FIN_EXPLO);
 	                        	this.exitValue = GlobalBehaviour.TO_PING;     
 	                        } else {
-	                        	System.out.println(myAgent.getLocalName() + " doit aller dans pong");
+	                        	//System.out.println(myAgent.getLocalName() + " doit aller dans pong");
 	                            this.exitValue = GlobalBehaviour.TO_PONG;
 	                        }                    	
 			                this.finished = true;
@@ -96,7 +101,7 @@ public class FinExploBehaviour extends Behaviour {
 	            List<Couple<Observation, String>> details = obs.getRight();
 			
 	            for (Couple<Observation, String> detail : details) {
-	            	if (detail.getLeft() == Observation.AGENTNAME) {
+	            	if (detail.getLeft() == Observation.AGENTNAME && myAgent.getAgentNames().contains(detail.getRight())) {
 	            		
 	                    String agentName = detail.getRight();	                    
 	                    
@@ -108,11 +113,11 @@ public class FinExploBehaviour extends Behaviour {
 	                    	//myAgent.getCurrentlyExchanging().add(agentName);
 	                    	
 	                    	if (myAgent.getLocalName().compareTo(agentName) < 0) {
-	                        	System.out.println(myAgent.getLocalName() + " doit aller dans ping");
+	                        	//System.out.println(myAgent.getLocalName() + " doit aller dans ping");
 	                        	myAgent.setTypeMsg(GlobalBehaviour.TO_SHARE_FIN_EXPLO);
 	                        	this.exitValue = GlobalBehaviour.TO_PING;     
 	                        } else {
-	                        	System.out.println(myAgent.getLocalName() + " doit aller dans pong");
+	                        	//System.out.println(myAgent.getLocalName() + " doit aller dans pong");
 	                            this.exitValue = GlobalBehaviour.TO_PONG;
 	                        }                    	
 			                this.finished = true;

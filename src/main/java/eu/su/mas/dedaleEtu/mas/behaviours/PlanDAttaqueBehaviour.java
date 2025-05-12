@@ -87,7 +87,7 @@ public class PlanDAttaqueBehaviour extends Behaviour {
 	            List<Couple<Observation, String>> details = obs.getRight();
 			
 	            for (Couple<Observation, String> detail : details) {
-	            	if (detail.getLeft() == Observation.AGENTNAME) {
+	            	if (detail.getLeft() == Observation.AGENTNAME && myAgent.getAgentNames().contains(detail.getRight())) {
 	            		
 	                    String agentName = detail.getRight();	                    
 	                    
@@ -103,7 +103,7 @@ public class PlanDAttaqueBehaviour extends Behaviour {
 	                        	this.exitValue = GlobalBehaviour.TO_PING;
 	                            
 	                        } else {
-	                        	System.out.println(myAgent.getLocalName() + " doit aller dans pong");
+	                        	//System.out.println(myAgent.getLocalName() + " doit aller dans pong");
 	                            this.exitValue = GlobalBehaviour.TO_PONG;
 	                        }
 	                    	
@@ -122,7 +122,7 @@ public class PlanDAttaqueBehaviour extends Behaviour {
 	            List<Couple<Observation, String>> details = obs.getRight();
 			
 	            for (Couple<Observation, String> detail : details) {
-	            	if (detail.getLeft() == Observation.AGENTNAME) {
+	            	if (detail.getLeft() == Observation.AGENTNAME && myAgent.getAgentNames().contains(detail.getRight())) {
 	            		
 	                    String agentName = detail.getRight();	                    
 	                    

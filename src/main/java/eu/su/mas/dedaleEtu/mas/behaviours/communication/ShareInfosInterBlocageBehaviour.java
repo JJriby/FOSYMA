@@ -60,14 +60,8 @@ public class ShareInfosInterBlocageBehaviour extends Behaviour {
 	                	int cpt_equite = myAgent.getEquityCounter();
 	                	List<String> chemin = myAgent.getShortestPath();
 	                	
-	                	Couple<Couple<Integer,Integer>,List<String>> a_envoyer = null;
-	                	if(myAgent.getMode() == "finExplo") {
-		                	Couple<Integer,Integer> infos = new Couple<>(-1, -1);
-		                	a_envoyer = new Couple<>(infos, null);
-	                	} else {
-		                	Couple<Integer,Integer> infos = new Couple<>(qte_tresor, cpt_equite);
-		                	 a_envoyer = new Couple<>(infos,chemin);
-	                	}
+		                Couple<Integer,Integer> infos = new Couple<>(qte_tresor, cpt_equite);
+		                Couple<Couple<Integer,Integer>,List<String>> a_envoyer = new Couple<>(infos,chemin);
 	                	
 	                	ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
 	                	msg.setSender(myAgent.getAID());
@@ -100,14 +94,7 @@ public class ShareInfosInterBlocageBehaviour extends Behaviour {
             	// réception et ajout des infos de l'agent bloquant
             	Couple<Couple<Integer,Integer>,List<String>> infos = (Couple<Couple<Integer,Integer>,List<String>>) returnInfos.getContentObject();
             	
-            	// si la personne qui bloque est en mode finExplo alors je suis bien au point de rdv et je vais en finExplo 
-            	if(infos.getLeft().getLeft() == -1) {
-            		myAgent.setMode("finExplo");
-            		this.exitValue = 24;
-            		this.finished = true;
-            		return;
-            	}
-            	  
+            	myAgent.setBlockingAgent(returnInfos.getSender().getLocalName());
             	String nom_agent = myAgent.getBlockingAgent();
             	myAgent.updateKnownTreasureValue(nom_agent, infos.getLeft().getLeft());
             	myAgent.updateKnownEquityCounter(nom_agent, infos.getLeft().getRight());
